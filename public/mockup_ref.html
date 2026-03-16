@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nova Forza | El Poder de tu Progreso</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;family=Oswald:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d71920",
+                        "background-light": "#f7f4ef",
+                        "background-dark": "#18181b",
+                        "text-dark": "#111111",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "accent": ["Oswald", "sans-serif"],
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light text-text-dark font-display">
+<!-- Fixed Header -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-background-light/95 backdrop-blur-md border-b border-primary/10">
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl font-bold">exercise</span>
+<h1 class="font-accent text-2xl font-bold uppercase tracking-tighter italic">Nova Forza</h1>
+</div>
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-sm font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#">Inicio</a>
+<a class="text-sm font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#planes">Planes</a>
+<a class="text-sm font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#horarios">Horarios</a>
+<a class="text-sm font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#equipo">Entrenadores</a>
+<a class="text-sm font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#tienda">Tienda</a>
+<a class="text-sm font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#contacto">Contacto</a>
+</nav>
+<button class="bg-primary text-white px-6 py-2.5 rounded font-bold uppercase text-xs tracking-widest hover:bg-red-700 transition-all">
+                Reserva tu prueba
+            </button>
+</div>
+</header>
+<!-- Hero Section -->
+<section class="relative h-screen flex items-end pt-20">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover grayscale-[20%] brightness-[40%]" data-alt="Modern high-end gym interior with heavy weights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX5GwDN7pVwo0d2WZrQjRBHqKvKe_WEfkWO18clEJEXl4YBD6ppkTriTQvBBsS0bnFDOAicN5tQ0IQJmqzUiRES-yevBmc9fHNn3-rf3BXyHg3Rwor28OjHkjAk0XIInz6o5vBMEwBHokB4XF7dBl--5-DCfyGetYkxezmo0YDsp772IMOW0IFBc4l-8zg_1Ep6HAnzRodcwHSUj5fD9ihfEqSQxqx-Qz4L7zlFOe009l5E5mrh7vg_KtUKd8xZdiXxe-Tlj3kimMu"/>
+</div>
+<div class="relative z-10 max-w-7xl mx-auto px-6 pb-24 w-full">
+<div class="max-w-3xl">
+<h1 class="font-accent text-6xl md:text-8xl text-white font-bold uppercase leading-none mb-6">
+                    EL PODER DE TU <span class="text-primary">PROGRESO</span> COMIENZA AQUÍ
+                </h1>
+<p class="text-white/80 text-lg md:text-xl mb-10 max-w-xl font-light">
+                    Entrenamiento de fuerza de élite con asesoría personalizada en un ambiente diseñado para resultados reales en Lima.
+                </p>
+<div class="flex flex-wrap gap-4">
+<button class="bg-primary text-white px-10 py-4 rounded font-bold uppercase tracking-widest hover:bg-red-700 transition-all">
+                        Ver planes
+                    </button>
+<button class="bg-white/10 backdrop-blur-md border border-white/20 text-white px-10 py-4 rounded font-bold uppercase tracking-widest hover:bg-white/20 transition-all">
+                        Reservar prueba
+                    </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Value Prop -->
+<section class="py-24 bg-background-light">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<div class="group border-l-4 border-primary p-8 bg-white shadow-sm hover:shadow-xl transition-all">
+<span class="material-symbols-outlined text-4xl text-primary mb-4">fitness_center</span>
+<h3 class="font-accent text-xl font-bold uppercase mb-2">Entrenamiento de fuerza</h3>
+<p class="text-sm text-gray-600">Equipamiento de última generación para maximizar tu potencia física.</p>
+</div>
+<div class="group border-l-4 border-primary p-8 bg-white shadow-sm hover:shadow-xl transition-all">
+<span class="material-symbols-outlined text-4xl text-primary mb-4">person_celebrate</span>
+<h3 class="font-accent text-xl font-bold uppercase mb-2">Asesoría cercana</h3>
+<p class="text-sm text-gray-600">Entrenadores expertos que te acompañan en cada repetición del camino.</p>
+</div>
+<div class="group border-l-4 border-primary p-8 bg-white shadow-sm hover:shadow-xl transition-all">
+<span class="material-symbols-outlined text-4xl text-primary mb-4">security</span>
+<h3 class="font-accent text-xl font-bold uppercase mb-2">Ambiente serio</h3>
+<p class="text-sm text-gray-600">Sin distracciones, solo tú y tus objetivos en un espacio elegante.</p>
+</div>
+<div class="group border-l-4 border-primary p-8 bg-white shadow-sm hover:shadow-xl transition-all">
+<span class="material-symbols-outlined text-4xl text-primary mb-4">trending_up</span>
+<h3 class="font-accent text-xl font-bold uppercase mb-2">Progreso real</h3>
+<p class="text-sm text-gray-600">Metodologías probadas para ver cambios físicos reales desde el primer mes.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Membership Plans -->
+<section class="py-24 bg-background-dark text-white" id="planes">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center mb-16">
+<h2 class="font-accent text-4xl md:text-5xl font-bold uppercase italic tracking-tighter">Nuestras Membresías</h2>
+<p class="text-gray-400 mt-4">Invierte en tu versión más fuerte con nuestros planes premium.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Plan 1 -->
+<div class="bg-zinc-900 border border-zinc-800 p-10 flex flex-col h-full">
+<h3 class="font-accent text-2xl font-bold uppercase mb-2">Básico Forza</h3>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="text-5xl font-bold">S/ 150</span>
+<span class="text-gray-400 font-bold">/mes</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Acceso zona pesas libre</li>
+<li class="flex items-center gap-3 text-sm text-gray-500"><span class="material-symbols-outlined">cancel</span> Horarios limitados</li>
+<li class="flex items-center gap-3 text-sm text-gray-500"><span class="material-symbols-outlined">cancel</span> Sin asesoría nutricional</li>
+</ul>
+<button class="w-full border border-white/20 py-4 font-bold uppercase text-xs tracking-widest hover:bg-white hover:text-black transition-all">Elegir Plan</button>
+</div>
+<!-- Plan 2 (Featured) -->
+<div class="bg-white text-text-dark p-10 flex flex-col h-full scale-105 shadow-2xl relative">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-1 text-[10px] font-bold uppercase tracking-widest">Recomendado</div>
+<h3 class="font-accent text-2xl font-bold uppercase mb-2">Elite Mensual</h3>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="text-5xl font-bold">S/ 280</span>
+<span class="text-gray-500 font-bold">/mes</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 text-sm font-medium"><span class="material-symbols-outlined text-primary">check_circle</span> Acceso total 24/7</li>
+<li class="flex items-center gap-3 text-sm font-medium"><span class="material-symbols-outlined text-primary">check_circle</span> Evaluación nutricional</li>
+<li class="flex items-center gap-3 text-sm font-medium"><span class="material-symbols-outlined text-primary">check_circle</span> 1 Sesión PT mensual</li>
+<li class="flex items-center gap-3 text-sm font-medium"><span class="material-symbols-outlined text-primary">check_circle</span> Acceso a clases grupales</li>
+</ul>
+<button class="w-full bg-primary text-white py-4 font-bold uppercase text-xs tracking-widest hover:bg-red-700 transition-all">Elegir Plan</button>
+</div>
+<!-- Plan 3 -->
+<div class="bg-zinc-900 border border-zinc-800 p-10 flex flex-col h-full">
+<h3 class="font-accent text-2xl font-bold uppercase mb-2">Plan Anual Pro</h3>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="text-5xl font-bold">S/ 2500</span>
+<span class="text-gray-400 font-bold">/año</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Todo lo del plan Elite</li>
+<li class="flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-primary">check_circle</span> 2 Sesiones PT/mes</li>
+<li class="flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Kit Nova Forza de bienvenida</li>
+<li class="flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-primary">check_circle</span> Invitado mensual gratuito</li>
+</ul>
+<button class="w-full border border-white/20 py-4 font-bold uppercase text-xs tracking-widest hover:bg-white hover:text-black transition-all">Elegir Plan</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Schedule -->
+<section class="py-24 bg-background-light" id="horarios">
+<div class="max-w-5xl mx-auto px-6">
+<h2 class="font-accent text-4xl font-bold uppercase mb-12 text-center">Horarios de Operación</h2>
+<div class="overflow-x-auto">
+<table class="w-full border-collapse bg-white">
+<thead>
+<tr class="bg-primary text-white">
+<th class="p-4 text-left font-accent uppercase tracking-widest">Días</th>
+<th class="p-4 text-center font-accent uppercase tracking-widest">Apertura</th>
+<th class="p-4 text-center font-accent uppercase tracking-widest">Cierre</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b">
+<td class="p-6 font-bold">Lunes - Viernes</td>
+<td class="p-6 text-center">05:00 AM</td>
+<td class="p-6 text-center">11:00 PM</td>
+</tr>
+<tr class="border-b bg-gray-50">
+<td class="p-6 font-bold">Sábados</td>
+<td class="p-6 text-center">07:00 AM</td>
+<td class="p-6 text-center">08:00 PM</td>
+</tr>
+<tr>
+<td class="p-6 font-bold">Domingos y Feriados</td>
+<td class="p-6 text-center">08:00 AM</td>
+<td class="p-6 text-center">04:00 PM</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Team Section -->
+<section class="py-24 bg-white" id="equipo">
+<div class="max-w-7xl mx-auto px-6">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
+<div class="max-w-xl">
+<h2 class="font-accent text-4xl md:text-5xl font-bold uppercase italic tracking-tighter">Nuestro Equipo Elite</h2>
+<p class="text-gray-600 mt-4">Profesionales certificados con años de experiencia transformando vidas.</p>
+</div>
+<button class="text-primary font-bold uppercase text-sm tracking-widest flex items-center gap-2">Ver todo el staff <span class="material-symbols-outlined">trending_flat</span></button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+<!-- Coach 1 -->
+<div class="group">
+<div class="relative overflow-hidden mb-6 aspect-[4/5]">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Professional Latino male personal trainer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcSwVz4jJQ-J7Mi3dvyeuKV-qy3IvxVcUY4lSpPwxe1DY8a0U7U4hQVM-x4t4YJHHD_AqpVE3Lgjq7EwZQhq-IsTP-s-qn8dR4YL_sVHeDrrNzH0AWPGfQLIHIm8L5q42bRPZlQm4255oFwr0ssE2vaCgkP7cNDeHSCGWHfcq1WA7lPRk_MKSG2GCWDmM_Xd1cdIKdamYcR9cN-IAye5nwvnI1S1TYya3UHaooYd0059ah6Ky0hikL5FiVldjqgvBPRZNUnu34dDqH"/>
+</div>
+<h3 class="font-accent text-2xl font-bold uppercase">Carlos Mendoza</h3>
+<p class="text-primary font-bold text-xs uppercase tracking-widest mb-2">Powerlifting &amp; Hipertrofia</p>
+<p class="text-sm text-gray-600 leading-relaxed">Ex-competidor nacional enfocado en mecánicas de levantamiento pesado y prevención de lesiones.</p>
+</div>
+<!-- Coach 2 -->
+<div class="group">
+<div class="relative overflow-hidden mb-6 aspect-[4/5]">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Professional Latina female fitness coach" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOGe_61U9RYPwbSqfc8eCSCrhAterzNeI1-J4Wy8tAd8I-TJqRV3yGzPSviOKMBaKSQP4pVBIrNarHJ168Ukw7bQARWGYFqOHc6x1fKtAvOsMWvVmOdYLaLKeFiFHzgharqvihdEkYqqyrXXUI3L5YB6YwbLZlJpBhqB5UekNhR3BMnZxqXXD09CFGjQR3EZchdDXtxqvp0ZvyimEMTT8s5qjgityLrV7LeelGSJcAU5q--bwLRmXyOlDKRIgvQSVZI8NCIKDqTWWz"/>
+</div>
+<h3 class="font-accent text-2xl font-bold uppercase">Elena Vargas</h3>
+<p class="text-primary font-bold text-xs uppercase tracking-widest mb-2">Entrenamiento Funcional</p>
+<p class="text-sm text-gray-600 leading-relaxed">Especialista en movilidad y acondicionamiento metabólico. Certificación NASM.</p>
+</div>
+<!-- Coach 3 -->
+<div class="group">
+<div class="relative overflow-hidden mb-6 aspect-[4/5]">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Athletic personal trainer demonstrating exercise" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvUvL_Q-6GLDOutlDeSJ9yOR3zwANQ6JYLCS57nVApORgsDvVQGlJw5vDoQ8uK4vw7n_NTrVQyhgjLvJoottbfbzlZOzxQ8nX8pYCyg9hLncri2x43IVZBfln3aofo0aRrdeXQnWTfxM3BkefrHxUR57FtP3tshXyKMgwyFgD8Mo0DtvontNBp9PtQ6wTAX6jCZbVsAGSuQFjx9pAeD-SB3MwgJgKYplwdkjY_TDljZokAKAsV5ZSaRrGffO_djx2ckpRiMj9pcI1K"/>
+</div>
+<h3 class="font-accent text-2xl font-bold uppercase">Ricardo Díaz</h3>
+<p class="text-primary font-bold text-xs uppercase tracking-widest mb-2">Nutrición Deportiva</p>
+<p class="text-sm text-gray-600 leading-relaxed">Experto en recomposición corporal y diseño de planes alimenticios personalizados para atletas.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Mini Shop -->
+<section class="py-24 bg-background-light" id="tienda">
+<div class="max-w-7xl mx-auto px-6">
+<h2 class="font-accent text-4xl font-bold uppercase mb-12">Suplementos &amp; Merch</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+<div class="bg-white p-4 group">
+<div class="bg-gray-100 aspect-square mb-4 flex items-center justify-center">
+<img class="w-3/4 h-3/4 object-contain mix-blend-multiply" data-alt="Premium whey protein tub black design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBe-WGHsPE3xNTi2-Z2wJnJws3dlYI4orp1lq3sRCqUFvt_YBiTH1PCxul9TC8SAw9DpmdCaLZuhVVF52rpa_JCjCCeiQ_NizavMWP2UD02FQPqwXskv7UASxTaQ9rLlSkMWuDFZOlZWzlzquhpQv5B6VEc-ZH30Q4VrOvUQGw3tguBswl-_wzQgcv6VkPLgqM4QrSviQU_4IX9raAf12vi1GSSHe_L-9KepoiujC3pF716j9wOSjUE_5q7jz7TxC0t5H-JnF9Lb3p5"/>
+</div>
+<p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Proteína</p>
+<h4 class="font-bold text-sm mb-2">Whey Isolate Nova Forza 2kg</h4>
+<p class="text-primary font-bold">S/ 189.00</p>
+<button class="mt-4 w-full bg-background-dark text-white text-[10px] py-2 uppercase font-bold tracking-widest hover:bg-primary transition-colors">Añadir al carrito</button>
+</div>
+<div class="bg-white p-4 group">
+<div class="bg-gray-100 aspect-square mb-4 flex items-center justify-center">
+<img class="w-3/4 h-3/4 object-contain mix-blend-multiply" data-alt="Black gym t-shirt with logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjKERgCG-Tdyd4hVQwif9hzluY96QmEmtloP_-7i6Is1d1ChWw7S6TEvBHxT2mLmGoRq6knUTbyEFpM39cdWLqD2sZpJsuqDMTNBFg2hoCwNXAfNQ-IumxqO57DZpJ597l628sCybBzereXBlanBtXq2zwK2SR_Vv9SmMBk-3Tn9vwTKvW8ac25SF6Ir3KE1eb4cR9yFNDG60fK79n9qHaRzLNvipWYAD9La9uxLGbVP5UwltSvAsE8NcnWtdg8hqjLSTvzBtFVZZI"/>
+</div>
+<p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ropa</p>
+<h4 class="font-bold text-sm mb-2">T-Shirt "Strength First" Black</h4>
+<p class="text-primary font-bold">S/ 65.00</p>
+<button class="mt-4 w-full bg-background-dark text-white text-[10px] py-2 uppercase font-bold tracking-widest hover:bg-primary transition-colors">Añadir al carrito</button>
+</div>
+<div class="bg-white p-4 group">
+<div class="bg-gray-100 aspect-square mb-4 flex items-center justify-center">
+<img class="w-3/4 h-3/4 object-contain mix-blend-multiply" data-alt="Creatine powder bottle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE7uy_n4UF3Ag85QeCQYxYOcoRzdU00FK690PYCU9qPYNKKE8uRkIaeFjMrZjw32zD4DQRGCMNzgCGvE5XdrXTzGhXSo0hsl3Z9k_VJaCI1jPVjd_qqwfXB8T7Tzsp1vQFdN4ck8HWZb7I4b8VyFcWPTgQzpplKF5BzPN-M4hHzcZPp1shMVWtgqWkfQzoS1z5ddFk0dXYqcPCdO4QlvRqvdmUDXPn5u1dfmns1UiQRuw0K5qgcrla4Rthz5ijz6PRtii2ZmTMZFZa"/>
+</div>
+<p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fuerza</p>
+<h4 class="font-bold text-sm mb-2">Creatina Monohidratada 500g</h4>
+<p class="text-primary font-bold">S/ 110.00</p>
+<button class="mt-4 w-full bg-background-dark text-white text-[10px] py-2 uppercase font-bold tracking-widest hover:bg-primary transition-colors">Añadir al carrito</button>
+</div>
+<div class="bg-white p-4 group">
+<div class="bg-gray-100 aspect-square mb-4 flex items-center justify-center">
+<img class="w-3/4 h-3/4 object-contain mix-blend-multiply" data-alt="High quality gym shaker bottle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH-rd8XYDkEdL1u1cPXsIYreOqJeOmxXNgHtxVR413LiTmzrpqsIJggKDmpuOaD3JMLgdibTgt1bVoGqdZ4fAgWTgMJqL7cfbK4YMvMvvwJ83TNTTYulcNNe2AY1G_XMFJXSoLAPDnbw2q6c58GQOWVLA7UoAp6x_CZn2ZmsmDA0PutaBpaE_FtClsLv5wCTBkgvId86Kx6jUQlBbUfLMwyghQ-EOxvG7kL2zVz-HXnEDzO1gdYOZFmlaAYqBNhzhVAhzYNitfD54q"/>
+</div>
+<p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Accesorios</p>
+<h4 class="font-bold text-sm mb-2">Shaker Pro Edición Especial</h4>
+<p class="text-primary font-bold">S/ 35.00</p>
+<button class="mt-4 w-full bg-background-dark text-white text-[10px] py-2 uppercase font-bold tracking-widest hover:bg-primary transition-colors">Añadir al carrito</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonials -->
+<section class="py-24 bg-background-dark text-white overflow-hidden">
+<div class="max-w-7xl mx-auto px-6">
+<h2 class="font-accent text-4xl font-bold uppercase mb-16 italic text-center">La Comunidad Nova Forza</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="p-8 border border-zinc-800 bg-zinc-900/50">
+<div class="flex gap-1 text-primary mb-4">
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+</div>
+<p class="text-gray-300 italic mb-8 leading-relaxed">"El mejor ambiente en Lima para entrenar pesado. Los entrenadores realmente saben lo que hacen y no es el típico gimnasio comercial donde nadie te ayuda."</p>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold">MA</div>
+<div>
+<p class="font-bold text-sm">Miguel Alva</p>
+<p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Socio desde 2022</p>
+</div>
+</div>
+</div>
+<div class="p-8 border border-zinc-800 bg-zinc-900/50">
+<div class="flex gap-1 text-primary mb-4">
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+</div>
+<p class="text-gray-300 italic mb-8 leading-relaxed">"Gracias a la asesoría nutricional y el plan Elite, logré bajar 10kg en 4 meses y ganar masa muscular. La infraestructura es impecable."</p>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold">SC</div>
+<div>
+<p class="font-bold text-sm">Sofia Carrillo</p>
+<p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Socio desde 2023</p>
+</div>
+</div>
+</div>
+<div class="p-8 border border-zinc-800 bg-zinc-900/50">
+<div class="flex gap-1 text-primary mb-4">
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+</div>
+<p class="text-gray-300 italic mb-8 leading-relaxed">"La limpieza y el orden en la zona de pesas es lo que más valoro. Máquinas de primer nivel que no encuentras en otros lados de la ciudad."</p>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold">RP</div>
+<div>
+<p class="font-bold text-sm">Renzo Paredes</p>
+<p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Socio desde 2021</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Contact & Location -->
+<section class="py-24 bg-white" id="contacto">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div>
+<h2 class="font-accent text-4xl md:text-5xl font-bold uppercase mb-8">Ubicación &amp; <span class="text-primary">Contacto</span></h2>
+<div class="space-y-6">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<div>
+<p class="font-bold uppercase tracking-widest text-xs mb-1">Dirección</p>
+<p class="text-gray-600">Av. Javier Prado Este 1234, San Isidro, Lima, Perú</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary">phone_iphone</span>
+<div>
+<p class="font-bold uppercase tracking-widest text-xs mb-1">WhatsApp de atención</p>
+<p class="text-gray-600">+51 987 654 321</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary">mail</span>
+<div>
+<p class="font-bold uppercase tracking-widest text-xs mb-1">Consultas generales</p>
+<p class="text-gray-600">info@novaforza.pe</p>
+</div>
+</div>
+</div>
+<div class="mt-12 flex flex-col sm:flex-row gap-4">
+<button class="bg-green-600 text-white px-8 py-4 rounded font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition-all">
+<span class="material-symbols-outlined">chat</span> Escríbenos por WhatsApp
+                        </button>
+</div>
+</div>
+<div class="h-[450px] w-full bg-gray-200 relative" data-location="Lima, Peru" style="">
+<img class="w-full h-full object-cover" data-alt="Google map placeholder view of Lima city center" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFq4qdiOOeyJg0L6puI6LHCUzG3dfd4Xk5P0WUx88YOtddB3Ur15219-6NbBrcW0pMBXkNqBC4Ehu5Ufq8RSluMgP2cQygOdpDYr5hMRQZzYwVcKUW8kQCmFUpeZoIOWcZslmXdNH7wPcK_uSOp8furyH24DNH3jj0lRoReKsEmxE7umbJQVu6DdTzFeDW9e0N6d-P6ECpQIeoMFVsG9sDB5ZLpBDo1SKrVxm34nOyIzUnxI-uT4ya0x57WyZ9tg78zGOZwhV-JLqk"/>
+<div class="absolute inset-0 bg-primary/10 pointer-events-none"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-background-dark text-white pt-20 pb-10 border-t border-zinc-800">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+<div class="lg:col-span-1">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary text-3xl font-bold">exercise</span>
+<h2 class="font-accent text-2xl font-bold uppercase tracking-tighter italic">Nova Forza</h2>
+</div>
+<p class="text-gray-500 text-sm leading-relaxed mb-6">El centro de alto rendimiento más exclusivo de la ciudad. Tu fuerza es nuestra prioridad.</p>
+<div class="flex gap-4">
+<a class="w-10 h-10 border border-zinc-800 flex items-center justify-center hover:bg-primary hover:border-primary transition-all" href="#">IG</a>
+<a class="w-10 h-10 border border-zinc-800 flex items-center justify-center hover:bg-primary hover:border-primary transition-all" href="#">FB</a>
+<a class="w-10 h-10 border border-zinc-800 flex items-center justify-center hover:bg-primary hover:border-primary transition-all" href="#">TK</a>
+</div>
+</div>
+<div>
+<h3 class="font-accent text-lg font-bold uppercase mb-6 tracking-widest">Links rápidos</h3>
+<ul class="space-y-4 text-sm text-gray-500 font-bold">
+<li><a class="hover:text-primary transition-colors uppercase" href="#">Nuestra Historia</a></li>
+<li><a class="hover:text-primary transition-colors uppercase" href="#">Preguntas Frecuentes</a></li>
+<li><a class="hover:text-primary transition-colors uppercase" href="#">Políticas de Privacidad</a></li>
+<li><a class="hover:text-primary transition-colors uppercase" href="#">Libro de Reclamaciones</a></li>
+</ul>
+</div>
+<div>
+<h3 class="font-accent text-lg font-bold uppercase mb-6 tracking-widest">Horarios</h3>
+<ul class="space-y-4 text-sm text-gray-500">
+<li class="flex justify-between"><span>Lun - Vie:</span> <span>05:00 - 23:00</span></li>
+<li class="flex justify-between"><span>Sábados:</span> <span>07:00 - 20:00</span></li>
+<li class="flex justify-between"><span>Domingos:</span> <span>08:00 - 16:00</span></li>
+</ul>
+</div>
+<div>
+<h3 class="font-accent text-lg font-bold uppercase mb-6 tracking-widest">Newsletter</h3>
+<p class="text-sm text-gray-500 mb-4">Recibe tips de entrenamiento y ofertas exclusivas.</p>
+<div class="flex">
+<input class="bg-zinc-900 border-zinc-800 flex-grow text-sm py-3 px-4 focus:ring-primary focus:border-primary border" placeholder="Tu email" type="email"/>
+<button class="bg-primary px-4 py-3"><span class="material-symbols-outlined">send</span></button>
+</div>
+</div>
+</div>
+<div class="border-t border-zinc-800 pt-10 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600">
+<p>© 2024 Nova Forza Gym. Todos los derechos reservados.</p>
+<p>Diseño Premium por NF Agency</p>
+</div>
+</div>
+</footer>
+</body></html>

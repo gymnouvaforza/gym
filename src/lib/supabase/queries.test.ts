@@ -1,0 +1,91 @@
+import {
+  buildLeadInsertPayload,
+  buildSiteSettingsPayload,
+  normalizeSiteSettings,
+} from "@/lib/supabase/queries";
+
+describe("supabase queries helpers", () => {
+  it("normalizes site settings with fallback values", () => {
+    const settings = normalizeSiteSettings({
+      site_name: "  ",
+      site_tagline: "Tagline de prueba",
+      hero_badge: "Gimnasio premium local",
+      hero_title: "Construye fuerza real",
+      hero_description: "Descripcion util para validar la normalizacion.",
+      hero_primary_cta: "CTA principal",
+      hero_secondary_cta: "CTA secundario",
+      hero_video_url: " /video/custom-hero.mp4 ",
+      topbar_enabled: true,
+      topbar_variant: "promotion",
+      topbar_text: " Promo activa ",
+      topbar_cta_label: " Reservar ",
+      topbar_cta_url: " #contacto ",
+      topbar_expires_at: " 2026-04-15T18:30:00.000Z ",
+      hero_highlight_one: "Highlight uno",
+      hero_highlight_two: "Highlight dos",
+      hero_highlight_three: "Highlight tres",
+      contact_email: "hola@novaforza.pe",
+      opening_hours: "Horario de prueba",
+      seo_title: "SEO title",
+      seo_description: "Descripcion suficientemente larga para pasar.",
+      seo_keywords: [],
+      footer_text: "Footer",
+    });
+
+    expect(settings.site_name).toBe("Nova Forza");
+    expect(settings.hero_title).toBe("Construye fuerza real");
+    expect(settings.hero_video_url).toBe("/video/custom-hero.mp4");
+    expect(settings.topbar_text).toBe("Promo activa");
+  });
+
+  it("builds a lead payload for website intake", () => {
+    const payload = buildLeadInsertPayload({
+      name: " Laura ",
+      email: "LAURA@example.com ",
+      phone: " +34 600 111 222 ",
+      message: "Quiero informacion sobre planes y horarios.",
+    });
+
+    expect(payload.email).toBe("laura@example.com");
+    expect(payload.phone).toBe("+34 600 111 222");
+    expect(payload.source).toBe("website");
+  });
+
+  it("builds a site settings payload with parsed keywords", () => {
+    const payload = buildSiteSettingsPayload({
+      site_name: "Nova Forza",
+      site_tagline: "Fuerza, disciplina y progreso real.",
+      hero_badge: "Gimnasio premium local",
+      hero_title: "Construye fuerza real en un espacio hecho para progresar.",
+      hero_description: "Una base comercial para captar leads y mantener el contenido global del gimnasio.",
+      hero_primary_cta: "Reserva tu prueba",
+      hero_secondary_cta: "Ver planes",
+      hero_video_url: "/video/video.mp4",
+      topbar_enabled: true,
+      topbar_variant: "promotion",
+      topbar_text: "Matricula gratis por tiempo limitado.",
+      topbar_cta_label: "Reserva tu prueba",
+      topbar_cta_url: "#contacto",
+      topbar_expires_at: "2026-04-15T18:30",
+      hero_highlight_one: "Planes claros para empezar y progresar.",
+      hero_highlight_two: "Entrenadores que acompanan de verdad.",
+      hero_highlight_three: "Sala premium local con horarios amplios.",
+      contact_email: "hola@novaforza.pe",
+      contact_phone: "+51 987 654 321",
+      whatsapp_url: "",
+      address: "Av. Progreso 245, zona comercial local",
+      opening_hours: "Lunes a viernes de 6:00 a 22:00.",
+      seo_title: "Nova Forza | Gimnasio premium",
+      seo_description: "Web comercial de Nova Forza con planes claros y contacto directo.",
+      seo_keywords: "nova forza, gimnasio premium, fuerza",
+      seo_og_image_url: "",
+      seo_canonical_url: "https://novaforza.pe",
+      footer_text: "Nova Forza es un gimnasio local orientado a fuerza y progreso real.",
+    });
+
+    expect(payload.seo_keywords).toEqual(["nova forza", "gimnasio premium", "fuerza"]);
+    expect(payload.id).toBe(1);
+    expect(payload.hero_video_url).toBe("/video/video.mp4");
+    expect(payload.topbar_expires_at).toBe(new Date("2026-04-15T18:30").toISOString());
+  });
+});

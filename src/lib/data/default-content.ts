@@ -1,0 +1,100 @@
+import type { Lead, SiteSettings } from "@/lib/supabase/database.types";
+
+export const defaultSiteSettings: SiteSettings = {
+  id: 1,
+  site_name: "Nova Forza",
+  site_tagline: "Fuerza, disciplina y progreso real para quienes entrenan en serio.",
+  hero_badge: "Entrenamiento premium en Lima",
+  hero_title: "El poder de tu progreso comienza aqui",
+  hero_description:
+    "Entrenamiento de fuerza de elite con asesoria personalizada en un ambiente disenado para resultados reales en Lima.",
+  hero_primary_cta: "Reserva tu prueba",
+  hero_secondary_cta: "Ver planes",
+  hero_video_url: "/video/video.mp4",
+  topbar_enabled: true,
+  topbar_variant: "promotion",
+  topbar_text: "Matricula gratis por tiempo limitado para nuevos socios.",
+  topbar_cta_label: "Reserva tu prueba",
+  topbar_cta_url: "#contacto",
+  topbar_expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
+  hero_highlight_one: "Planes claros para empezar, progresar y sostener resultados.",
+  hero_highlight_two: "Entrenadores que corrigen, acompanan y hacen seguimiento real.",
+  hero_highlight_three: "Sala premium local con horarios amplios y recogida en tienda.",
+  contact_email: "hola@novaforza.pe",
+  contact_phone: "+51 987 654 321",
+  whatsapp_url: "https://wa.me/51987654321",
+  address: "Av. Progreso 245, zona comercial local",
+  opening_hours: "Lunes a viernes de 6:00 a 22:00. Sabados de 8:00 a 14:00.",
+  seo_title: "Nova Forza | Gimnasio premium de fuerza y progreso real",
+  seo_description:
+    "Web comercial de Nova Forza: planes claros, horarios amplios, asesoria cercana y una experiencia premium para entrenar con seriedad.",
+  seo_keywords: [
+    "gimnasio premium",
+    "fuerza",
+    "planes de gimnasio",
+    "entrenamiento personalizado",
+    "nova forza",
+  ],
+  seo_og_image_url: null,
+  seo_canonical_url: "https://novaforza.pe",
+  footer_text: "Nova Forza es un gimnasio local orientado a fuerza, progreso real y una experiencia seria y cercana.",
+  updated_at: new Date().toISOString(),
+};
+
+export const plannedModules = [
+  "Sitio publico",
+  "Planes",
+  "Horarios",
+  "Productos",
+  "Reservas",
+  "Leads",
+  "Miembros",
+  "Rutinas",
+  "Pedidos pickup",
+  "Ajustes y CMS",
+];
+
+export const defaultLeads: Lead[] = [
+  {
+    id: "lead-demo-1",
+    name: "Lucia Romero",
+    email: "lucia@example.com",
+    phone: "+51 999 112 233",
+    message: "Quiero reservar una prueba y saber que plan me conviene si busco bajar grasa.",
+    source: "website",
+    status: "new",
+    metadata: {
+      demo: true,
+      interest: "prueba",
+    },
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+  },
+  {
+    id: "lead-demo-2",
+    name: "Diego Flores",
+    email: "diego@example.com",
+    phone: "+51 988 445 566",
+    message: "Me interesa el plan Progreso para entrenar fuerza antes de ir a trabajar.",
+    source: "website",
+    status: "contacted",
+    metadata: {
+      demo: true,
+      interest: "plan progreso",
+    },
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
+  },
+  {
+    id: "lead-demo-3",
+    name: "Paola Rivas",
+    email: "paola@example.com",
+    phone: null,
+    message: "Ya hice la visita guiada y quiero volver para cerrar mi inscripcion este fin de semana.",
+    source: "website",
+    status: "closed",
+    metadata: {
+      demo: true,
+      interest: "inscripcion",
+    },
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+  },
+];
