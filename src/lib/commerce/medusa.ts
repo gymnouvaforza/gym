@@ -1,5 +1,3 @@
-import type { HttpTypes } from "@medusajs/types";
-
 import type {
   Product,
   ProductCategory,
@@ -12,6 +10,10 @@ import {
   getMedusaStoreProductByHandle,
   listMedusaStoreProducts,
 } from "@/lib/medusa/products";
+import type {
+  MedusaStoreProduct,
+  MedusaStoreProductVariant,
+} from "@/lib/medusa/storefront-types";
 
 function slugifyCategory(value: string) {
   return value
@@ -74,7 +76,7 @@ function asSpecifications(value: unknown): ProductSpecification[] | undefined {
   return specifications.length > 0 ? specifications : undefined;
 }
 
-function resolveProductCategory(product: HttpTypes.StoreProduct): ProductCategory {
+function resolveProductCategory(product: MedusaStoreProduct): ProductCategory {
   const categoryCandidates = [
     asString(product.metadata?.category),
     ...(product.categories ?? []).flatMap((category) => [
@@ -100,7 +102,7 @@ function resolveProductCategory(product: HttpTypes.StoreProduct): ProductCategor
   return "merchandising";
 }
 
-function resolveVariantPrice(variant: HttpTypes.StoreProductVariant | null | undefined) {
+function resolveVariantPrice(variant: MedusaStoreProductVariant | null | undefined) {
   if (!variant) {
     return null;
   }
@@ -118,7 +120,7 @@ function resolveVariantPrice(variant: HttpTypes.StoreProductVariant | null | und
   return null;
 }
 
-function resolvePrice(product: HttpTypes.StoreProduct) {
+function resolvePrice(product: MedusaStoreProduct) {
   const metadataPrice = asNumber(product.metadata?.price);
   const metadataCurrency = asString(product.metadata?.currency);
 
@@ -143,7 +145,7 @@ function resolvePrice(product: HttpTypes.StoreProduct) {
   };
 }
 
-function resolveComparePrice(product: HttpTypes.StoreProduct) {
+function resolveComparePrice(product: MedusaStoreProduct) {
   const metadataComparePrice = asNumber(product.metadata?.compare_price);
 
   if (metadataComparePrice !== null) {
@@ -166,7 +168,7 @@ function resolveComparePrice(product: HttpTypes.StoreProduct) {
   return null;
 }
 
-function resolveStockStatus(product: HttpTypes.StoreProduct): ProductStockStatus {
+function resolveStockStatus(product: MedusaStoreProduct): ProductStockStatus {
   const metadataStockStatus = asString(product.metadata?.stock_status);
 
   if (
@@ -199,7 +201,7 @@ function resolveStockStatus(product: HttpTypes.StoreProduct): ProductStockStatus
   return "in_stock";
 }
 
-function resolveImages(product: HttpTypes.StoreProduct) {
+function resolveImages(product: MedusaStoreProduct) {
   const metadataImages = asStringArray(product.metadata?.storefront_images);
 
   if (metadataImages.length > 0) {
@@ -214,7 +216,7 @@ function resolveImages(product: HttpTypes.StoreProduct) {
   return images.length > 0 ? Array.from(new Set(images)) : ["/images/products/product-1.png"];
 }
 
-function resolveTags(product: HttpTypes.StoreProduct) {
+function resolveTags(product: MedusaStoreProduct) {
   const metadataTags = asStringArray(product.metadata?.tags);
 
   if (metadataTags.length > 0) {
@@ -226,7 +228,7 @@ function resolveTags(product: HttpTypes.StoreProduct) {
     .filter((tag): tag is string => Boolean(tag));
 }
 
-function mapMetadataOptions(product: HttpTypes.StoreProduct): ProductOption[] | undefined {
+function mapMetadataOptions(product: MedusaStoreProduct): ProductOption[] | undefined {
   const options = asRecordArray(product.metadata?.display_options)
     .map((entry, index) => {
       const title = asString(entry.title);
@@ -247,7 +249,7 @@ function mapMetadataOptions(product: HttpTypes.StoreProduct): ProductOption[] | 
   return options.length > 0 ? options : undefined;
 }
 
-function mapProductOptions(product: HttpTypes.StoreProduct): ProductOption[] | undefined {
+function mapProductOptions(product: MedusaStoreProduct): ProductOption[] | undefined {
   const options = (product.options ?? [])
     .map((option) => {
       const title = asString(option.title);
@@ -284,7 +286,7 @@ function mapProductOptions(product: HttpTypes.StoreProduct): ProductOption[] | u
 }
 
 function mapVariantOptions(
-  variant: HttpTypes.StoreProductVariant,
+  variant: MedusaStoreProductVariant,
 ): ProductVariantPreview["options"] {
   const options: ProductVariantPreview["options"] = [];
 
@@ -305,10 +307,11 @@ function mapVariantOptions(
   return options;
 }
 
-function mapProductVariants(product: HttpTypes.StoreProduct): ProductVariantPreview[] | undefined {
+function mapProductVariants(product: MedusaStoreProduct): ProductVariantPreview[] | undefined {
+  const fallbackTitle = asString(product.title) ?? "Variante";
   const variants = (product.variants ?? [])
     .map((variant) => {
-      const title = asString(variant.title) ?? product.title;
+      const title = asString(variant.title) ?? fallbackTitle;
       const price = resolveVariantPrice(variant);
       const options = mapVariantOptions(variant);
 
@@ -328,7 +331,7 @@ function mapProductVariants(product: HttpTypes.StoreProduct): ProductVariantPrev
   return variants.length > 0 ? variants : undefined;
 }
 
-export function mapMedusaProduct(product: HttpTypes.StoreProduct): Product | null {
+export function mapMedusaProduct(product: MedusaStoreProduct): Product | null {
   const name = asString(product.title);
   const slug = asString(product.handle);
 

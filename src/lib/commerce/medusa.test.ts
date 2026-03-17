@@ -1,5 +1,6 @@
-import type { HttpTypes } from "@medusajs/types";
 import { describe, expect, it, vi } from "vitest";
+
+import type { MedusaStoreProduct } from "@/lib/medusa/storefront-types";
 
 const medusaProductsMocks = vi.hoisted(() => ({
   listMedusaStoreProducts: vi.fn(),
@@ -17,7 +18,7 @@ import {
   mapMedusaProduct,
 } from "@/lib/commerce/medusa";
 
-function buildStoreProduct(overrides: Partial<HttpTypes.StoreProduct> = {}) {
+function buildStoreProduct(overrides: Partial<MedusaStoreProduct> = {}) {
   return {
     id: "prod_01",
     title: "Nova Forza Isolate Whey Protein",
@@ -188,7 +189,7 @@ function buildStoreProduct(overrides: Partial<HttpTypes.StoreProduct> = {}) {
       order: 2,
     },
     ...overrides,
-  } as HttpTypes.StoreProduct;
+  } as MedusaStoreProduct;
 }
 
 describe("medusa commerce", () => {
