@@ -53,7 +53,7 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
               </p>
             </div>
 
-            <h2 className="animate-slide-up mt-8 font-display text-[54px] font-extrabold uppercase italic leading-[0.85] tracking-tight reveal-2 sm:text-[72px] lg:text-[94px] [animation-fill-mode:forwards]">
+            <h2 className="animate-slide-up mt-8 font-display text-[42px] font-extrabold uppercase italic leading-[1.1] tracking-tight reveal-2 sm:text-[72px] lg:text-[94px] lg:leading-[0.85] [animation-fill-mode:forwards]">
               {renderTitleLines(titleParts.left, true)}
             </h2>
 
@@ -91,7 +91,7 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
           </div>
 
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-            <h2 className="animate-slide-up font-display text-[54px] font-extrabold uppercase italic leading-[0.85] tracking-tight text-white reveal-3 sm:text-[72px] lg:text-[94px] [animation-fill-mode:forwards]">
+            <h2 className="animate-slide-up font-display text-[42px] font-extrabold uppercase italic leading-[1.1] tracking-tight text-white reveal-3 sm:text-[72px] lg:text-[94px] lg:leading-[0.85] [animation-fill-mode:forwards]">
               {titleParts.right.length ? renderTitleLines(titleParts.right) : null}
             </h2>
 

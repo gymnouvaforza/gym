@@ -36,7 +36,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="es" data-scroll-behavior="smooth">
+    <html lang="es" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${inter.variable} ${oswald.variable} bg-background text-foreground antialiased`}>
         {children}
       </body>

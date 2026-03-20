@@ -46,7 +46,7 @@ function getPickupCopy(product: Product) {
     return product.pickup_note;
   }
 
-  return "Tu pedido queda reservado para recepcion y confirmacion directa con el club.";
+  return "Tu pedido queda reservado para recepción y confirmación directa con el club.";
 }
 
 export default function ProductDetail({ product }: Readonly<ProductDetailProps>) {
@@ -155,8 +155,8 @@ export default function ProductDetail({ product }: Readonly<ProductDetailProps>)
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#111111]">
               Cantidad
             </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="inline-flex h-12 items-center border border-[#111111] bg-white">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="inline-flex h-12 w-fit items-center border border-[#111111] bg-white">
                 <button
                   type="button"
                   aria-label="Reducir cantidad"

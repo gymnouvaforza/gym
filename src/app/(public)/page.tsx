@@ -27,8 +27,10 @@ export default async function PublicHomePage() {
 
   return (
     <div className="min-h-screen bg-[#151518]">
-      <div className="sticky top-0 z-50">
+      <div className="lg:sticky lg:top-0 lg:z-50">
         <SiteTopbar settings={settings} />
+      </div>
+      <div className="sticky top-0 z-40 lg:top-[var(--topbar-height,0px)]">
         <SiteHeader settings={settings} />
       </div>
       <main>

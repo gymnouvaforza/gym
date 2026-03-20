@@ -44,7 +44,7 @@ export default function SiteTopbar({ settings }: { settings: SiteSettings }) {
           )}>
             {variantLabels[topbar.variant]}
           </span>
-          <p className="truncate text-[11px] font-medium leading-tight sm:text-sm">
+          <p className="text-[11px] font-medium leading-tight sm:text-sm">
             {topbar.text}
           </p>
         </div>

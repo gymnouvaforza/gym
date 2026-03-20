@@ -8,16 +8,16 @@ export const products: Product[] = [
     eyebrow: "Base de rendimiento",
     category: "suplementos",
     short_description:
-      "Soporte diario para fuerza, potencia y mejor recuperacion entre sesiones exigentes.",
+      "Soporte diario para fuerza, potencia y mejor recuperación entre sesiones exigentes.",
     description:
-      "Creatina monohidratada micronizada, facil de disolver y pensada para quien entrena con constancia. Una opcion simple y efectiva para acompanar fases de fuerza, hipertrofia o rendimiento general sin formulas innecesarias.",
+      "Creatina monohidratada micronizada, fácil de disolver y pensada para quien entrena con constancia. Una opción simple y efectiva para acompañar fases de fuerza, hipertrofia o rendimiento general sin formulas innecesarias.",
     price: 24.9,
     currency: "PEN",
     stock_status: "in_stock",
     pickup_only: true,
-    pickup_note: "Recogida rapida en recepcion durante el horario del club.",
+    pickup_note: "Recogida rápida en recepción durante el horario del club.",
     pickup_summary: "Recogida en Nova Forza Gym",
-    pickup_eta: "Tu bote estara listo en recepcion en menos de 24 horas laborables.",
+    pickup_eta: "Tu bote estará listo en recepción en menos de 24 horas laborables.",
     featured: true,
     images: ["/images/products/nova-creatina.png"],
     tags: ["Fuerza", "Recuperacion", "Uso diario"],
@@ -29,7 +29,7 @@ export const products: Product[] = [
     benefits: [
       "Mejora la potencia en esfuerzos repetidos.",
       "Ayuda a sostener fases de fuerza e hipertrofia.",
-      "Formato simple y facil de integrar a diario.",
+      "Formato simple y fácil de integrar a diario.",
     ],
     usage_steps: [
       "Mezcla una toma diaria con agua o batido.",
@@ -48,12 +48,12 @@ export const products: Product[] = [
     id: "prod-2",
     slug: "whey-protein-isolate-2kg",
     name: "Nova Forza Isolate Whey Protein",
-    eyebrow: "Suplemento de elite",
+    eyebrow: "Suplemento de élite",
     category: "suplementos",
     short_description:
-      "Proteina aislada de digestion ligera para cubrir la ingesta diaria sin complicaciones.",
+      "Proteína aislada de digestión ligera para cubrir la ingesta diaria sin complicaciones.",
     description:
-      "Maximiza tu recuperacion con nuestra formula de rapida absorcion. Disenada para atletas que buscan pureza absoluta: 25 g de proteina, 0 g de azucar y un perfil completo de aminoacidos para alimentar tu fuerza.",
+      "Maximiza tu recuperación con nuestra fórmula de rápida absorción. Diseñada para atletas que buscan pureza absoluta: 25 g de proteína, 0 g de azúcar y un perfil completo de aminoácidos para alimentar tu fuerza.",
     price: 49.99,
     compare_price: 58.99,
     discount_label: "Ahorra 15%",
@@ -63,18 +63,18 @@ export const products: Product[] = [
     pickup_note: "Ultimas unidades disponibles esta semana en el mostrador de Nova Forza.",
     pickup_summary: "Recogida en Nova Forza Gym",
     pickup_eta:
-      "Tu producto estara listo en recepcion en menos de 24 horas laborables. Presenta tu email de confirmacion.",
+      "Tu producto estará listo en recepción en menos de 24 horas laborables. Presenta tu email de confirmación.",
     featured: true,
     images: ["/images/products/nova-whey.png"],
     tags: ["Recuperacion", "Proteina", "Postentreno"],
     highlights: [
-      "25 g de proteina por servicio.",
-      "0 g de azucar y digestion comoda.",
+      "25 g de proteína por servicio.",
+      "0 g de azúcar y digestion comoda.",
       "Perfil premium para volumen o definicion.",
     ],
     benefits: [
       "Sintesis muscular acelerada.",
-      "Pureza del 90% de proteina aislada.",
+      "Pureza del 90% de proteína aislada.",
       "Facil digestion sin hinchazon.",
     ],
     usage_steps: [
@@ -103,9 +103,9 @@ export const products: Product[] = [
     name: "Shaker Premium Nova Forza",
     category: "accesorios",
     short_description:
-      "Shaker robusto de 700 ml con cierre seguro y diseno limpio para el dia a dia.",
+      "Shaker robusto de 700 ml con cierre seguro y diseño limpio para el dia a dia.",
     description:
-      "Un basico bien resuelto para llevar proteina, creatina o bebida isotonica sin fugas ni piezas incomodas. Tiene cuerpo solido, tapa firme y una presencia alineada con la estetica de Nova Forza.",
+      "Un basico bien resuelto para llevar proteína, creatina o bebida isotonica sin fugas ni piezas incomodas. Tiene cuerpo solido, tapa firme y una presencia alineada con la estetica de Nova Forza.",
     price: 14.9,
     currency: "PEN",
     stock_status: "in_stock",
@@ -117,7 +117,7 @@ export const products: Product[] = [
     highlights: [
       "Capacidad de 700 ml.",
       "Cierre seguro para mochila o taquilla.",
-      "Acabado limpio y facil de lavar.",
+      "Acabado limpio y fácil de lavar.",
     ],
     cta_label: "Disponible en tienda",
     order: 3,
@@ -136,7 +136,7 @@ export const products: Product[] = [
     currency: "PEN",
     stock_status: "in_stock",
     pickup_only: true,
-    pickup_note: "Recogelos en recepcion y pruebalos el mismo dia en sala.",
+    pickup_note: "Recogelos en recepción y pruebalos el mismo dia en sala.",
     featured: true,
     images: ["/images/products/nova-straps.png"],
     tags: ["Fuerza", "Powerlifting", "Agarre"],
@@ -188,7 +188,7 @@ export const products: Product[] = [
     currency: "PEN",
     stock_status: "in_stock",
     pickup_only: true,
-    pickup_summary: "Disponible en recepcion",
+    pickup_summary: "Disponible en recepción",
     pickup_eta: "Recogida inmediata según stock.",
     featured: true,
     images: ["/images/products/nova-polo.png"],

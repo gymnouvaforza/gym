@@ -21,8 +21,8 @@ import { Input } from "@/components/ui/input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
-  identity: z.string().trim().min(2, "Introduce un email o usuario valido."),
-  password: z.string().min(4, "La contrasena es obligatoria."),
+  identity: z.string().trim().min(2, "Introduce un email o usuario válido."),
+  password: z.string().min(4, "La contraseña es obligatoria."),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -113,7 +113,7 @@ export default function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contrasena</FormLabel>
+                  <FormLabel>Contraseña</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="********" {...field} />
                   </FormControl>

@@ -55,14 +55,14 @@ export default function SiteHeader({ settings, currentUser = null }: Readonly<Si
             asChild
             variant="outline"
             size="sm"
-            className="sm:size-default"
+            className="hidden sm:size-default lg:inline-flex"
           >
             <Link href={secondaryAction.href}>{secondaryAction.label}</Link>
           </Button>
           <Button
             asChild
             size="sm"
-            className="btn-athletic btn-primary sm:size-default"
+            className="btn-athletic btn-primary hidden sm:size-default lg:inline-flex"
           >
             <Link href={primaryAction.href}>{primaryAction.label}</Link>
           </Button>
@@ -86,6 +86,15 @@ export default function SiteHeader({ settings, currentUser = null }: Readonly<Si
                     {item.label}
                   </Link>
                 ))}
+                
+                <div className="mt-4 grid grid-cols-2 gap-2 border-t border-black/8 pt-4">
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <Link href={secondaryAction.href}>{secondaryAction.label}</Link>
+                  </Button>
+                  <Button asChild size="sm" className="btn-athletic btn-primary w-full">
+                    <Link href={primaryAction.href}>{primaryAction.label}</Link>
+                  </Button>
+                </div>
               </nav>
             </div>
           </details>

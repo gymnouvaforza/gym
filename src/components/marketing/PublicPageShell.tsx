@@ -24,8 +24,10 @@ export default function PublicPageShell({
 }: Readonly<PublicPageShellProps>) {
   return (
     <div className={cn("min-h-screen bg-[#f7f4ef]", className)}>
-      <div className="sticky top-0 z-50">
+      <div className="lg:sticky lg:top-0 lg:z-50">
         <SiteTopbar settings={settings} />
+      </div>
+      <div className="sticky top-0 z-40 lg:top-[var(--topbar-height,0px)]">
         <SiteHeader settings={settings} currentUser={currentUser} />
       </div>
       <main className={mainClassName}>{children}</main>
