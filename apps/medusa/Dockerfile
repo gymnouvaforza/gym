@@ -1,14 +1,17 @@
 FROM node:22-bookworm-slim AS base
 
-ENV NODE_ENV=production
 WORKDIR /app
 
 FROM base AS deps
+
+ENV NODE_ENV=development
 
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci --legacy-peer-deps
 
 FROM deps AS builder
+
+ENV NODE_ENV=development
 
 COPY . .
 RUN npm run build
