@@ -3,6 +3,57 @@ import { describe, expect, it, vi } from "vitest";
 import { normalizeStoreProductPayload, type StoreCategory } from "@/lib/data/store";
 import { __medusaStoreAdminTestables } from "@/lib/data/store-admin/medusa-repository";
 
+function createBridgeClientMock(responses: Array<{ data: { id: string } | null; error: { message: string } | null }>) {
+  const operations: Array<Record<string, unknown>> = [];
+
+  const takeResponse = () => {
+    const next = responses.shift();
+
+    if (!next) {
+      throw new Error("No mocked Supabase response available for this bridge test.");
+    }
+
+    return Promise.resolve(next);
+  };
+
+  const client = {
+    from(table: string) {
+      return {
+        select(fields: string) {
+          return {
+            eq(column: string, value: string) {
+              operations.push({ kind: "select", table, fields, column, value });
+              return {
+                maybeSingle: takeResponse,
+              };
+            },
+          };
+        },
+        update(payload: Record<string, string | null>) {
+          return {
+            eq(column: string, value: string) {
+              operations.push({ kind: "update", table, payload, column, value });
+              return {
+                select(fields: string) {
+                  operations.push({ kind: "update-select", table, fields });
+                  return {
+                    maybeSingle: takeResponse,
+                  };
+                },
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+
+  return {
+    client: client as never,
+    operations,
+  };
+}
+
 describe("medusa store admin repository mappers", () => {
   it("maps admin products to dashboard DTO preserving metadata fields", () => {
     const categories: StoreCategory[] = [
@@ -231,5 +282,128 @@ describe("medusa store admin repository mappers", () => {
     );
 
     expect(updateProducts).toHaveBeenCalledWith("pcat_target", { add: ["prod_123"] });
+  });
+
+  it("resolves a category bridge row from the current Medusa id before falling back to slug", async () => {
+    const bridge = createBridgeClientMock([
+      { data: { id: "cat_row" }, error: null },
+    ]);
+
+    const rowId = await __medusaStoreAdminTestables.resolveSupabaseCategoryBridgeRowId(
+      bridge.client,
+      "categoria-nueva",
+      "pcat_existing",
+    );
+
+    expect(rowId).toBe("cat_row");
+    expect(bridge.operations).toEqual([
+      {
+        kind: "select",
+        table: "store_categories",
+        fields: "id",
+        column: "medusa_category_id",
+        value: "pcat_existing",
+      },
+    ]);
+  });
+
+  it("falls back to slug when a product bridge row still has no Medusa id persisted", async () => {
+    const bridge = createBridgeClientMock([
+      { data: null, error: null },
+      { data: { id: "prod_row" }, error: null },
+    ]);
+
+    const rowId = await __medusaStoreAdminTestables.resolveSupabaseProductBridgeRowId(
+      bridge.client,
+      "straps-pro",
+      "prod_existing",
+    );
+
+    expect(rowId).toBe("prod_row");
+    expect(bridge.operations).toEqual([
+      {
+        kind: "select",
+        table: "products",
+        fields: "id",
+        column: "medusa_product_id",
+        value: "prod_existing",
+      },
+      {
+        kind: "select",
+        table: "products",
+        fields: "id",
+        column: "slug",
+        value: "straps-pro",
+      },
+    ]);
+  });
+
+  it("fails loudly when no bridge row exists in Supabase for a Medusa category update", async () => {
+    const bridge = createBridgeClientMock([
+      { data: null, error: null },
+      { data: null, error: null },
+    ]);
+
+    await expect(
+      __medusaStoreAdminTestables.persistSupabaseCategoryLinkWithClient(
+        bridge.client,
+        "categoria-huerfana",
+        "pcat_new",
+        "pcat_missing",
+      ),
+    ).rejects.toThrow("No existe fila puente en Supabase");
+  });
+
+  it("surfaces Supabase lookup errors while resolving a product bridge row", async () => {
+    const bridge = createBridgeClientMock([
+      { data: null, error: { message: "timeout" } },
+    ]);
+
+    await expect(
+      __medusaStoreAdminTestables.resolveSupabaseProductBridgeRowId(
+        bridge.client,
+        "straps-pro",
+        "prod_existing",
+      ),
+    ).rejects.toThrow("timeout");
+  });
+
+  it("clears the product bridge link by Medusa id and requires an affected Supabase row", async () => {
+    const bridge = createBridgeClientMock([
+      { data: { id: "prod_row" }, error: null },
+    ]);
+
+    await __medusaStoreAdminTestables.clearSupabaseProductLinkWithClient(
+      bridge.client,
+      "prod_existing",
+    );
+
+    expect(bridge.operations).toEqual([
+      {
+        kind: "update",
+        table: "products",
+        payload: { medusa_product_id: null },
+        column: "medusa_product_id",
+        value: "prod_existing",
+      },
+      {
+        kind: "update-select",
+        table: "products",
+        fields: "id",
+      },
+    ]);
+  });
+
+  it("fails when clearing a category bridge link does not affect any Supabase row", async () => {
+    const bridge = createBridgeClientMock([
+      { data: null, error: null },
+    ]);
+
+    await expect(
+      __medusaStoreAdminTestables.clearSupabaseCategoryLinkWithClient(
+        bridge.client,
+        "pcat_missing",
+      ),
+    ).rejects.toThrow("No se pudo limpiar medusa_category_id");
   });
 });

@@ -60,6 +60,10 @@ export interface CommerceSourceMeta {
   hint: string;
 }
 
+interface CommerceSourceStateOptions {
+  warning?: string | null;
+}
+
 export function buildDashboardMetrics(leads: Lead[], unreadLeads: number): DashboardMetricItem[] {
   const leadSummary = countLeadsByStatus(leads);
   const contactedRatio = leads.length
@@ -90,7 +94,18 @@ export function buildDashboardMetrics(leads: Lead[], unreadLeads: number): Dashb
   ];
 }
 
-export function getCommerceSourceMeta(source: CommerceSource): CommerceSourceMeta {
+export function getCommerceSourceMeta(
+  source: CommerceSource,
+  options: CommerceSourceStateOptions = {},
+): CommerceSourceMeta {
+  if (options.warning) {
+    return {
+      label: source === "medusa" ? "Medusa bloqueada" : "Fuente bloqueada",
+      tone: "warning",
+      hint: options.warning,
+    };
+  }
+
   return {
     label: source === "medusa" ? "Medusa activa" : "Medusa activa",
     tone: "success",
@@ -102,6 +117,7 @@ export function getCommerceSourceMeta(source: CommerceSource): CommerceSourceMet
 export function buildCommerceMetrics(
   products: Product[],
   source: CommerceSource,
+  options: CommerceSourceStateOptions = {},
 ): DashboardMetricItem[] {
   const featuredCount = products.filter((product) => product.featured).length;
   const pickupCount = products.filter((product) => product.pickup_only).length;
@@ -109,15 +125,18 @@ export function buildCommerceMetrics(
     (product) =>
       product.stock_status === "coming_soon" || product.stock_status === "out_of_stock",
   ).length;
-  const sourceMeta = getCommerceSourceMeta(source);
+  const sourceMeta = getCommerceSourceMeta(source, options);
+  const isBlocked = Boolean(options.warning);
 
   return [
     {
       label: "Catalogo visible",
       value: String(products.length),
-      hint: `${featuredCount} destacados y ${pickupCount} orientados a recogida local.`,
+      hint: isBlocked
+        ? "No hay lectura operativa valida del catalogo mientras la integracion siga bloqueada."
+        : `${featuredCount} destacados y ${pickupCount} orientados a recogida local.`,
       icon: Package,
-      tone: products.length > 0 ? "default" : "muted",
+      tone: isBlocked ? "warning" : products.length > 0 ? "default" : "muted",
     },
     {
       label: "Fuente commerce",
@@ -128,12 +147,14 @@ export function buildCommerceMetrics(
     },
     {
       label: "Revision operativa",
-      value: String(reviewCount),
-      hint: reviewCount
-        ? "Productos sin stock o en proxima reposicion que conviene revisar."
-        : "Catalogo estable por ahora, sin incidencias de disponibilidad.",
+      value: isBlocked ? "Bloqueada" : String(reviewCount),
+      hint: isBlocked
+        ? "Resuelve la configuracion o disponibilidad de Medusa antes de operar cambios del catalogo."
+        : reviewCount
+          ? "Productos sin stock o en proxima reposicion que conviene revisar."
+          : "Catalogo estable por ahora, sin incidencias de disponibilidad.",
       icon: Store,
-      tone: reviewCount ? "warning" : "success",
+      tone: isBlocked ? "warning" : reviewCount ? "warning" : "success",
     },
   ];
 }

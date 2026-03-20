@@ -38,8 +38,12 @@ export default async function DashboardPage() {
   const newLeads = leadSummary.new;
   const topbarMeta = getTopbarStatusMeta(resolveTopbarStatus(settings));
   const leadMetrics = buildDashboardMetrics(leads, newLeads);
-  const commerceMetrics = buildCommerceMetrics(storeSnapshot.products, storeSnapshot.source);
-  const commerceMeta = getCommerceSourceMeta(storeSnapshot.source);
+  const commerceMetrics = buildCommerceMetrics(storeSnapshot.products, storeSnapshot.source, {
+    warning: storeSnapshot.warning,
+  });
+  const commerceMeta = getCommerceSourceMeta(storeSnapshot.source, {
+    warning: storeSnapshot.warning,
+  });
   const inventory = [
     { label: "Zonas activas", value: String(getOrderedTrainingZones().length), icon: ShieldCheck },
     { label: "Productos visibles", value: String(storeSnapshot.products.length), icon: ShoppingBag },

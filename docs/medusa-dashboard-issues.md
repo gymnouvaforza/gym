@@ -21,9 +21,10 @@ Documento corto de handoff para no perder el contexto cuando cambie la sesion.
 1. No introducir trabajo nuevo sobre widgets, extensiones o flujos operativos del admin de Medusa salvo peticion explicita.
 2. Mantener el dashboard propio como unica interfaz de operacion para categorias y productos.
 3. Cualquier cambio de CRUD en Medusa debe seguir sincronizando `medusa_category_id` y `medusa_product_id` en Supabase.
-4. No meter fallback silencioso en el dashboard cuando Medusa falle; el error debe ser visible.
-5. Si cambia el modelo de datos de tienda, revisar siempre tambien Supabase, porque sigue siendo la base de datos del proyecto.
-6. Evitar decisiones de despliegue que dependan de correr Medusa dentro de Vercel; el backend Medusa debe vivir como servicio separado.
+4. Si no existe fila puente en Supabase o el enlace no se puede persistir, la operacion debe fallar de forma explicita.
+5. No meter fallback silencioso en el dashboard cuando Medusa falle; el error debe ser visible.
+6. Si cambia el modelo de datos de tienda, revisar siempre tambien Supabase, porque sigue siendo la base de datos del proyecto.
+7. Evitar decisiones de despliegue que dependan de correr Medusa dentro de Vercel; el backend Medusa debe vivir como servicio separado.
 
 ## Archivos que concentran esta frontera
 

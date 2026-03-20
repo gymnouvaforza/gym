@@ -48,6 +48,28 @@ describe("admin dashboard helpers", () => {
     });
   });
 
+  it("marks commerce as blocked when Medusa has an operational warning", () => {
+    const metrics = buildCommerceMetrics([], "medusa", {
+      warning: "Medusa no responde desde el dashboard.",
+    });
+
+    expect(metrics[0]).toMatchObject({
+      label: "Catalogo visible",
+      tone: "warning",
+    });
+    expect(metrics[1]).toMatchObject({
+      label: "Fuente commerce",
+      value: "Medusa bloqueada",
+      tone: "warning",
+      hint: "Medusa no responde desde el dashboard.",
+    });
+    expect(metrics[2]).toMatchObject({
+      label: "Revision operativa",
+      value: "Bloqueada",
+      tone: "warning",
+    });
+  });
+
   it("maps status copy for lead, topbar and commerce badges", () => {
     expect(getLeadStatusMeta("closed")).toEqual({
       label: "Cerrado",
@@ -62,6 +84,15 @@ describe("admin dashboard helpers", () => {
       tone: "success",
       hint:
         "El dashboard propio opera la tienda sobre Medusa y persiste los enlaces operativos en Supabase.",
+    });
+    expect(
+      getCommerceSourceMeta("medusa", {
+        warning: "Falta MEDUSA_ADMIN_API_KEY.",
+      }),
+    ).toEqual({
+      label: "Medusa bloqueada",
+      tone: "warning",
+      hint: "Falta MEDUSA_ADMIN_API_KEY.",
     });
   });
 });

@@ -17,6 +17,9 @@ Mas detalle en [docs/commerce-medusa-migration.md](/C:/digitalbitsolutions/gym/d
 
 ## Frontera de responsabilidades
 
+La operativa diaria de tienda se hace desde `src/app/(admin)/dashboard`.
+El admin nativo de Medusa no es el panel del negocio en este proyecto.
+
 ### Next.js + Supabase propio
 
 - marketing
@@ -34,6 +37,12 @@ Mas detalle en [docs/commerce-medusa-migration.md](/C:/digitalbitsolutions/gym/d
 - precios
 - inventario base
 - futura base para carrito y checkout
+
+## Regla operativa de tienda
+
+- el dashboard propio es la unica UI de gestion para el equipo
+- Medusa se usa como motor de catalogo y APIs, no como panel operativo
+- si falta una capacidad de commerce, se expone primero en el dashboard propio antes de dar la integracion por cerrada
 
 ## Desarrollo local
 

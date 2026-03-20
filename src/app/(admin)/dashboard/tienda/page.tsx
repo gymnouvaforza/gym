@@ -12,8 +12,12 @@ import { buildCommerceMetrics, getCommerceSourceMeta } from "@/lib/admin-dashboa
 
 export default async function DashboardStorePage() {
   const snapshot = await getStoreAdminSnapshot();
-  const sourceMeta = getCommerceSourceMeta(snapshot.source);
-  const metrics = buildCommerceMetrics(snapshot.products, snapshot.source);
+  const sourceMeta = getCommerceSourceMeta(snapshot.source, {
+    warning: snapshot.warning,
+  });
+  const metrics = buildCommerceMetrics(snapshot.products, snapshot.source, {
+    warning: snapshot.warning,
+  });
   const categoryTree = buildStoreCategoryTree(snapshot.categories);
 
   return (

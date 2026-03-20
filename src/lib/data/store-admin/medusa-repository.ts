@@ -614,60 +614,218 @@ function getSupabaseBridgeClient() {
   return createSupabaseAdminClient();
 }
 
-async function persistSupabaseCategoryLink(slug: string, medusaCategoryId: string) {
-  const supabase = getSupabaseBridgeClient();
-  const { error } = await supabase
+async function resolveSupabaseCategoryBridgeRowId(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  slug: string,
+  currentMedusaCategoryId?: string,
+) {
+  if (currentMedusaCategoryId) {
+    const { data, error } = await supabase
+      .from("store_categories")
+      .select("id")
+      .eq("medusa_category_id", currentMedusaCategoryId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(
+        `No se pudo localizar el enlace existente en Supabase para la categoria ${slug}: ${error.message}`,
+      );
+    }
+
+    if (data?.id) {
+      return data.id;
+    }
+  }
+
+  const { data, error } = await supabase
     .from("store_categories")
-    .update({ medusa_category_id: medusaCategoryId })
-    .eq("slug", slug);
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
 
   if (error) {
     throw new Error(
-      `No se pudo persistir medusa_category_id en Supabase para la categoria ${slug}: ${error.message}`,
+      `No se pudo localizar la categoria ${slug} en Supabase para persistir el enlace con Medusa: ${error.message}`,
+    );
+  }
+
+  return data?.id ?? null;
+}
+
+async function resolveSupabaseProductBridgeRowId(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  slug: string,
+  currentMedusaProductId?: string,
+) {
+  if (currentMedusaProductId) {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id")
+      .eq("medusa_product_id", currentMedusaProductId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(
+        `No se pudo localizar el enlace existente en Supabase para el producto ${slug}: ${error.message}`,
+      );
+    }
+
+    if (data?.id) {
+      return data.id;
+    }
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(
+      `No se pudo localizar el producto ${slug} en Supabase para persistir el enlace con Medusa: ${error.message}`,
+    );
+  }
+
+  return data?.id ?? null;
+}
+
+async function persistSupabaseCategoryLinkWithClient(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  slug: string,
+  medusaCategoryId: string,
+  currentMedusaCategoryId?: string,
+) {
+  const rowId = await resolveSupabaseCategoryBridgeRowId(
+    supabase,
+    slug,
+    currentMedusaCategoryId,
+  );
+
+  if (!rowId) {
+    throw new Error(
+      `No existe fila puente en Supabase para la categoria ${slug}. La operacion no es valida hasta persistir ese enlace.`,
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("store_categories")
+    .update({ medusa_category_id: medusaCategoryId })
+    .eq("id", rowId)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error(
+      `No se pudo persistir medusa_category_id en Supabase para la categoria ${slug}${error ? `: ${error.message}` : "."}`,
     );
   }
 }
 
-async function persistSupabaseProductLink(slug: string, medusaProductId: string) {
+async function persistSupabaseCategoryLink(
+  slug: string,
+  medusaCategoryId: string,
+  currentMedusaCategoryId?: string,
+) {
   const supabase = getSupabaseBridgeClient();
-  const { error } = await supabase
+  await persistSupabaseCategoryLinkWithClient(
+    supabase,
+    slug,
+    medusaCategoryId,
+    currentMedusaCategoryId,
+  );
+}
+
+async function persistSupabaseProductLinkWithClient(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  slug: string,
+  medusaProductId: string,
+  currentMedusaProductId?: string,
+) {
+  const rowId = await resolveSupabaseProductBridgeRowId(
+    supabase,
+    slug,
+    currentMedusaProductId,
+  );
+
+  if (!rowId) {
+    throw new Error(
+      `No existe fila puente en Supabase para el producto ${slug}. La operacion no es valida hasta persistir ese enlace.`,
+    );
+  }
+
+  const { data, error } = await supabase
     .from("products")
     .update({ medusa_product_id: medusaProductId })
-    .eq("slug", slug);
+    .eq("id", rowId)
+    .select("id")
+    .maybeSingle();
 
-  if (error) {
+  if (error || !data) {
     throw new Error(
-      `No se pudo persistir medusa_product_id en Supabase para el producto ${slug}: ${error.message}`,
+      `No se pudo persistir medusa_product_id en Supabase para el producto ${slug}${error ? `: ${error.message}` : "."}`,
+    );
+  }
+}
+
+async function persistSupabaseProductLink(
+  slug: string,
+  medusaProductId: string,
+  currentMedusaProductId?: string,
+) {
+  const supabase = getSupabaseBridgeClient();
+  await persistSupabaseProductLinkWithClient(
+    supabase,
+    slug,
+    medusaProductId,
+    currentMedusaProductId,
+  );
+}
+
+async function clearSupabaseCategoryLinkWithClient(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  medusaCategoryId: string,
+) {
+  const { data, error } = await supabase
+    .from("store_categories")
+    .update({ medusa_category_id: null })
+    .eq("medusa_category_id", medusaCategoryId)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error(
+      `No se pudo limpiar medusa_category_id en Supabase para ${medusaCategoryId}${error ? `: ${error.message}` : "."}`,
     );
   }
 }
 
 async function clearSupabaseCategoryLink(medusaCategoryId: string) {
   const supabase = getSupabaseBridgeClient();
-  const { error } = await supabase
-    .from("store_categories")
-    .update({ medusa_category_id: null })
-    .eq("medusa_category_id", medusaCategoryId);
+  await clearSupabaseCategoryLinkWithClient(supabase, medusaCategoryId);
+}
 
-  if (error) {
+async function clearSupabaseProductLinkWithClient(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  medusaProductId: string,
+) {
+  const { data, error } = await supabase
+    .from("products")
+    .update({ medusa_product_id: null })
+    .eq("medusa_product_id", medusaProductId)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) {
     throw new Error(
-      `No se pudo limpiar medusa_category_id en Supabase para ${medusaCategoryId}: ${error.message}`,
+      `No se pudo limpiar medusa_product_id en Supabase para ${medusaProductId}${error ? `: ${error.message}` : "."}`,
     );
   }
 }
 
 async function clearSupabaseProductLink(medusaProductId: string) {
   const supabase = getSupabaseBridgeClient();
-  const { error } = await supabase
-    .from("products")
-    .update({ medusa_product_id: null })
-    .eq("medusa_product_id", medusaProductId);
-
-  if (error) {
-    throw new Error(
-      `No se pudo limpiar medusa_product_id en Supabase para ${medusaProductId}: ${error.message}`,
-    );
-  }
+  await clearSupabaseProductLinkWithClient(supabase, medusaProductId);
 }
 
 async function resolveCategoryOrThrow(categories: StoreCategory[], categoryId: string) {
@@ -766,7 +924,7 @@ export function createMedusaStoreAdminRepository(): StoreAdminRuntimeRepository 
           )) as { product_category?: MedusaAdminCategory };
 
           const resolvedId = response.product_category?.id ?? categoryId;
-          await persistSupabaseCategoryLink(payload.slug, resolvedId);
+          await persistSupabaseCategoryLink(payload.slug, resolvedId, categoryId);
           return resolvedId;
         }
 
@@ -828,7 +986,7 @@ export function createMedusaStoreAdminRepository(): StoreAdminRuntimeRepository 
             payload.category_id,
             response.product?.categories?.map((category) => category.id) ?? [],
           );
-          await persistSupabaseProductLink(payload.slug, resolvedId);
+        await persistSupabaseProductLink(payload.slug, resolvedId, productId);
           return resolvedId;
         }
 
@@ -950,7 +1108,13 @@ export const __medusaStoreAdminTestables = {
   buildCreateProductPayload,
   buildSharedProductPayload,
   buildUpdateProductPayload,
+  clearSupabaseCategoryLinkWithClient,
+  clearSupabaseProductLinkWithClient,
   mapDashboardProductRecord,
+  persistSupabaseCategoryLinkWithClient,
+  persistSupabaseProductLinkWithClient,
+  resolveSupabaseCategoryBridgeRowId,
+  resolveSupabaseProductBridgeRowId,
   syncProductCategoryAssignments,
   translateMedusaError,
 };

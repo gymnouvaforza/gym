@@ -60,5 +60,6 @@ function enrichRepository(
 }
 
 export function getStoreAdminRepository(): StoreAdminRuntimeRepository {
+  // The custom Next.js dashboard is the only operational UI for catalog management.
   return enrichRepository(createMedusaStoreAdminRepository());
 }
