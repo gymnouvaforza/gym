@@ -38,8 +38,8 @@ export default async function DashboardPage() {
   const newLeads = leadSummary.new;
   const topbarMeta = getTopbarStatusMeta(resolveTopbarStatus(settings));
   const leadMetrics = buildDashboardMetrics(leads, newLeads);
-  const commerceMetrics = buildCommerceMetrics(storeSnapshot.products, "supabase");
-  const commerceMeta = getCommerceSourceMeta("supabase");
+  const commerceMetrics = buildCommerceMetrics(storeSnapshot.products, storeSnapshot.source);
+  const commerceMeta = getCommerceSourceMeta(storeSnapshot.source);
   const inventory = [
     { label: "Zonas activas", value: String(getOrderedTrainingZones().length), icon: ShieldCheck },
     { label: "Productos visibles", value: String(storeSnapshot.products.length), icon: ShoppingBag },
@@ -66,17 +66,33 @@ export default async function DashboardPage() {
       {warning ? <DashboardNotice message={warning} /> : null}
       {storeSnapshot.warning ? <DashboardNotice message={storeSnapshot.warning} /> : null}
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        {leadMetrics.map((metric) => (
-          <AdminMetricCard key={metric.label} {...metric} />
-        ))}
-      </div>
+      <section className="space-y-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
+            Prioridad operativa
+          </p>
+          <p className="mt-1 text-sm text-[#5f6368]">Lo urgente para atender hoy.</p>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-3">
+          {leadMetrics.map((metric) => (
+            <AdminMetricCard key={metric.label} {...metric} />
+          ))}
+        </div>
+      </section>
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        {commerceMetrics.map((metric) => (
-          <AdminMetricCard key={metric.label} {...metric} />
-        ))}
-      </div>
+      <section className="space-y-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
+            Salud comercial
+          </p>
+          <p className="mt-1 text-sm text-[#5f6368]">Indicadores del catalogo y flujo de tienda.</p>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-3">
+          {commerceMetrics.map((metric) => (
+            <AdminMetricCard key={metric.label} {...metric} />
+          ))}
+        </div>
+      </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <AdminSection
@@ -87,7 +103,7 @@ export default async function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <AdminSurface inset className="p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#fff5f5] text-[#d71920]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-none bg-[#fff5f5] text-[#d71920]">
                   <Inbox className="h-4 w-4" />
                 </div>
                 <div>
@@ -100,7 +116,7 @@ export default async function DashboardPage() {
             </AdminSurface>
             <AdminSurface inset className="p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#fff5f5] text-[#d71920]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-none bg-[#fff5f5] text-[#d71920]">
                   <Megaphone className="h-4 w-4" />
                 </div>
                 <div>
@@ -140,7 +156,7 @@ export default async function DashboardPage() {
 
               return (
                 <AdminSurface key={item.label} inset className="flex items-center gap-3 p-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f2efe8] text-[#5f6368]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-none bg-[#f2efe8] text-[#5f6368]">
                     <Icon className="h-4 w-4" />
                   </div>
                   <div>

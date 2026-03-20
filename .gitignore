@@ -30,6 +30,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+medusa_dev.log
+sync_output.log
+apps/medusa/seed_output*.txt
+apps/medusa/src/scripts/temp/
 output/
 kill_pg.js
 medusa_test.json
@@ -49,3 +53,6 @@ supabase/.temp/
 next-env.d.ts
 
 .vercel
+.vscode/
+.claude
+.gemini

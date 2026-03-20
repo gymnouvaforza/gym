@@ -91,27 +91,12 @@ export function buildDashboardMetrics(leads: Lead[], unreadLeads: number): Dashb
 }
 
 export function getCommerceSourceMeta(source: CommerceSource): CommerceSourceMeta {
-  switch (source) {
-    case "medusa":
-      return {
-        label: "Medusa activa",
-        tone: "success",
-        hint: "La tienda publica ya consume catalogo real desde la Store API.",
-      };
-    case "supabase":
-      return {
-        label: "Operacion Supabase",
-        tone: "warning",
-        hint: "El dashboard opera taxonomy y catalogo desde Supabase mientras Medusa queda como backend commerce preparado para sincronizacion.",
-      };
-    case "mock":
-    default:
-      return {
-        label: "Mock local",
-        tone: "muted",
-        hint: "Solo para desarrollo o contingencia. Conviene volver a Medusa cuanto antes.",
-      };
-  }
+  return {
+    label: source === "medusa" ? "Medusa activa" : "Medusa activa",
+    tone: "success",
+    hint:
+      "El dashboard propio opera la tienda sobre Medusa y persiste los enlaces operativos en Supabase.",
+  };
 }
 
 export function buildCommerceMetrics(

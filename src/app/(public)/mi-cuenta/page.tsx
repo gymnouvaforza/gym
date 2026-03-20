@@ -28,7 +28,7 @@ export default async function MemberAccountPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="rounded-2xl border border-black/8 bg-[#fbfbf8] p-5">
+            <div className="rounded-none border border-black/8 bg-[#fbfbf8] p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
                 Cuenta activa
               </p>

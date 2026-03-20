@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "medusa:seed:nova": "npm --prefix apps/medusa run seed:nova"
+    "medusa:seed:nova": "npm --prefix apps/medusa run seed:nova",
+    "sync:store:medusa": "node scripts/sync-store-supabase-to-medusa.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

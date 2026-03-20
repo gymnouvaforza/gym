@@ -1,18 +1,11 @@
 import DashboardNotice from "@/components/admin/DashboardNotice";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
 import StoreCategoryForm from "@/components/admin/StoreCategoryForm";
-import { getDashboardCapabilities } from "@/lib/auth";
-import { getStoreAdminSnapshot } from "@/lib/data/store-admin";
+import { getStoreAdminSnapshot, getStoreAdminWriteDisabledReason } from "@/lib/data/store-admin";
 
 export default async function DashboardNewStoreCategoryPage() {
-  const [snapshot, capabilities] = await Promise.all([
-    getStoreAdminSnapshot(),
-    getDashboardCapabilities(),
-  ]);
-
-  const disabledReason = capabilities.isReadOnly
-    ? "Configura SUPABASE_SERVICE_ROLE_KEY para guardar cambios reales."
-    : undefined;
+  const snapshot = await getStoreAdminSnapshot();
+  const disabledReason = getStoreAdminWriteDisabledReason();
 
   return (
     <div className="space-y-6">

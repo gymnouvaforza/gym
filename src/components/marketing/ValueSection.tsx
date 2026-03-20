@@ -1,6 +1,5 @@
 import { BarChart3, Dumbbell, ShieldCheck, Sparkles } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { novaForzaHomeContent } from "@/lib/data/nova-forza-content";
 
 const icons = {
@@ -10,7 +9,7 @@ const icons = {
   trend: BarChart3,
 } as const;
 
-export default function ValueSection({ warning }: { warning: string | null }) {
+export default function ValueSection() {
   return (
     <section id="propuesta" className="section-anchor bg-[#f5f5f0] py-24 md:py-32">
       <div className="section-shell">
@@ -27,13 +26,6 @@ export default function ValueSection({ warning }: { warning: string | null }) {
             </div>
             <span className="hidden h-[5px] w-28 bg-[#ed1c24] md:block" />
           </div>
-          {warning ? (
-            <div className="mt-6 flex justify-center">
-              <Badge variant="muted" className="rounded-none">
-                {warning}
-              </Badge>
-            </div>
-          ) : null}
         </div>
 
         <div className="grid gap-x-10 gap-y-16 md:grid-cols-2 xl:grid-cols-4">
@@ -41,7 +33,10 @@ export default function ValueSection({ warning }: { warning: string | null }) {
             const Icon = icons[item.icon];
 
             return (
-              <article key={item.title} className="mx-auto flex max-w-[310px] flex-col items-center text-center">
+              <article
+                key={item.title}
+                className="mx-auto flex max-w-[310px] flex-col items-center text-center"
+              >
                 <div className="flex h-16 w-16 items-center justify-center text-[#3f3f46]">
                   <Icon className="h-12 w-12 stroke-[1.8]" />
                 </div>

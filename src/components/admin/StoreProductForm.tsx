@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 import AdminSurface from "./AdminSurface";
+import ImageUpload from "./ImageUpload";
 
 interface StoreProductFormProps {
   product?: StoreDashboardProduct | null;
@@ -364,9 +365,13 @@ export default function StoreProductForm({
                 name="images_text"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Imagenes (una por linea)</FormLabel>
+                    <FormLabel>Imagenes del producto</FormLabel>
                     <FormControl>
-                      <Textarea rows={4} {...field} />
+                      <ImageUpload
+                        value={field.value ? field.value.split("\n").filter(Boolean) : []}
+                        onChange={(urls) => field.onChange(urls.join("\n"))}
+                        disabled={isPending || Boolean(disabledReason)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

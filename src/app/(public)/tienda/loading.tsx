@@ -27,9 +27,9 @@ export default function ShopLoading() {
         <div className="hidden rounded-[32px] border border-black/8 bg-white p-6 shadow-sm lg:block">
           <div className="h-3 w-16 animate-pulse rounded-full bg-black/5" />
           <div className="mt-6 space-y-3">
-            <div className="h-10 animate-pulse rounded-2xl bg-black/5" />
-            <div className="h-10 animate-pulse rounded-2xl bg-black/5" />
-            <div className="h-10 animate-pulse rounded-2xl bg-black/5" />
+            <div className="h-10 animate-pulse rounded-none bg-black/5" />
+            <div className="h-10 animate-pulse rounded-none bg-black/5" />
+            <div className="h-10 animate-pulse rounded-none bg-black/5" />
           </div>
         </div>
 

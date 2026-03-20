@@ -1,4 +1,5 @@
 import { productCategories, type Product, type ProductCategory } from "@/data/types";
+import { getDefaultCommerceCurrencyCode } from "@/lib/commerce/currency";
 import type { DBProduct, DBStoreCategory } from "@/lib/supabase/database.types";
 import { slugify, trimToNull } from "@/lib/utils";
 import type {
@@ -221,7 +222,7 @@ export function toStoreProductFormValues(product?: StoreDashboardProduct | null)
     price: product?.price ?? 0,
     compare_price: product?.compare_price ?? "",
     discount_label: product?.discount_label ?? "",
-    currency: product?.currency ?? "PEN",
+    currency: product?.currency ?? getDefaultCommerceCurrencyCode(),
     stock_status: product?.stock_status ?? "in_stock",
     featured: product?.featured ?? false,
     pickup_only: product?.pickup_only ?? true,
@@ -265,7 +266,7 @@ export function normalizeStoreProductPayload(values: StoreProductValues) {
         ? values.compare_price
         : null,
     discount_label: trimToNull(values.discount_label ?? ""),
-    currency: values.currency.trim().toUpperCase(),
+    currency: values.currency.trim().toUpperCase() || getDefaultCommerceCurrencyCode(),
     stock_status: values.stock_status,
     featured: values.featured,
     pickup_only: values.pickup_only,

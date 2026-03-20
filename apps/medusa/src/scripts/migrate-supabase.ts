@@ -3,9 +3,12 @@ import path from 'path';
 import { Client } from 'pg';
 import dotenv from 'dotenv';
 
+
 // Cargar variables de entorno desde el directorio raíz y apps/medusa
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 dotenv.config({ path: path.join(process.cwd(), '.env.local'), override: true });
+
+const DEFAULT_CURRENCY_CODE = (process.env.COMMERCE_CURRENCY_CODE ?? 'PEN').toUpperCase();
 
 const dbUrl = process.env.DATABASE_URL;
 
@@ -89,7 +92,7 @@ async function runMigration() {
             short_description: 'Soporte diario para fuerza, potencia y mejor recuperación entre sesiones exigentes.',
             description: 'Creatina monohidratada micronizada, fácil de disolver y pensada para quien entrena con constancia. Una opción simple y efectiva para acompañar fases de fuerza, hipertrofia o rendimiento general sin fórmulas innecesarias.',
             price: 24.90,
-            currency: 'EUR',
+            currency: DEFAULT_CURRENCY_CODE,
             stock_status: 'in_stock',
             featured: true,
             pickup_only: true,
@@ -108,7 +111,7 @@ async function runMigration() {
             short_description: 'Proteína aislada de digestión ligera para cubrir la ingesta diaria sin complicaciones.',
             description: 'Aislado de suero pensado para socios que buscan una proteína limpia, cómoda y fácil de integrar en días de entrenamiento o recuperación. Perfil suave, textura fluida y una fórmula enfocada en rendimiento, no en artificios.',
             price: 64.90,
-            currency: 'EUR',
+            currency: DEFAULT_CURRENCY_CODE,
             stock_status: 'low_stock',
             featured: true,
             pickup_only: true,
@@ -127,7 +130,7 @@ async function runMigration() {
             short_description: 'Shaker robusto de 700 ml con cierre seguro y diseño limpio para el día a día.',
             description: 'Un básico bien resuelto para llevar proteína, creatina o bebida isotónica sin fugas ni piezas incómodas. Tiene cuerpo sólido, tapa firme y una presencia alineada con la estética de Nova Forza.',
             price: 14.90,
-            currency: 'EUR',
+            currency: DEFAULT_CURRENCY_CODE,
             stock_status: 'in_stock',
             featured: false,
             pickup_only: true,
@@ -146,7 +149,7 @@ async function runMigration() {
             short_description: 'Agarre extra para series pesadas de peso muerto, remos y tirones controlados.',
             description: 'Straps diseñados para entrenamientos serios donde el agarre limita antes que la espalda o la cadena posterior. Construcción resistente, ajuste cómodo y una sensación firme para cargas altas.',
             price: 16.90,
-            currency: 'EUR',
+            currency: DEFAULT_CURRENCY_CODE,
             stock_status: 'in_stock',
             featured: true,
             pickup_only: true,
@@ -165,7 +168,7 @@ async function runMigration() {
             short_description: 'Prenda ligera de corte deportivo con identidad limpia y presencia premium.',
             description: 'Polo técnico desarrollado para entrenar, moverse por el club o llevar fuera del gimnasio sin caer en una estética de merch genérica. Patronaje cómodo, tejido ligero y gráfica sobria.',
             price: 32.00,
-            currency: 'EUR',
+            currency: DEFAULT_CURRENCY_CODE,
             stock_status: 'coming_soon',
             featured: true,
             pickup_only: false,

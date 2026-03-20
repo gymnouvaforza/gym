@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PublicHomePage() {
-  const { settings, warning } = await getMarketingData();
+  const { settings } = await getMarketingData();
   const currentUser = await getCurrentMemberUser();
 
   return (
@@ -35,7 +35,7 @@ export default async function PublicHomePage() {
       </div>
       <main>
         <HeroSection settings={settings} />
-        <ValueSection warning={warning} />
+        <ValueSection />
         <PlansSection settings={settings} />
         <ScheduleSection />
         <TeamSection />

@@ -6,6 +6,8 @@ import { useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { saveSiteSettings } from "@/app/(admin)/dashboard/actions";
+import AdminCollapsibleSection from "@/components/admin/AdminCollapsibleSection";
+import AdminSurface from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,13 +19,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { SiteSettings } from "@/lib/supabase/database.types";
 import { formatSeoKeywordsInput } from "@/lib/seo";
+import type { SiteSettings } from "@/lib/supabase/database.types";
 import { formatDateTimeLocalInput, topbarVariants } from "@/lib/topbar";
 import { siteSettingsSchema, type SiteSettingsValues } from "@/lib/validators/settings";
-
-import AdminSurface from "./AdminSurface";
-import AdminCollapsibleSection from "./AdminCollapsibleSection";
 
 interface WebSectionFormProps {
   settings: SiteSettings;
@@ -61,7 +60,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
     startTransition(async () => {
       try {
         await saveSiteSettings(values);
-        setFeedback("Diseño actualizado.");
+        setFeedback("Diseno actualizado.");
       } catch (error) {
         setFeedback(error instanceof Error ? error.message : "Error al guardar.");
       }
@@ -83,7 +82,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
               name="hero_badge"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Texto pequeño superior</FormLabel>
+                  <FormLabel>Texto pequeno superior</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -96,7 +95,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
               name="hero_title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título principal</FormLabel>
+                  <FormLabel>Titulo principal</FormLabel>
                   <FormControl>
                     <Textarea rows={2} {...field} />
                   </FormControl>
@@ -109,7 +108,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
               name="hero_description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción</FormLabel>
+                  <FormLabel>Descripcion</FormLabel>
                   <FormControl>
                     <Textarea rows={3} {...field} />
                   </FormControl>
@@ -123,7 +122,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
                 name="hero_primary_cta"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Botón principal</FormLabel>
+                    <FormLabel>Boton principal</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -136,7 +135,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
                 name="hero_secondary_cta"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Botón secundario</FormLabel>
+                    <FormLabel>Boton secundario</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -158,12 +157,12 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
               control={form.control}
               name="topbar_enabled"
               render={({ field }) => (
-                <FormItem className="flex items-center gap-3 rounded-2xl border border-black/8 bg-white p-4">
+                <FormItem className="flex items-center gap-3 rounded-none border border-black/8 bg-white p-4">
                   <FormControl>
                     <input
                       type="checkbox"
                       checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
+                      onChange={(event) => field.onChange(event.target.checked)}
                       className="h-4 w-4 accent-[#d71920]"
                     />
                   </FormControl>
@@ -173,7 +172,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
                 </FormItem>
               )}
             />
-            {topbarEnabled && (
+            {topbarEnabled ? (
               <>
                 <div className="grid gap-5 md:grid-cols-2">
                   <FormField
@@ -185,11 +184,15 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
                         <FormControl>
                           <select
                             {...field}
-                            className="h-10 w-full rounded-md border border-input bg-background px-3"
+                            className="h-10 w-full rounded-none border border-input bg-background px-3"
                           >
-                            {topbarVariants.map((v) => (
-                              <option key={v} value={v}>
-                                {v === "promotion" ? "Oferta" : v === "announcement" ? "Anuncio" : "Aviso"}
+                            {topbarVariants.map((variant) => (
+                              <option key={variant} value={variant}>
+                                {variant === "promotion"
+                                  ? "Oferta"
+                                  : variant === "announcement"
+                                    ? "Anuncio"
+                                    : "Aviso"}
                               </option>
                             ))}
                           </select>
@@ -203,7 +206,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
                     name="topbar_expires_at"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>¿Cuándo termina?</FormLabel>
+                        <FormLabel>Cuando termina</FormLabel>
                         <FormControl>
                           <Input type="datetime-local" {...field} />
                         </FormControl>
@@ -219,23 +222,31 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
                     <FormItem>
                       <FormLabel>Texto de la promo</FormLabel>
                       <FormControl>
-                        <Input placeholder="¡Matrícula gratis!" {...field} />
+                        <Input placeholder="Matricula gratis" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </>
-            )}
+            ) : null}
           </div>
         </AdminCollapsibleSection>
 
         <AdminSurface className="sticky bottom-4 z-10 border-black/10 bg-white/95 p-4 backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-[#5f6368]">{feedback ?? disabledReason}</p>
-            <Button type="submit" disabled={isPending || Boolean(disabledReason)}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-[#5f6368]" aria-live="polite">
+              {isPending
+                ? "Guardando cambios..."
+                : feedback ?? disabledReason ?? "Edita la seccion y guarda para publicar."}
+            </p>
+            <Button
+              type="submit"
+              disabled={isPending || Boolean(disabledReason)}
+              className="w-full sm:w-auto"
+            >
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Guardar diseño
+              Guardar diseno
             </Button>
           </div>
         </AdminSurface>

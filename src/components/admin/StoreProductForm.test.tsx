@@ -13,6 +13,22 @@ vi.mock("@/app/(admin)/dashboard/tienda/actions", () => ({
   saveStoreProduct: (...args: unknown[]) => saveStoreProductMock(...args),
 }));
 
+vi.mock("@/components/admin/ImageUpload", () => ({
+  default: ({
+    value,
+    onChange,
+  }: {
+    value: string[];
+    onChange: (value: string[]) => void;
+  }) => (
+    <textarea
+      aria-label="Imagenes (una por linea)"
+      value={value.join("\n")}
+      onChange={(event) => onChange(event.target.value.split("\n").filter(Boolean))}
+    />
+  ),
+}));
+
 const categories: StoreCategory[] = [
   { id: "root-1", slug: "suplementos", name: "Suplementos", order: 1, active: true },
   { id: "child-1", slug: "proteinas", name: "Proteinas", parent_id: "root-1", order: 1, active: true },

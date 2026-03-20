@@ -26,6 +26,8 @@ export default function LeadsTable({ leads, disabledReason }: LeadsTableProps) {
       <DashboardEmptyState
         title="Todavia no hay leads"
         description="Cuando alguien complete el formulario publico, aparecera aqui con su estado y fecha de entrada."
+        actionHref="/#contacto"
+        actionLabel="Probar formulario publico"
       />
     );
   }
@@ -58,19 +60,19 @@ export default function LeadsTable({ leads, disabledReason }: LeadsTableProps) {
       <div className="space-y-3 md:hidden">
         {leads.map((lead) => (
           <AdminSurface key={lead.id} inset className="p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-semibold text-[#111111]">{lead.name}</p>
-                <p className="mt-1 text-sm text-[#5f6368]">{lead.email}</p>
-              </div>
+            <div>
+              <p className="font-semibold text-[#111111]">{lead.name}</p>
+              <p className="mt-1 text-sm text-[#5f6368]">{lead.email}</p>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7a7f87]">
               <LeadStatusBadge status={lead.status} />
+              <span>|</span>
+              <span>{lead.source}</span>
+              <span>|</span>
+              <span>{formatShortDate(lead.created_at)}</span>
             </div>
             <p className="mt-3 text-sm leading-6 text-[#5f6368]">{lead.message}</p>
-            <div className="mt-4 grid gap-2 text-sm text-[#5f6368]">
-              <p>Telefono: {lead.phone || "Sin telefono"}</p>
-              <p>Origen: {lead.source.toUpperCase()}</p>
-              <p>Fecha: {formatShortDate(lead.created_at)}</p>
-            </div>
+            <p className="mt-3 text-sm text-[#5f6368]">Telefono: {lead.phone || "Sin telefono"}</p>
             <div className="mt-4">
               <LeadStatusSelect
                 leadId={lead.id}
@@ -86,8 +88,8 @@ export default function LeadsTable({ leads, disabledReason }: LeadsTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>Lead</TableHead>
+              <TableHead>Mensaje</TableHead>
               <TableHead>Telefono</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Origen</TableHead>
@@ -98,14 +100,14 @@ export default function LeadsTable({ leads, disabledReason }: LeadsTableProps) {
             {leads.map((lead) => (
               <TableRow key={lead.id}>
                 <TableCell>
-                  <div>
-                    <p className="font-medium text-[#111111]">{lead.name}</p>
-                    <p className="mt-1 max-w-xl truncate text-sm text-[#5f6368]" title={lead.message}>
-                      {lead.message}
-                    </p>
-                  </div>
+                  <p className="font-medium text-[#111111]">{lead.name}</p>
+                  <p className="mt-1 text-sm text-[#5f6368]">{lead.email}</p>
                 </TableCell>
-                <TableCell>{lead.email}</TableCell>
+                <TableCell className="max-w-xl">
+                  <p className="truncate text-sm text-[#5f6368]" title={lead.message}>
+                    {lead.message}
+                  </p>
+                </TableCell>
                 <TableCell>{lead.phone || "Sin telefono"}</TableCell>
                 <TableCell>
                   <LeadStatusSelect

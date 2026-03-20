@@ -1,3 +1,4 @@
+import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import type { CreateInventoryLevelInput, ExecArgs } from "@medusajs/framework/types";
@@ -15,6 +16,10 @@ import {
   linkSalesChannelsToStockLocationWorkflow,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows";
+
+const DEFAULT_CURRENCY_CODE = (process.env.COMMERCE_CURRENCY_CODE ?? "PEN").toLowerCase();
+const DEFAULT_REGION_NAME = process.env.MEDUSA_REGION_NAME ?? "Peru";
+const DEFAULT_COUNTRY_CODE = (process.env.MEDUSA_COUNTRY_CODE ?? "PE").toLowerCase();
 
 type NovaForzaCategory = "suplementos" | "accesorios" | "merchandising";
 type NovaForzaStockStatus = "in_stock" | "low_stock" | "out_of_stock" | "coming_soon";
@@ -378,10 +383,10 @@ async function uploadProductImages(container: ExecArgs["container"], products: N
   const fileModuleService = container.resolve(Modules.FILE);
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
   
-  const s3Url = process.env.S3_URL?.replace("/s3", "") || "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object";
+  const s3Url = process.env.S3_URL?.replace("/s3", "") || "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1";
   const s3Bucket = process.env.S3_BUCKET || "medusa-media";
   const s3AccessKey = process.env.S3_ACCESS_KEY_ID;
-
+  
   // Use absolute path to Next.js public/images/products
   const imagesDir = path.resolve(process.cwd(), "../../public/images/products");
   
@@ -397,7 +402,7 @@ async function uploadProductImages(container: ExecArgs["container"], products: N
       const fileName = localPath.split("/").pop();
       if (!fileName || imageMap.has(fileName)) continue;
       
-      const fallbackUrl = `${s3Url}/public/${s3Bucket}/${fileName}`;
+      const fallbackUrl = `/images/products/${fileName}`;
       
       if (!isS3Configured) {
         imageMap.set(fileName, fallbackUrl);
@@ -447,7 +452,7 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
       update: {
         supported_currencies: [
           {
-            currency_code: "eur",
+            currency_code: DEFAULT_CURRENCY_CODE,
             is_default: true,
           },
         ],
@@ -460,7 +465,7 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
   const { data: existingRegions } = await regionQuery.graph({
     entity: "region",
     fields: ["id", "name"],
-    filters: { name: "Espana" }
+    filters: { name: DEFAULT_REGION_NAME }
   });
 
   let region: any = existingRegions?.[0];
@@ -470,9 +475,9 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
       input: {
         regions: [
           {
-            name: "Espana",
-            currency_code: "eur",
-            countries: ["es"],
+            name: DEFAULT_REGION_NAME,
+            currency_code: DEFAULT_CURRENCY_CODE,
+            countries: [DEFAULT_COUNTRY_CODE],
             payment_providers: ["pp_system_default"],
           },
         ],
@@ -607,7 +612,7 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
               prices: [
                 {
                   amount: product.amount,
-                  currency_code: "eur",
+                  currency_code: DEFAULT_CURRENCY_CODE,
                 },
               ],
             },

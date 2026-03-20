@@ -3,11 +3,11 @@
 import { render, screen } from "@testing-library/react";
 
 import StoreCatalogTable from "@/components/admin/StoreCatalogTable";
-import { products as mockProducts } from "@/data/products";
+import { products as fixtureProducts } from "@/test/fixtures/products";
 
 describe("StoreCatalogTable", () => {
   it("renders the operational product rows with price and asset count", () => {
-    render(<StoreCatalogTable products={mockProducts.slice(0, 2)} />);
+    render(<StoreCatalogTable products={fixtureProducts.slice(0, 2)} />);
 
     expect(screen.getByText("Creatina Monohidratada 300 g")).toBeInTheDocument();
     expect(screen.getByText("Nova Forza Isolate Whey Protein")).toBeInTheDocument();

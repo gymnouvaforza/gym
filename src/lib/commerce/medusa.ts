@@ -10,6 +10,8 @@ import {
   getMedusaStoreProductByHandle,
   listMedusaStoreProducts,
 } from "@/lib/medusa/products";
+import { normalizeCommerceImageUrls } from "@/lib/commerce/image-urls";
+import { getDefaultCommerceCurrencyCode } from "@/lib/commerce/currency";
 import type {
   MedusaStoreProduct,
   MedusaStoreProductVariant,
@@ -141,7 +143,7 @@ function resolvePrice(product: MedusaStoreProduct) {
 
   return {
     amount: 0,
-    currency: "EUR",
+    currency: getDefaultCommerceCurrencyCode(),
   };
 }
 
@@ -202,16 +204,18 @@ function resolveStockStatus(product: MedusaStoreProduct): ProductStockStatus {
 }
 
 function resolveImages(product: MedusaStoreProduct) {
-  const metadataImages = asStringArray(product.metadata?.storefront_images);
+  const metadataImages = normalizeCommerceImageUrls(
+    asStringArray(product.metadata?.storefront_images),
+  );
 
   if (metadataImages.length > 0) {
     return metadataImages;
   }
 
-  const images = [
+  const images = normalizeCommerceImageUrls([
     asString(product.thumbnail),
     ...((product.images ?? []).map((image) => asString(image.url))),
-  ].filter((image): image is string => Boolean(image));
+  ]);
 
   return images.length > 0 ? Array.from(new Set(images)) : ["/images/products/product-1.png"];
 }

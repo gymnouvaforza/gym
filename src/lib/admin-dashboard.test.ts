@@ -6,8 +6,8 @@ import {
   getLeadStatusMeta,
   getTopbarStatusMeta,
 } from "@/lib/admin-dashboard";
-import { products as mockProducts } from "@/data/products";
 import { defaultLeads } from "@/lib/data/default-content";
+import { products as fixtureProducts } from "@/test/fixtures/products";
 
 describe("admin dashboard helpers", () => {
   it("counts leads by status", () => {
@@ -34,12 +34,12 @@ describe("admin dashboard helpers", () => {
   });
 
   it("builds commerce metrics for the admin shop summary", () => {
-    const metrics = buildCommerceMetrics(mockProducts, "medusa");
+    const metrics = buildCommerceMetrics(fixtureProducts, "medusa");
 
     expect(metrics).toHaveLength(3);
     expect(metrics[0]).toMatchObject({
       label: "Catalogo visible",
-      value: String(mockProducts.length),
+      value: String(fixtureProducts.length),
     });
     expect(metrics[1]).toMatchObject({
       label: "Fuente commerce",
@@ -57,10 +57,11 @@ describe("admin dashboard helpers", () => {
       label: "Caducado",
       tone: "warning",
     });
-    expect(getCommerceSourceMeta("supabase")).toEqual({
-      label: "Operacion Supabase",
-      tone: "warning",
-      hint: "El dashboard opera taxonomy y catalogo desde Supabase mientras Medusa queda como backend commerce preparado para sincronizacion.",
+    expect(getCommerceSourceMeta("medusa")).toEqual({
+      label: "Medusa activa",
+      tone: "success",
+      hint:
+        "El dashboard propio opera la tienda sobre Medusa y persiste los enlaces operativos en Supabase.",
     });
   });
 });

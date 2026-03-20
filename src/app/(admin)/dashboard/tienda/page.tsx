@@ -12,8 +12,8 @@ import { buildCommerceMetrics, getCommerceSourceMeta } from "@/lib/admin-dashboa
 
 export default async function DashboardStorePage() {
   const snapshot = await getStoreAdminSnapshot();
-  const sourceMeta = getCommerceSourceMeta("supabase");
-  const metrics = buildCommerceMetrics(snapshot.products, "supabase");
+  const sourceMeta = getCommerceSourceMeta(snapshot.source);
+  const metrics = buildCommerceMetrics(snapshot.products, snapshot.source);
   const categoryTree = buildStoreCategoryTree(snapshot.categories);
 
   return (
@@ -33,7 +33,7 @@ export default async function DashboardStorePage() {
 
       <AdminSection
         title="Estado actual"
-        description="La edicion interna vive en Supabase y deja preparada la sincronizacion futura con Medusa."
+        description="Gestion operativa del catalogo segun el provider configurado para el dashboard."
         badge={<Badge variant={sourceMeta.tone}>{sourceMeta.label}</Badge>}
       >
         <div className="grid gap-4 md:grid-cols-3">

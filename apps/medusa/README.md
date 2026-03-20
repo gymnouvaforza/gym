@@ -48,12 +48,44 @@ npm run dev:medusa
 
 Medusa queda disponible por defecto en `http://localhost:9000`.
 
+## Deploy con Docker
+
+El backend puede desplegarse como contenedor usando [Dockerfile](/C:/digitalbitsolutions/gym/apps/medusa/Dockerfile).
+
+Supuesto recomendado para este proyecto:
+
+- storefront publico en `https://gym.yampi.eu` desde Vercel
+- backend Medusa en `https://api.gym.yampi.eu` desde tu VPS/Dokploy
+
+Variables minimas para produccion:
+
+```env
+PORT=9000
+DATABASE_URL=postgresql://...
+MEDUSA_DB_INSECURE_SSL=true
+STORE_CORS=https://gym.yampi.eu
+ADMIN_CORS=https://gym.yampi.eu,https://api.gym.yampi.eu
+AUTH_CORS=https://gym.yampi.eu,https://api.gym.yampi.eu
+JWT_SECRET=...
+COOKIE_SECRET=...
+```
+
+Si usas Supabase Storage/S3 para imagenes, anade tambien:
+
+```env
+S3_URL=https://<project-ref>.supabase.co/storage/v1/s3
+S3_BUCKET=medusa-media
+S3_REGION=eu-central-1
+S3_ACCESS_KEY_ID=...
+S3_SECRET_ACCESS_KEY=...
+```
+
 ## Seed Nova Forza
 
 El script `seed:nova` crea una base minima alineada con la tienda actual:
 
 - canal de venta `Nova Forza Storefront`
-- region `Espana`
+- region `Peru`
 - stock location `Nova Forza Club`
 - categorias `Suplementos`, `Accesorios`, `Merchandising`
 - productos iniciales con metadata pensada para el storefront actual
@@ -70,6 +102,16 @@ Al terminar, Medusa deja dos datos clave en logs:
 - `publishable api key`
 
 Ambos se reutilizan en el storefront Next.js.
+
+La moneda y region por defecto del seed son `PEN` / `Peru`, pero pueden ajustarse con:
+
+- `COMMERCE_CURRENCY_CODE`
+- `MEDUSA_REGION_NAME`
+- `MEDUSA_COUNTRY_CODE`
+
+Guia operativa recomendada para Dokploy/VPS en:
+
+- [docs/medusa-dokploy-vps.md](/C:/digitalbitsolutions/gym/docs/medusa-dokploy-vps.md)
 
 ## Nota sobre Supabase
 

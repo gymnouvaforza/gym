@@ -5,8 +5,11 @@ import DashboardNotice from "@/components/admin/DashboardNotice";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
 import StoreCategoryForm from "@/components/admin/StoreCategoryForm";
 import { Button } from "@/components/ui/button";
-import { getDashboardCapabilities } from "@/lib/auth";
-import { getStoreAdminCategory, getStoreAdminSnapshot } from "@/lib/data/store-admin";
+import {
+  getStoreAdminCategory,
+  getStoreAdminSnapshot,
+  getStoreAdminWriteDisabledReason,
+} from "@/lib/data/store-admin";
 
 interface StoreCategoryEditPageProps {
   params: Promise<{
@@ -18,19 +21,16 @@ export default async function DashboardStoreCategoryEditPage({
   params,
 }: Readonly<StoreCategoryEditPageProps>) {
   const { id } = await params;
-  const [category, snapshot, capabilities] = await Promise.all([
+  const [category, snapshot] = await Promise.all([
     getStoreAdminCategory(id),
     getStoreAdminSnapshot(),
-    getDashboardCapabilities(),
   ]);
 
   if (!category) {
     notFound();
   }
 
-  const disabledReason = capabilities.isReadOnly
-    ? "Configura SUPABASE_SERVICE_ROLE_KEY para guardar cambios reales."
-    : undefined;
+  const disabledReason = getStoreAdminWriteDisabledReason();
 
   return (
     <div className="space-y-6">

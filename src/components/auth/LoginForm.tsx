@@ -121,7 +121,7 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
-            {error ? <p className="text-sm text-red-300">{error}</p> : null}
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Entrar

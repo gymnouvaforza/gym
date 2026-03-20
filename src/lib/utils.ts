@@ -1,3 +1,4 @@
+import { getDefaultCommerceLocale } from "@/lib/commerce/currency";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -22,7 +23,7 @@ export function formatShortDate(value: string) {
     return "Sin fecha";
   }
 
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(getDefaultCommerceLocale(), {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);

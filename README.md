@@ -66,18 +66,24 @@ Completa `.env.local` a partir de `.env.example`.
 
 ### Nuevas para commerce
 
-- `COMMERCE_PROVIDER=auto|medusa|supabase|mock`
+- `COMMERCE_PROVIDER=medusa`
+- `STORE_ADMIN_PROVIDER=medusa`
+- `COMMERCE_CURRENCY_CODE=PEN`
+- `COMMERCE_LOCALE=es-PE`
+- `NEXT_PUBLIC_COMMERCE_CURRENCY_CODE=PEN`
+- `NEXT_PUBLIC_COMMERCE_LOCALE=es-PE`
 - `MEDUSA_BACKEND_URL`
+- `MEDUSA_ADMIN_API_KEY`
 - `MEDUSA_PUBLISHABLE_KEY`
 - `MEDUSA_REGION_ID`
-- `MEDUSA_COUNTRY_CODE`
-- `MEDUSA_DEFAULT_CURRENCY_CODE`
+- `MEDUSA_REGION_NAME=Peru`
+- `MEDUSA_COUNTRY_CODE=PE`
 
-`COMMERCE_PROVIDER=auto` usa este orden:
+El runtime de commerce ya no admite fallback a Supabase ni a catalogo local. Si Medusa no responde,
+la tienda y el dashboard muestran un error explicito.
 
-1. Medusa
-2. Supabase `products` legacy
-3. mock local
+Por defecto el proyecto queda preparado para trabajar en **sol peruano (`PEN`)** y locale
+`es-PE`, pero puedes cambiarlo por entorno sin tocar codigo.
 
 ## Supabase y Medusa
 
@@ -88,6 +94,7 @@ La recomendacion operativa mas segura es:
 - usar **Supabase Postgres** para Medusa
 - mantener **Medusa** como propietario de sus tablas
 - evitar mezclar tablas internas de Medusa con el dominio del gym sin una frontera clara
+- usar Supabase tambien para persistir los IDs puente `medusa_category_id` y `medusa_product_id`
 
 ## Seeds de comercio
 
@@ -98,6 +105,14 @@ npm run medusa:seed:nova
 ```
 
 Ese seed deja la base para catalogo, categorias, stock simple y la publishable key del storefront.
+Los datos locales ya no alimentan la app en runtime; si se conservan, quedan solo como fixtures o
+material de seed.
+
+## Deploy y preproduccion
+
+La ruta operativa recomendada para este repo es desplegar `web` y `Medusa` en el mismo VPS usando Docker y Dokploy, manteniendo `Supabase` como base de datos y storage externos.
+
+La receta completa esta documentada en [docs/dokploy-full-stack.md](/C:/digitalbitsolutions/gym/docs/dokploy-full-stack.md).
 
 ## QA
 

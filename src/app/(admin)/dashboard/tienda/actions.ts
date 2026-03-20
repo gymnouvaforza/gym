@@ -3,16 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminUser } from "@/lib/auth";
-import { hasSupabaseServiceRole } from "@/lib/env";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import {
-  deactivateStoreCategoryRecord,
-  deactivateStoreProductRecord,
-  deleteStoreCategoryRecord,
-  deleteStoreProductRecord,
-  saveStoreCategoryRecord,
-  saveStoreProductRecord,
-} from "@/lib/supabase/queries";
+import { getStoreAdminRepository } from "@/lib/data/store-admin/repository";
+import { getStoreAdminWriteDisabledReason } from "@/lib/data/store-admin";
 import {
   storeCategorySchema,
   storeProductSchema,
@@ -20,16 +12,15 @@ import {
   type StoreProductInput,
 } from "@/lib/validators/store";
 
-async function getAuthenticatedSupabase() {
+async function getAuthenticatedStoreAdminRepository() {
   await requireAdminUser();
 
-  if (!hasSupabaseServiceRole()) {
-    throw new Error(
-      "Configura SUPABASE_SERVICE_ROLE_KEY para gestionar datos reales del backoffice.",
-    );
+  const disabledReason = getStoreAdminWriteDisabledReason();
+  if (disabledReason) {
+    throw new Error(disabledReason);
   }
 
-  return createSupabaseAdminClient();
+  return getStoreAdminRepository();
 }
 
 function revalidateStore() {
@@ -42,40 +33,40 @@ function revalidateStore() {
 
 export async function saveStoreCategory(values: StoreCategoryInput, categoryId?: string) {
   const parsed = storeCategorySchema.parse(values);
-  const supabase = await getAuthenticatedSupabase();
-  const id = await saveStoreCategoryRecord(supabase, parsed, categoryId);
+  const repository = await getAuthenticatedStoreAdminRepository();
+  const id = await repository.saveCategory(parsed, categoryId);
   revalidateStore();
   return id;
 }
 
 export async function saveStoreProduct(values: StoreProductInput, productId?: string) {
   const parsed = storeProductSchema.parse(values);
-  const supabase = await getAuthenticatedSupabase();
-  const id = await saveStoreProductRecord(supabase, parsed, productId);
+  const repository = await getAuthenticatedStoreAdminRepository();
+  const id = await repository.saveProduct(parsed, productId);
   revalidateStore();
   return id;
 }
 
 export async function deactivateStoreCategory(id: string) {
-  const supabase = await getAuthenticatedSupabase();
-  await deactivateStoreCategoryRecord(supabase, id);
+  const repository = await getAuthenticatedStoreAdminRepository();
+  await repository.deactivateCategory(id);
   revalidateStore();
 }
 
 export async function deactivateStoreProduct(id: string) {
-  const supabase = await getAuthenticatedSupabase();
-  await deactivateStoreProductRecord(supabase, id);
+  const repository = await getAuthenticatedStoreAdminRepository();
+  await repository.deactivateProduct(id);
   revalidateStore();
 }
 
 export async function deleteStoreCategory(id: string) {
-  const supabase = await getAuthenticatedSupabase();
-  await deleteStoreCategoryRecord(supabase, id);
+  const repository = await getAuthenticatedStoreAdminRepository();
+  await repository.deleteCategory(id);
   revalidateStore();
 }
 
 export async function deleteStoreProduct(id: string) {
-  const supabase = await getAuthenticatedSupabase();
-  await deleteStoreProductRecord(supabase, id);
+  const repository = await getAuthenticatedStoreAdminRepository();
+  await repository.deleteProduct(id);
   revalidateStore();
 }

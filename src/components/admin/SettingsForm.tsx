@@ -170,9 +170,17 @@ export default function SettingsForm({ settings, disabledReason }: SettingsFormP
         </AdminCollapsibleSection>
 
         <AdminSurface className="sticky bottom-4 z-10 border-black/10 bg-white/95 p-4 backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-[#5f6368]">{feedback ?? disabledReason}</p>
-            <Button type="submit" disabled={isPending || Boolean(disabledReason)}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-[#5f6368]" aria-live="polite">
+              {isPending
+                ? "Guardando cambios..."
+                : feedback ?? disabledReason ?? "Ajusta campos y guarda para aplicar cambios."}
+            </p>
+            <Button
+              type="submit"
+              disabled={isPending || Boolean(disabledReason)}
+              className="w-full sm:w-auto"
+            >
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Guardar ajustes avanzados
             </Button>

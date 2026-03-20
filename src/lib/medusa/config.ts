@@ -25,7 +25,5 @@ export function getMedusaStorefrontConfig() {
     backendUrl: env.backendUrl,
     publishableKey: env.publishableKey,
     regionId: env.regionId,
-    countryCode: env.countryCode,
-    currencyCode: env.currencyCode,
   };
 }

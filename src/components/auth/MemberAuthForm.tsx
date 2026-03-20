@@ -185,9 +185,13 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
         </Form>
 
         <p className="mt-5 text-center text-sm text-[#5f6368]">
-          {isRegister ? "¿Ya tienes cuenta?" : "¿Aun no tienes cuenta?"}{" "}
+          {isRegister ? "Ya tienes cuenta?" : "Aun no tienes cuenta?"}{" "}
           <Link
-            href={isRegister ? `/acceso?next=${encodeURIComponent(next)}` : `/registro?next=${encodeURIComponent(next)}`}
+            href={
+              isRegister
+                ? `/acceso?next=${encodeURIComponent(next)}`
+                : `/registro?next=${encodeURIComponent(next)}`
+            }
             className="font-semibold text-[#d71920]"
           >
             {isRegister ? "Accede aqui" : "Registrate aqui"}

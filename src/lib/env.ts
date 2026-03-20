@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 const publicEnvSchema = z.object({
+  NEXT_PUBLIC_COMMERCE_CURRENCY_CODE: z.string().length(3).optional(),
+  NEXT_PUBLIC_COMMERCE_LOCALE: z.string().min(2).optional(),
   NEXT_PUBLIC_MEDUSA_BACKEND_URL: z.string().url().optional(),
   NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
@@ -12,16 +14,20 @@ const serverEnvSchema = publicEnvSchema.extend({
   ADMIN_ALLOWED_EMAILS: z.string().optional(),
   ADMIN_PASSWORD: z.string().min(1).optional(),
   ADMIN_USER: z.string().min(1).optional(),
-  COMMERCE_PROVIDER: z.enum(["auto", "medusa", "supabase", "mock"]).optional(),
+  COMMERCE_CURRENCY_CODE: z.string().length(3).optional(),
+  COMMERCE_LOCALE: z.string().min(2).optional(),
+  COMMERCE_PROVIDER: z.literal("medusa").optional(),
+  STORE_ADMIN_PROVIDER: z.literal("medusa").optional(),
   MEDUSA_BACKEND_URL: z.string().url().optional(),
-  MEDUSA_COUNTRY_CODE: z.string().min(2).max(2).optional(),
-  MEDUSA_DEFAULT_CURRENCY_CODE: z.string().min(3).max(3).optional(),
+  MEDUSA_ADMIN_API_KEY: z.string().min(1).optional(),
   MEDUSA_PUBLISHABLE_KEY: z.string().min(1).optional(),
   MEDUSA_REGION_ID: z.string().min(1).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 });
 
 const publicEnv = publicEnvSchema.parse({
+  NEXT_PUBLIC_COMMERCE_CURRENCY_CODE: process.env.NEXT_PUBLIC_COMMERCE_CURRENCY_CODE,
+  NEXT_PUBLIC_COMMERCE_LOCALE: process.env.NEXT_PUBLIC_COMMERCE_LOCALE,
   NEXT_PUBLIC_MEDUSA_BACKEND_URL: process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL,
   NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -36,10 +42,12 @@ const serverEnv = serverEnvSchema.parse({
   ADMIN_ALLOWED_EMAILS: process.env.ADMIN_ALLOWED_EMAILS,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   ADMIN_USER: process.env.ADMIN_USER,
+  COMMERCE_CURRENCY_CODE: process.env.COMMERCE_CURRENCY_CODE,
+  COMMERCE_LOCALE: process.env.COMMERCE_LOCALE,
   COMMERCE_PROVIDER: process.env.COMMERCE_PROVIDER,
+  STORE_ADMIN_PROVIDER: process.env.STORE_ADMIN_PROVIDER,
   MEDUSA_BACKEND_URL: process.env.MEDUSA_BACKEND_URL,
-  MEDUSA_COUNTRY_CODE: process.env.MEDUSA_COUNTRY_CODE,
-  MEDUSA_DEFAULT_CURRENCY_CODE: process.env.MEDUSA_DEFAULT_CURRENCY_CODE,
+  MEDUSA_ADMIN_API_KEY: process.env.MEDUSA_ADMIN_API_KEY,
   MEDUSA_PUBLISHABLE_KEY: process.env.MEDUSA_PUBLISHABLE_KEY,
   MEDUSA_REGION_ID: process.env.MEDUSA_REGION_ID,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -61,6 +69,16 @@ function resolveMedusaPublishableKey() {
   return publicEnv.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ?? serverEnv.MEDUSA_PUBLISHABLE_KEY;
 }
 
+function normalizeCurrencyCode(value: string | undefined) {
+  const normalized = value?.trim().toUpperCase();
+  return normalized && normalized.length === 3 ? normalized : null;
+}
+
+function normalizeLocale(value: string | undefined) {
+  const normalized = value?.trim();
+  return normalized ? normalized : null;
+}
+
 export function hasSupabasePublicEnv() {
   return Boolean(resolvePublicSupabaseUrl() && resolvePublicSupabaseKey());
 }
@@ -74,7 +92,13 @@ export function hasSupabaseServiceRole() {
 }
 
 export function getCommerceProvider() {
-  return serverEnv.COMMERCE_PROVIDER ?? "auto";
+  return serverEnv.COMMERCE_PROVIDER ?? "medusa";
+}
+
+export type StoreAdminProvider = "medusa";
+
+export function getStoreAdminProvider(): StoreAdminProvider {
+  return serverEnv.STORE_ADMIN_PROVIDER ?? "medusa";
 }
 
 export function getMedusaEnv() {
@@ -91,8 +115,19 @@ export function getMedusaEnv() {
     backendUrl,
     publishableKey,
     regionId: serverEnv.MEDUSA_REGION_ID,
-    countryCode: (serverEnv.MEDUSA_COUNTRY_CODE ?? "es").toLowerCase(),
-    currencyCode: (serverEnv.MEDUSA_DEFAULT_CURRENCY_CODE ?? "eur").toLowerCase(),
+  };
+}
+
+export function getCommerceDisplayEnv() {
+  return {
+    currencyCode:
+      normalizeCurrencyCode(publicEnv.NEXT_PUBLIC_COMMERCE_CURRENCY_CODE) ??
+      normalizeCurrencyCode(serverEnv.COMMERCE_CURRENCY_CODE) ??
+      "PEN",
+    locale:
+      normalizeLocale(publicEnv.NEXT_PUBLIC_COMMERCE_LOCALE) ??
+      normalizeLocale(serverEnv.COMMERCE_LOCALE) ??
+      "es-PE",
   };
 }
 
@@ -116,6 +151,23 @@ export function getServerSupabaseEnv() {
   return {
     ...getPublicSupabaseEnv(),
     serviceRoleKey: serverEnv.SUPABASE_SERVICE_ROLE_KEY,
+  };
+}
+
+export function hasMedusaAdminEnv() {
+  return Boolean(serverEnv.MEDUSA_BACKEND_URL && serverEnv.MEDUSA_ADMIN_API_KEY);
+}
+
+export function getMedusaAdminEnv() {
+  if (!serverEnv.MEDUSA_BACKEND_URL || !serverEnv.MEDUSA_ADMIN_API_KEY) {
+    throw new Error(
+      "Missing Medusa admin credentials. Set MEDUSA_BACKEND_URL and MEDUSA_ADMIN_API_KEY.",
+    );
+  }
+
+  return {
+    backendUrl: serverEnv.MEDUSA_BACKEND_URL,
+    adminApiKey: serverEnv.MEDUSA_ADMIN_API_KEY,
   };
 }
 

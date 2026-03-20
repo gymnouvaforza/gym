@@ -5,6 +5,7 @@ import {
   type ProductCategory,
   type ProductStockStatus,
 } from "@/data/types";
+import { getDefaultCommerceLocale } from "@/lib/commerce/currency";
 
 export const productCategoryLabels: Record<ProductCategory, string> = {
   suplementos: "Suplementos",
@@ -14,9 +15,9 @@ export const productCategoryLabels: Record<ProductCategory, string> = {
 
 export const productStockStatusLabels: Record<ProductStockStatus, string> = {
   in_stock: "Disponible",
-  low_stock: "Últimas unidades",
+  low_stock: "Ultimas unidades",
   out_of_stock: "Agotado",
-  coming_soon: "Próximamente",
+  coming_soon: "Proximamente",
 };
 
 export const productSortOptions = [
@@ -179,20 +180,32 @@ export function getProductBySlug(productsList: Product[], slug: string) {
 }
 
 export function getRelatedProducts(productsList: Product[], product: Product, limit = 3) {
-  const activeProducts = getActiveProducts(productsList);
-
-  const sameCategory = activeProducts.filter(
-    (candidate) => candidate.slug !== product.slug && candidate.category === product.category,
+  const activeProducts = getActiveProducts(productsList).filter(
+    (candidate) => candidate.id !== product.id
   );
 
-  const fallback = activeProducts.filter((candidate) => candidate.slug !== product.slug);
-  const pool = sameCategory.length >= limit ? sameCategory : [...sameCategory, ...fallback];
+  const sameCategory = activeProducts.filter(
+    (candidate) => candidate.category === product.category,
+  );
 
-  return pool.slice(0, limit);
+  // Use a Map to ensure unique products by ID
+  const poolMap = new Map<string, Product>();
+  
+  sameCategory.forEach(p => poolMap.set(p.id, p));
+  
+  if (poolMap.size < limit) {
+    activeProducts.forEach(p => {
+      if (poolMap.size < limit) {
+        poolMap.set(p.id, p);
+      }
+    });
+  }
+
+  return Array.from(poolMap.values()).slice(0, limit);
 }
 
 export function formatProductPrice(product: Pick<Product, "price" | "currency">) {
-  return new Intl.NumberFormat("es-ES", {
+  return new Intl.NumberFormat(getDefaultCommerceLocale(), {
     style: "currency",
     currency: product.currency,
   }).format(product.price);
@@ -215,7 +228,7 @@ export function getProductStockMeta(stockStatus: ProductStockStatus) {
     case "coming_soon":
       return {
         label: productStockStatusLabels[stockStatus],
-        description: "Producto previsto para la próxima reposición.",
+        description: "Producto previsto para la proxima reposicion.",
         badgeVariant: "muted" as const,
       };
     case "out_of_stock":

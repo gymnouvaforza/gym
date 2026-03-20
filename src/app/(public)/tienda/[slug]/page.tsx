@@ -20,7 +20,13 @@ interface ProductDetailPageProps {
 }
 
 export async function generateStaticParams() {
-  const { products } = await getCommerceCatalog();
+  const snapshot = await getCommerceCatalog();
+
+  if (snapshot.status !== "ready") {
+    return [];
+  }
+
+  const { products } = snapshot;
   return getActiveProducts(products).map((product) => ({
     slug: product.slug,
   }));
@@ -33,7 +39,14 @@ export async function generateMetadata({
   const snapshot = await getCommerceProductBySlug(slug);
   const product = snapshot.product;
 
-  if (!product) {
+  if (snapshot.status === "unavailable") {
+    return {
+      title: "Tienda temporalmente no disponible",
+      description: "El catalogo de Nova Forza no se puede consultar ahora mismo.",
+    };
+  }
+
+  if (!product || snapshot.status === "not_found") {
     return {
       title: "Producto no encontrado",
     };
@@ -64,7 +77,34 @@ export default async function ProductDetailPage({
   ]);
   const product = productSnapshot.product;
 
-  if (!product) {
+  if (productSnapshot.status === "unavailable") {
+    return (
+      <section className="section-shell py-16 md:py-24">
+        <div className="rounded-none border border-amber-300/70 bg-amber-50 px-6 py-10 text-center text-amber-900 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+            Medusa no disponible
+          </p>
+          <h1 className="mt-4 font-display text-4xl uppercase text-[#111111]">
+            La ficha de producto no se puede cargar ahora mismo
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#4b5563]">
+            La tienda funciona solo con Medusa. Cuando el servicio se recupere, esta ficha volverá
+            a estar disponible sin usar datos locales ni fallback silencioso.
+          </p>
+          <div className="mt-8 flex justify-center">
+            <Link
+              href="/tienda"
+              className="text-sm font-semibold uppercase tracking-[0.18em] text-[#111111] transition hover:text-[#d71920]"
+            >
+              Volver al catalogo
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!product || productSnapshot.status === "not_found") {
     notFound();
   }
 
@@ -75,11 +115,8 @@ export default async function ProductDetailPage({
       {productSnapshot.warning ? (
         <div className="section-shell pt-8">
           <div className="rounded-none border border-amber-300/70 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900">
-            <p className="font-semibold uppercase tracking-[0.18em]">Estado commerce</p>
-            <p className="mt-2">
-              Fuente activa: <span className="font-semibold">{productSnapshot.source}</span>.{" "}
-              {productSnapshot.warning}
-            </p>
+            <p className="font-semibold uppercase tracking-[0.18em]">Aviso de catalogo</p>
+            <p className="mt-2">{productSnapshot.warning}</p>
           </div>
         </div>
       ) : null}

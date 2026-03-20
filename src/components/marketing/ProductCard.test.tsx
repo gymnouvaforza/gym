@@ -30,7 +30,7 @@ const product: Product = {
   short_description: "Soporte diario para fuerza y potencia.",
   description: "Descripcion larga de creatina.",
   price: 24.9,
-  currency: "EUR",
+  currency: "PEN",
   stock_status: "in_stock",
   pickup_only: true,
   featured: true,
@@ -50,7 +50,7 @@ describe("ProductCard", () => {
       "href",
       "/tienda/creatina-monohidratada",
     );
-    expect(screen.getByText(/24,90/)).toBeInTheDocument();
+    expect(screen.getByText(/24(?:[.,])90/)).toBeInTheDocument();
     expect(screen.getAllByText("Premium").length).toBeGreaterThan(0);
     expect(screen.getByText("Ver mas")).toBeInTheDocument();
   });

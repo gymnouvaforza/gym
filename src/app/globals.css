@@ -11,9 +11,7 @@
   --panel: #111111;
   --panel-foreground: #ffffff;
 
-  /* Typography Variables */
-  --font-inter: var(--font-inter);
-  --font-oswald: var(--font-oswald);
+  /* Typography Variables are handled by next/font and theme inline */
 }
 
 @theme inline {

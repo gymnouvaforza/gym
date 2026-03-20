@@ -2,7 +2,6 @@ export type MedusaStoreProductListParams = {
   fields?: string;
   limit?: number;
   region_id?: string;
-  country_code?: string;
   handle?: string;
 };
 

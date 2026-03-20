@@ -5,7 +5,7 @@ import type { ComponentProps } from "react";
 import { vi } from "vitest";
 
 import StoreProductsTable from "@/components/admin/StoreProductsTable";
-import { products as mockProducts } from "@/data/products";
+import { products as fixtureProducts } from "@/test/fixtures/products";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: ComponentProps<"a">) => (
@@ -21,7 +21,7 @@ describe("StoreProductsTable", () => {
       <StoreProductsTable
         products={[
           {
-            ...mockProducts[0],
+            ...fixtureProducts[0],
             category_id: "child-1",
             parent_category_name: "Suplementos",
             category_name: "Creatinas",

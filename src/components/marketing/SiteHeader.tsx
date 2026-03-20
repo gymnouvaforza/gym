@@ -12,10 +12,21 @@ interface SiteHeaderProps {
 }
 
 export default function SiteHeader({ settings, currentUser = null }: Readonly<SiteHeaderProps>) {
+  const primaryAction = currentUser
+    ? { href: "/#contacto", label: settings.hero_primary_cta }
+    : { href: "/registro", label: "Unirme" };
+  const secondaryAction = currentUser
+    ? { href: "/mi-cuenta", label: "Mi cuenta" }
+    : { href: "/acceso", label: "Acceso" };
+
   return (
     <header className="border-b border-black/5 bg-[#f5f5f0] py-4 lg:py-6">
       <div className="section-shell flex items-center justify-between gap-8">
-        <Link href="/" className="group relative flex shrink-0 items-center justify-center transition-transform hover:scale-105" aria-label={settings.site_name}>
+        <Link
+          href="/"
+          className="group relative flex shrink-0 items-center justify-center transition-transform hover:scale-105"
+          aria-label={settings.site_name}
+        >
           <div className="relative h-10 w-32 sm:h-12 sm:w-40">
             <Image
               src="/images/logo/logo-trans.webp"
@@ -40,32 +51,44 @@ export default function SiteHeader({ settings, currentUser = null }: Readonly<Si
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {currentUser ? (
-            <>
-              <Button asChild variant="outline" className="hidden h-10 px-4 text-[10px] sm:flex sm:h-12 sm:px-6 sm:text-xs">
-                <Link href="/mi-cuenta">Mi cuenta</Link>
-              </Button>
-              <Button asChild className="btn-athletic btn-primary !h-10 !px-6 !text-[10px] sm:!h-12 sm:!px-8 sm:!text-xs">
-                <Link href="/#contacto">{settings.hero_primary_cta}</Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button asChild variant="outline" className="hidden h-10 px-4 text-[10px] sm:flex sm:h-12 sm:px-6 sm:text-xs">
-                <Link href="/acceso">Acceso</Link>
-              </Button>
-              <Button asChild className="btn-athletic btn-primary !h-10 !px-6 !text-[10px] sm:!h-12 sm:!px-8 sm:!text-xs">
-                <Link href="/registro">Unirme</Link>
-              </Button>
-            </>
-          )}
-          <button className="flex h-12 w-12 items-center justify-center bg-black/5 text-foreground lg:hidden">
-            <span className="sr-only">Menu</span>
-            <div className="flex flex-col gap-1.5">
-              <span className="h-0.5 w-6 rounded-none bg-foreground" />
-              <span className="h-0.5 w-4 rounded-none bg-foreground" />
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="sm:size-default"
+          >
+            <Link href={secondaryAction.href}>{secondaryAction.label}</Link>
+          </Button>
+          <Button
+            asChild
+            size="sm"
+            className="btn-athletic btn-primary sm:size-default"
+          >
+            <Link href={primaryAction.href}>{primaryAction.label}</Link>
+          </Button>
+
+          <details className="relative lg:hidden">
+            <summary className="flex h-12 w-12 list-none items-center justify-center bg-black/5 text-foreground [&::-webkit-details-marker]:hidden">
+              <span className="sr-only">Abrir menu</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="h-0.5 w-6 rounded-none bg-foreground" />
+                <span className="h-0.5 w-4 rounded-none bg-foreground" />
+              </div>
+            </summary>
+            <div className="absolute right-0 top-14 z-20 w-[min(20rem,calc(100vw-2rem))] animate-in fade-in slide-in-from-top-2 border border-black/8 bg-[#f5f5f0] p-4 shadow-xl duration-200">
+              <nav className="flex flex-col">
+                {novaForzaHomeContent.navItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="border-b border-black/6 px-2 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-foreground last:border-b-0"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
             </div>
-          </button>
+          </details>
         </div>
       </div>
     </header>

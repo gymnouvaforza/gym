@@ -38,7 +38,10 @@ export default function DashboardSidebar() {
       <nav className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
         {links.map((link) => {
           const Icon = link.icon;
-          const isActive = pathname === link.href;
+          const isRootDashboardLink = link.href === "/dashboard";
+          const isActive = isRootDashboardLink
+            ? pathname === link.href
+            : pathname.startsWith(link.href);
 
           return (
             <Link

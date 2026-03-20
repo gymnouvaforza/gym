@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { saveSiteSettings } from "@/app/(admin)/dashboard/actions";
+import AdminSurface from "@/components/admin/AdminSurface";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,12 +18,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { SiteSettings } from "@/lib/supabase/database.types";
 import { formatSeoKeywordsInput } from "@/lib/seo";
+import type { SiteSettings } from "@/lib/supabase/database.types";
 import { formatDateTimeLocalInput } from "@/lib/topbar";
 import { siteSettingsSchema, type SiteSettingsValues } from "@/lib/validators/settings";
-
-import AdminSurface from "./AdminSurface";
 
 interface GymInfoFormProps {
   settings: SiteSettings;
@@ -88,7 +87,7 @@ export default function GymInfoForm({ settings, disabledReason }: GymInfoFormPro
             name="contact_phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Teléfono</FormLabel>
+                <FormLabel>Telefono</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -117,7 +116,7 @@ export default function GymInfoForm({ settings, disabledReason }: GymInfoFormPro
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Dirección física</FormLabel>
+                <FormLabel>Direccion fisica</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -132,7 +131,7 @@ export default function GymInfoForm({ settings, disabledReason }: GymInfoFormPro
           name="opening_hours"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Horarios de atención</FormLabel>
+              <FormLabel>Horarios de atencion</FormLabel>
               <FormControl>
                 <Textarea rows={3} {...field} />
               </FormControl>
@@ -142,11 +141,19 @@ export default function GymInfoForm({ settings, disabledReason }: GymInfoFormPro
         />
 
         <AdminSurface className="sticky bottom-4 z-10 border-black/10 bg-white/95 p-4 backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-[#5f6368]">{feedback ?? disabledReason}</p>
-            <Button type="submit" disabled={isPending || Boolean(disabledReason)}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-[#5f6368]" aria-live="polite">
+              {isPending
+                ? "Guardando cambios..."
+                : feedback ?? disabledReason ?? "Actualiza los datos y guarda para publicar."}
+            </p>
+            <Button
+              type="submit"
+              disabled={isPending || Boolean(disabledReason)}
+              className="w-full sm:w-auto"
+            >
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Guardar información
+              Guardar informacion
             </Button>
           </div>
         </AdminSurface>

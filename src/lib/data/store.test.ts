@@ -48,7 +48,7 @@ describe("store data helpers", () => {
       price: 49.99,
       compare_price: "",
       discount_label: " Oferta ",
-      currency: "eur",
+      currency: "pen",
       stock_status: "in_stock",
       featured: true,
       pickup_only: true,
@@ -68,7 +68,7 @@ describe("store data helpers", () => {
 
     expect(categoryPayload.slug).toBe("proteinas");
     expect(productPayload.slug).toBe("whey-nova");
-    expect(productPayload.currency).toBe("EUR");
+    expect(productPayload.currency).toBe("PEN");
     expect(productPayload.images).toEqual(["/img/a.png", "/img/b.png"]);
     expect(productPayload.specifications?.[0]).toEqual({ label: "Peso", value: "2 kg" });
   });

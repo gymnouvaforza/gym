@@ -250,6 +250,24 @@ describe("medusa commerce", () => {
     expect(product?.options?.[0]?.values).toContain("Chocolate Suizo");
   });
 
+  it("normalizes legacy localhost and filename-only image URLs", () => {
+    const product = mapMedusaProduct(
+      buildStoreProduct({
+        metadata: {
+          storefront_images: [
+            "http://localhost:3000/images/products/nova-whey.png",
+            "nova-creatina.png",
+          ],
+        },
+      }),
+    );
+
+    expect(product?.images).toEqual([
+      "/images/products/nova-whey.png",
+      "/images/products/nova-creatina.png",
+    ]);
+  });
+
   it("lists published Medusa products ordered by metadata order", async () => {
     medusaProductsMocks.listMedusaStoreProducts.mockResolvedValue([
       buildStoreProduct({ id: "prod_02", title: "Creatina", handle: "creatina", metadata: { order: 1 } }),

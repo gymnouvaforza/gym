@@ -32,7 +32,7 @@ const product: Product = {
   price: 49.99,
   compare_price: 58.99,
   discount_label: "Ahorra 15%",
-  currency: "EUR",
+  currency: "PEN",
   stock_status: "in_stock",
   pickup_only: true,
   pickup_note: "Disponible en recepcion.",
@@ -59,7 +59,7 @@ const product: Product = {
       sku: "WHEY-CHOCO",
       inventory_quantity: 8,
       price: 49.99,
-      currency: "EUR",
+      currency: "PEN",
       options: [
         {
           option_id: "opt-1",

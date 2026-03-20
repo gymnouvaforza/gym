@@ -26,7 +26,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
           sizes="(min-width: 1280px) 24vw, (min-width: 768px) 32vw, 100vw"
         />
         {product.featured ? (
-          <div className="absolute top-4 left-4">
+          <div className="absolute left-4 top-4">
             <span className="bg-[#d71920] px-2.5 py-1 font-display text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">
               Premium
             </span>
@@ -59,7 +59,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
 
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#ece5db] pt-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9ca3af]">
-            {product.tags.slice(0, 2).join(" · ")}
+            {product.tags.slice(0, 2).join(" / ")}
           </p>
           <Button
             variant="outline"

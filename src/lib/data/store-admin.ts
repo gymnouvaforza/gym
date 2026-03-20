@@ -1,93 +1,94 @@
 import { cache } from "react";
 
-import { getDashboardCapabilities } from "@/lib/auth";
+import { getStoreAdminRepository } from "@/lib/data/store-admin/repository";
+import type { CommerceSource } from "@/lib/commerce/types";
+import type { StoreCategory, StoreDashboardProduct } from "@/lib/data/store";
 import {
-  mapDashboardProduct,
-  mapListField,
-  mapSpecifications,
-  resolveRootProductCategory,
-  type StoreDashboardProduct,
-} from "@/lib/data/store";
-import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
-import { getStoreCategories, getStoreCategoryById, getStoreProducts } from "@/lib/supabase/queries";
-import { type StoreCategory } from "@/lib/data/store";
-import { hasSupabasePublicEnv } from "@/lib/env";
-import { type DBProduct } from "@/lib/supabase/database.types";
+  hasMedusaAdminEnv,
+  hasSupabaseServiceRole,
+} from "@/lib/env";
 
-
-function mapProductRecord(product: DBProduct, categories: StoreCategory[]): StoreDashboardProduct {
-  const rootCategory = resolveRootProductCategory(product.category_id, categories, product.category);
-
-  return mapDashboardProduct(product, categories, {
-    id: product.id,
-    slug: product.slug,
-    name: product.name,
-    eyebrow: product.eyebrow ?? undefined,
-    category: rootCategory,
-    short_description: product.short_description,
-    description: product.description,
-    price: product.price,
-    compare_price: product.compare_price,
-    discount_label: product.discount_label ?? undefined,
-    currency: product.currency,
-    stock_status: product.stock_status,
-    pickup_only: product.pickup_only,
-    pickup_note: product.pickup_note ?? undefined,
-    pickup_summary: product.pickup_summary ?? undefined,
-    pickup_eta: product.pickup_eta ?? undefined,
-    featured: product.featured,
-    images: mapListField(product.images),
-    tags: mapListField(product.tags),
-    highlights: mapListField(product.highlights),
-    benefits: mapListField(product.benefits),
-    usage_steps: mapListField(product.usage_steps),
-    specifications: mapSpecifications(product.specifications),
-    options: undefined,
-    variants: undefined,
-    cta_label: product.cta_label,
-    order: product.order,
-    active: product.active,
-  });
+interface StoreAdminSnapshot {
+  categories: StoreCategory[];
+  products: StoreDashboardProduct[];
+  source: CommerceSource;
+  warning: string | null;
 }
 
-async function getDashboardSupabaseReader() {
-  const capabilities = await getDashboardCapabilities();
-
-  if (capabilities.canManageRealData) {
-    return createSupabaseAdminClient();
+function getStoreAdminReadinessWarning(): string | null {
+  if (!hasMedusaAdminEnv()) {
+    return (
+      "El dashboard de tienda requiere MEDUSA_BACKEND_URL y MEDUSA_ADMIN_API_KEY. " +
+      "Configuralos para gestionar categorias y productos del dashboard."
+    );
   }
 
-  return createSupabaseServerClient();
+  return null;
 }
 
-export const getStoreAdminSnapshot = cache(async () => {
-  if (!hasSupabasePublicEnv()) {
+export function getStoreAdminWriteDisabledReason() {
+  if (!hasMedusaAdminEnv()) {
+    return "Configura MEDUSA_BACKEND_URL y MEDUSA_ADMIN_API_KEY para guardar cambios reales en Medusa.";
+  }
+
+  if (!hasSupabaseServiceRole()) {
+    return "Configura SUPABASE_SERVICE_ROLE_KEY para persistir los enlaces Medusa-Supabase del dashboard.";
+  }
+
+  return undefined;
+}
+
+export const getStoreAdminSnapshot = cache(async (): Promise<StoreAdminSnapshot> => {
+  const readinessWarning = getStoreAdminReadinessWarning();
+  const repository = getStoreAdminRepository();
+
+  if (readinessWarning) {
     return {
-      categories: [] as StoreCategory[],
-      products: [] as StoreDashboardProduct[],
-      warning: "Supabase no esta configurado. La tienda interna no puede cargar datos reales.",
+      categories: [],
+      products: [],
+      source: repository.source,
+      warning: readinessWarning,
     };
   }
 
-  const supabase = await getDashboardSupabaseReader();
-  const [categories, products] = await Promise.all([
-    getStoreCategories(supabase, { includeInactive: true }),
-    getStoreProducts(supabase, { includeInactive: true }),
-  ]);
+  try {
+    const snapshot = await repository.getSnapshot();
 
-  return {
-    categories,
-    products: products.map((product) => mapProductRecord(product, categories)),
-    warning: null as string | null,
-  };
+    return {
+      ...snapshot,
+      source: repository.source,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "No se pudo cargar el catalogo desde la fuente configurada del dashboard.";
+
+    return {
+      categories: [],
+      products: [],
+      source: repository.source,
+      warning: message,
+    };
+  }
 });
 
 export async function getStoreAdminCategory(id: string) {
-  const supabase = await getDashboardSupabaseReader();
-  return getStoreCategoryById(supabase, id);
+  const readinessWarning = getStoreAdminReadinessWarning();
+  if (readinessWarning) {
+    return null;
+  }
+
+  const repository = getStoreAdminRepository();
+  return repository.getCategory(id);
 }
 
 export async function getStoreAdminProduct(id: string) {
-  const snapshot = await getStoreAdminSnapshot();
-  return snapshot.products.find((product) => product.id === id) ?? null;
+  const readinessWarning = getStoreAdminReadinessWarning();
+  if (readinessWarning) {
+    return null;
+  }
+
+  const repository = getStoreAdminRepository();
+  return repository.getProduct(id);
 }

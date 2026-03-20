@@ -15,6 +15,9 @@ coverage
 medusa-db.sql
 build
 .cache
+seed_output*.txt
+src/scripts/temp/
+test-s3.ts
 
 .yarn/*
 !.yarn/patches
@@ -24,3 +27,4 @@ build
 !.yarn/versions
 
 .medusa
+.gemini

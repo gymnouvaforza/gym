@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { products as mockProducts } from "@/data/products";
 import {
   buildShopHref,
   defaultProductCatalogueFilters,
@@ -9,6 +8,7 @@ import {
   getProductBySlug,
   normalizeProductFilters,
 } from "@/lib/data/products";
+import { products as fixtureProducts } from "@/test/fixtures/products";
 
 describe("product catalogue helpers", () => {
   it("normalizes known query params and falls back for invalid values", () => {
@@ -39,7 +39,7 @@ describe("product catalogue helpers", () => {
   });
 
   it("filters and sorts products from the active catalogue", () => {
-    const products = filterProducts(getActiveProducts(mockProducts), {
+    const products = filterProducts(getActiveProducts(fixtureProducts), {
       ...defaultProductCatalogueFilters,
       category: "accesorios",
       query: "powerlifting",
@@ -61,9 +61,9 @@ describe("product catalogue helpers", () => {
   });
 
   it("finds products by slug", () => {
-    expect(getProductBySlug(mockProducts, "creatina-monohidratada-300g")?.name).toBe(
+    expect(getProductBySlug(fixtureProducts, "creatina-monohidratada-300g")?.name).toBe(
       "Creatina Monohidratada 300 g",
     );
-    expect(getProductBySlug(mockProducts, "no-existe")).toBeNull();
+    expect(getProductBySlug(fixtureProducts, "no-existe")).toBeNull();
   });
 });

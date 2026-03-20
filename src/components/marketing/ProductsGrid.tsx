@@ -11,7 +11,7 @@ interface ProductsGridProps {
 export default function ProductsGrid({ products }: Readonly<ProductsGridProps>) {
   if (products.length === 0) {
     return (
-      <div className="rounded-none border border-dashed border-black/12 bg-white px-6 py-12 text-center shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
+      <div className="rounded-none border border-dashed border-black/12 bg-white px-6 py-12 text-center shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)] animate-in fade-in zoom-in-95 duration-500">
         <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6b7280]">
           Sin resultados
         </p>
@@ -30,7 +30,7 @@ export default function ProductsGrid({ products }: Readonly<ProductsGridProps>) 
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 animate-in fade-in slide-in-from-bottom-2 duration-700">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
