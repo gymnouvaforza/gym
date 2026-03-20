@@ -11,6 +11,7 @@ import type {
 const MEDUSA_PRODUCT_LIMIT = 100;
 const MEDUSA_HEALTH_CACHE_MS = 5000;
 const MEDUSA_HEALTH_TIMEOUT_MS = 3000;
+const MEDUSA_HEALTH_REVALIDATE_SECONDS = 60;
 
 let lastMedusaHealthCheckAt = 0;
 let lastMedusaHealthError: string | null = null;
@@ -38,8 +39,10 @@ async function assertMedusaAvailable() {
   try {
     const response = await fetch(healthUrl, {
       method: "GET",
-      cache: "no-store",
       signal: controller.signal,
+      next: {
+        revalidate: MEDUSA_HEALTH_REVALIDATE_SECONDS,
+      },
     });
 
     if (!response.ok) {
