@@ -8,6 +8,8 @@ import { ADMIN_LOGIN_PATH } from "@/lib/admin";
 import { requireAdminUser } from "@/lib/auth";
 import { hasSupabasePublicEnv } from "@/lib/env";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: Readonly<{

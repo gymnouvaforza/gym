@@ -8,6 +8,8 @@ import { GYM_COOKIE_CONSENT } from "@/lib/cms/cookie-consent";
 import { getCmsDocumentByKey, getFooterLegalLinks } from "@/lib/data/cms";
 import { getMarketingData } from "@/lib/data/site";
 
+export const dynamic = "force-dynamic";
+
 export default async function MarketingLayout({
   children,
 }: Readonly<{
@@ -37,4 +39,3 @@ export default async function MarketingLayout({
     </CartProvider>
   );
 }
-
