@@ -1,8 +1,20 @@
+const fs = require("node:fs")
+const path = require("node:path")
 const { loadEnv, defineConfig } = require("@medusajs/framework/utils")
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
 const enableInsecureDbSsl = process.env.MEDUSA_DB_INSECURE_SSL === "true"
+
+function resolveInternalModulePath(moduleName) {
+  const compiledPath = path.join(process.cwd(), ".medusa", "server", "src", "modules", moduleName)
+
+  if (fs.existsSync(compiledPath)) {
+    return compiledPath
+  }
+
+  return `./src/modules/${moduleName}`
+}
 
 module.exports = defineConfig({
   projectConfig: {
@@ -32,7 +44,7 @@ module.exports = defineConfig({
       options: {
         providers: [
           {
-            resolve: "./src/modules/paypal",
+            resolve: resolveInternalModulePath("paypal"),
             id: "paypal",
             options: {
               client_id: process.env.PAYPAL_CLIENT_ID,
@@ -70,7 +82,7 @@ module.exports = defineConfig({
       options: {},
     },
     pickupRequest: {
-      resolve: "./src/modules/pickupRequest",
+      resolve: resolveInternalModulePath("pickupRequest"),
     },
   },
 })
