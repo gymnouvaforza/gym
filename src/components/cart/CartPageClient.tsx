@@ -8,6 +8,13 @@ import CartLineItems from "@/components/cart/CartLineItems";
 import PayPalCheckoutButton from "@/components/cart/PayPalCheckoutButton";
 import { useCart } from "@/components/cart/CartProvider";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCartAmount } from "@/lib/cart/format";
@@ -38,6 +45,7 @@ export default function CartPageClient() {
   const [guestEmail, setGuestEmail] = useState(cart?.email ?? "");
   const [notes, setNotes] = useState("");
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
+  const [isPayPalDialogOpen, setIsPayPalDialogOpen] = useState(false);
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? "";
   const paypalSession =
     cart?.paymentSession && isPayPalPaymentProviderId(cart.paymentSession.providerId)
@@ -68,6 +76,7 @@ export default function CartPageClient() {
 
     if (preparedCart?.paymentSession?.orderId) {
       setCheckoutMessage("PayPal ya está listo. Aprueba el pago para completar tu pedido.");
+      setIsPayPalDialogOpen(true);
     }
   }
 
@@ -334,26 +343,106 @@ export default function CartPageClient() {
                 </Button>
               </>
             ) : paypalClientId ? (
-                <div className="space-y-4">
-                  <PayPalCheckoutButton
-                    clientId={paypalClientId}
-                    currencyCode={paypalSession.currencyCode}
-                    orderId={paypalSession.orderId}
-                    disabled={isBusy}
-                    onApproveCheckout={handleApprovePayPal}
-                    onCancel={() => {
-                      setCheckoutMessage("Has cancelado el pago. Tu seleccion sigue guardada.");
-                    }}
-                    onError={(message) => {
-                      setCheckoutMessage(message);
-                    }}
-                  />
-                  {checkoutMessage && (
-                    <div className="text-xs text-center font-medium text-emerald-800 animate-in fade-in slide-in-from-top-1">
-                      {checkoutMessage}
-                    </div>
-                  )}
+              <div className="space-y-4">
+                <div className="border border-black/8 bg-[#fbfbf8] px-4 py-4 text-sm leading-6 text-[#4b5563]">
+                  Abriremos PayPal en un panel dedicado para que el formulario de tarjeta no
+                  rompa el layout del carrito.
                 </div>
+                <Button
+                  type="button"
+                  disabled={isBusy}
+                  onClick={() => {
+                    setIsPayPalDialogOpen(true);
+                  }}
+                >
+                  Abrir checkout seguro de PayPal
+                </Button>
+                {checkoutMessage && (
+                  <div className="text-xs text-center font-medium text-emerald-800 animate-in fade-in slide-in-from-top-1">
+                    {checkoutMessage}
+                  </div>
+                )}
+                <Dialog open={isPayPalDialogOpen} onOpenChange={setIsPayPalDialogOpen}>
+                  <DialogContent className="max-h-[min(92vh,960px)] max-w-3xl overflow-y-auto rounded-[24px] p-0">
+                    <div className="border-b border-black/8 bg-[#f7f4ef] px-6 py-5 sm:px-8">
+                      <DialogHeader className="pr-10">
+                        <DialogTitle className="font-display text-3xl uppercase tracking-[0.06em]">
+                          Confirma tu pago con PayPal
+                        </DialogTitle>
+                        <DialogDescription className="max-w-2xl">
+                          Te abrimos el checkout en un panel amplio para que la experiencia de
+                          PayPal no invada el header ni el contenido de la tienda.
+                        </DialogDescription>
+                      </DialogHeader>
+                    </div>
+
+                    <div className="grid gap-6 px-6 py-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+                      <div className="space-y-4">
+                        <div className="rounded-[20px] border border-black/8 bg-white p-4 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.2)]">
+                          <PayPalCheckoutButton
+                            clientId={paypalClientId}
+                            currencyCode={paypalSession.currencyCode}
+                            orderId={paypalSession.orderId}
+                            disabled={isBusy}
+                            onApproveCheckout={handleApprovePayPal}
+                            onCancel={() => {
+                              setCheckoutMessage("Has cancelado el pago. Tu seleccion sigue guardada.");
+                              setIsPayPalDialogOpen(false);
+                            }}
+                            onError={(message) => {
+                              setCheckoutMessage(message);
+                            }}
+                          />
+                        </div>
+
+                        <div className="rounded-[20px] border border-sky-200 bg-sky-50 px-4 py-4 text-sm leading-6 text-sky-950">
+                          Si PayPal te muestra los campos de tarjeta, este panel tiene su propio
+                          espacio y scroll para que el carrito siga estable visualmente.
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 rounded-[20px] border border-black/8 bg-[#111111] p-5 text-white">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/65">
+                            Resumen del cobro
+                          </p>
+                          <p className="mt-3 font-display text-2xl uppercase">
+                            {hasPayPalChargeAmount
+                              ? formatCartAmount(paypalSession.amount, paypalSession.currencyCode)
+                              : "Pendiente"}
+                          </p>
+                        </div>
+
+                        <div className="space-y-3 text-sm text-white/80">
+                          <div className="flex items-center justify-between gap-4">
+                            <span>Pedido tienda</span>
+                            <span>{formatCartAmount(cart.summary.total, cart.summary.currencyCode)}</span>
+                          </div>
+                          {paypalSession.displayAmount !== null && paypalSession.displayCurrencyCode ? (
+                            <div className="flex items-center justify-between gap-4">
+                              <span>Equivalente mostrado</span>
+                              <span>
+                                {formatCartAmount(
+                                  paypalSession.displayAmount,
+                                  paypalSession.displayCurrencyCode,
+                                )}
+                              </span>
+                            </div>
+                          ) : null}
+                          <div className="flex items-center justify-between gap-4">
+                            <span>Order ID</span>
+                            <span className="font-mono text-xs">{paypalSession.orderId}</span>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-white/10 pt-4 text-xs leading-5 text-white/65">
+                          Si cierras este panel, tu carrito y tu sesión PayPal seguirán guardados.
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             ) : (
               <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Falta NEXT_PUBLIC_PAYPAL_CLIENT_ID, asi que no podemos cargar el boton sandbox.

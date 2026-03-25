@@ -197,7 +197,7 @@ describe("CartPageClient", () => {
     });
   });
 
-  it("shows the PayPal button when the session is ready and redirects after approval", async () => {
+  it("opens the dedicated PayPal checkout panel when the session is ready and redirects after approval", async () => {
     const completePayPalCheckoutMock = vi.fn().mockResolvedValue({
       id: "pick_01",
     });
@@ -244,6 +244,12 @@ describe("CartPageClient", () => {
     expect(
       screen.getByText(/PayPal procesará el cobro en USD siguiendo el importe estimado por producto/i),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Abrir checkout seguro de PayPal" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Confirma tu pago con PayPal" }),
+    ).toBeInTheDocument();
+
     await user.click(screen.getByRole("button", { name: "Mock PayPal" }));
 
     await waitFor(() => {

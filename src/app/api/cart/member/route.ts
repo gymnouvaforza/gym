@@ -6,6 +6,7 @@ import {
   resolveCartIdFromRequest,
   resolveOrCreateMemberCommerceCustomer,
 } from "@/lib/cart/member-bridge";
+import { isMissingCartMessage, STALE_CART_MESSAGE } from "@/lib/cart/runtime";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getErrorMessage(error: unknown) {
@@ -39,6 +40,12 @@ export async function POST(request: Request) {
       cart: cartResponse ? mapMedusaCart(cartResponse.cart) : null,
     });
   } catch (error) {
-    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
+    const message = getErrorMessage(error);
+
+    if (cartId && isMissingCartMessage(message)) {
+      return NextResponse.json({ error: STALE_CART_MESSAGE }, { status: 409 });
+    }
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

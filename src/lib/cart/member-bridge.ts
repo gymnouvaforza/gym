@@ -11,8 +11,34 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 import { getCartIdFromRequestCookies } from "./server";
 
+function isExpectedMissingCartError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const status = "status" in error ? error.status : undefined;
+  const statusText = "statusText" in error ? error.statusText : undefined;
+  const message = "message" in error ? error.message : undefined;
+
+  const normalizedMessage =
+    typeof message === "string" ? message.toLowerCase() : "";
+  const normalizedStatusText =
+    typeof statusText === "string" ? statusText.toLowerCase() : "";
+
+  return (
+    status === 404 &&
+    (normalizedStatusText.includes("not found") ||
+      normalizedMessage.includes("not found") ||
+      normalizedMessage.includes("cart id not found") ||
+      normalizedMessage.includes("cart not found"))
+  );
+}
+
 function toBridgeError(error: unknown, fallback: string) {
-  console.error("[Medusa Bridge Error]:", error);
+  if (!isExpectedMissingCartError(error)) {
+    console.error("[Medusa Bridge Error]:", error);
+  }
+
   if (error && typeof error === "object" && "message" in error) {
     return String(error.message);
   }

@@ -35,6 +35,29 @@ import {
 } from "@/lib/cart/member-bridge";
 
 describe("member commerce bridge", () => {
+  it("does not log bridge errors for expected missing-cart 404 responses", async () => {
+    const fetchMock = vi.fn().mockRejectedValue({
+      message: "Not Found",
+      status: 404,
+      statusText: "Not Found",
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    memberBridgeMocks.getMedusaAdminSdk.mockReturnValue({
+      client: {
+        fetch: fetchMock,
+      },
+    });
+
+    await expect(
+      attachCartToMember("cart_01", "cus_01", "socio@gym.com"),
+    ).rejects.toThrow("No se pudo vincular el carrito a la cuenta del miembro: Not Found");
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("associates a guest cart to the resolved Medusa customer", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       cart: {

@@ -1,8 +1,8 @@
 export const STALE_CART_MESSAGE =
-  "Tu carrito anterior ya no estaba disponible. Hemos limpiado la sesión para que puedas empezar otro pedido.";
+  "Tu carrito anterior ya no estaba disponible. Hemos limpiado la sesion para que puedas empezar otro pedido.";
 
 export const STALE_COMPLETED_CART_MESSAGE =
-  "Este carrito ya estaba completado. Hemos limpiado la sesión para que puedas empezar otro pedido.";
+  "Este carrito ya estaba completado. Hemos limpiado la sesion para que puedas empezar otro pedido.";
 
 export function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -20,6 +20,7 @@ export function isMissingCartMessage(message: string | null | undefined) {
     normalized.includes("no hay un carrito activo") ||
     normalized.includes("no se encontro un carrito activo") ||
     normalized.includes("no se encontró un carrito activo") ||
+    normalized.includes("not found") ||
     normalized.includes("cart not found") ||
     normalized.includes("already completed") ||
     normalized.includes("is already completed") ||
