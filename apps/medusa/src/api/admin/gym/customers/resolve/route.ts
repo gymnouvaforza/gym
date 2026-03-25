@@ -8,6 +8,8 @@ import { createCustomersWorkflow } from "@medusajs/medusa/core-flows";
 import { refetchCustomer, sendJson } from "../../helpers";
 import type { ResolveGymCustomerSchema } from "./middlewares";
 
+export const AUTHENTICATE = false;
+
 export async function POST(
   req: AuthenticatedMedusaRequest<ResolveGymCustomerSchema>,
   res: MedusaResponse,

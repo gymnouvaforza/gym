@@ -7,6 +7,8 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
 import { sendJson } from "../../helpers"
 
+export const AUTHENTICATE = false
+
 type QueryGraph = {
   graph: (input: {
     entity: string

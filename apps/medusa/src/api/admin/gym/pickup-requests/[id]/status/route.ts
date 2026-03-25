@@ -8,6 +8,8 @@ import { sendJson } from "../../../helpers"
 import { serializePickupRequest } from "../../serializers"
 import type { UpdatePickupRequestStatusSchema } from "./middlewares"
 
+export const AUTHENTICATE = false
+
 export async function POST(
   req: AuthenticatedMedusaRequest<UpdatePickupRequestStatusSchema>,
   res: MedusaResponse

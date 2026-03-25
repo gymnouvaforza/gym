@@ -13,6 +13,8 @@ import { sendJson } from "../helpers"
 import { serializePickupRequest } from "./serializers"
 import type { CreatePickupRequestSchema } from "./middlewares"
 
+export const AUTHENTICATE = false
+
 function parsePositiveInt(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value ?? "", 10)
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback

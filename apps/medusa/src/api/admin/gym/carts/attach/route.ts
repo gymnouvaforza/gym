@@ -7,6 +7,8 @@ import { transferCartCustomerWorkflow, updateCartWorkflow } from "@medusajs/medu
 import { refetchCart, sendJson } from "../../helpers";
 import type { AttachGymCartSchema } from "./middlewares";
 
+export const AUTHENTICATE = false;
+
 export async function POST(
   req: AuthenticatedMedusaRequest<AttachGymCartSchema>,
   res: MedusaResponse,

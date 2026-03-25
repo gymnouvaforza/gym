@@ -8,6 +8,8 @@ import { PICKUP_REQUEST_MODULE } from "../../../../../modules/pickupRequest"
 import { sendJson } from "../../helpers"
 import { serializePickupRequest } from "../serializers"
 
+export const AUTHENTICATE = false
+
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const pickupRequestService = req.scope.resolve(PICKUP_REQUEST_MODULE) as {
     retrievePickupRequest: (id: string) => Promise<Record<string, unknown> | null>
