@@ -4,7 +4,7 @@ import type {
 } from "@medusajs/framework/http";
 import { transferCartCustomerWorkflow, updateCartWorkflow } from "@medusajs/medusa/core-flows";
 
-import { refetchCart, sendJson } from "../../helpers";
+import { ensureGymCustomer, refetchCart, sendJson } from "../../helpers";
 import type { AttachGymCartSchema } from "./middlewares";
 
 export const AUTHENTICATE = false;
@@ -14,11 +14,21 @@ export async function POST(
   res: MedusaResponse,
 ) {
   const { cart_id, customer_id, email } = req.validatedBody;
+  const ensuredCustomer = email
+    ? await ensureGymCustomer(req.scope, {
+        customerId: customer_id,
+        email,
+      })
+    : null;
+  const resolvedCustomerId =
+    ensuredCustomer?.customer?.id && typeof ensuredCustomer.customer.id === "string"
+      ? ensuredCustomer.customer.id
+      : customer_id;
 
   await transferCartCustomerWorkflow(req.scope).run({
     input: {
       id: cart_id,
-      customer_id,
+      customer_id: resolvedCustomerId,
     },
   });
 
