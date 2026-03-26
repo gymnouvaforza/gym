@@ -278,9 +278,7 @@ export async function sendPickupRequestEmails({
             pickupRequestId: pickupRequest.id,
             deliveryKind: delivery.kind,
           }),
-          headers: {
-            "X-Mailjet-Campaign": `pickup_request_${pickupRequest.id}_${delivery.kind}`,
-          },
+          customCampaign: `pickup_request_${pickupRequest.id}_${delivery.kind}`,
         });
       } catch (error) {
         const message =

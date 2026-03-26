@@ -12,7 +12,7 @@ interface SendMailjetEmailInput {
   replyTo?: string | string[] | null;
   customId?: string | null;
   eventPayload?: string | null;
-  headers?: Record<string, string> | null;
+  customCampaign?: string | null;
 }
 
 interface MailjetRecipient {
@@ -122,7 +122,7 @@ export async function sendMailjetEmail(input: SendMailjetEmailInput) {
             TextPart: input.text,
             ...(input.customId ? { CustomID: input.customId } : {}),
             ...(input.eventPayload ? { EventPayload: input.eventPayload } : {}),
-            ...(input.headers ? { Headers: input.headers } : {}),
+            ...(input.customCampaign ? { CustomCampaign: input.customCampaign } : {}),
           },
         ],
       }),

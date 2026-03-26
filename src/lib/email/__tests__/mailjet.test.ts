@@ -122,6 +122,7 @@ describe("sendMailjetEmail", () => {
       text: "Hola",
       customId: "pickup-request:pick_01:customer",
       eventPayload: "{\"type\":\"pickup_request_email\"}",
+      customCampaign: "pickup_request_pick_01_customer",
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -131,6 +132,12 @@ describe("sendMailjetEmail", () => {
           Authorization: expect.stringMatching(/^Basic /),
         }),
         body: expect.stringContaining("\"ReplyTo\":{\"Email\":\"pedidos@gmail.com\"}"),
+      }),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.mailjet.com/v3.1/send",
+      expect.objectContaining({
+        body: expect.stringContaining("\"CustomCampaign\":\"pickup_request_pick_01_customer\""),
       }),
     );
   });

@@ -32,9 +32,7 @@ export async function sendMemberWelcomeEmail(
       type: "member_welcome_email",
       email: email.toLowerCase(),
     }),
-    headers: {
-      "X-Mailjet-Campaign": "member_welcome",
-    },
+    customCampaign: "member_welcome",
     html: `
       <div style="margin:0;padding:32px;background:#f5f5f0;font-family:Arial,sans-serif;color:#111111;">
         <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;">
