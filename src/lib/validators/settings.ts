@@ -1,6 +1,4 @@
 import { z } from "zod";
-
-import { RESEND_ALLOWED_FROM_DOMAIN, isAllowedTransactionalMailbox } from "@/lib/email/policy";
 import { topbarVariants } from "@/lib/topbar";
 
 const optionalText = z.string().trim().max(180, "El texto es demasiado largo.").optional().or(z.literal(""));
@@ -85,14 +83,6 @@ export const siteSettingsSchema = z
           path: ["topbar_expires_at"],
         });
       }
-    }
-
-    if (!isAllowedTransactionalMailbox(values.transactional_from_email)) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `El remitente transaccional debe usar el dominio @${RESEND_ALLOWED_FROM_DOMAIN}.`,
-        path: ["transactional_from_email"],
-      });
     }
   });
 

@@ -57,13 +57,13 @@ describe("siteSettingsSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects a transactional sender outside the allowed domain", () => {
+  it("accepts a free transactional sender mailbox", () => {
     const result = siteSettingsSchema.safeParse({
       ...validSettings,
       transactional_from_email: "novaforza@gmail.com",
     });
 
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it("rejects an invalid local hero video path", () => {

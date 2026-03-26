@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { hasResendEnv } from "@/lib/env";
+import { getResendEnv, hasResendEnv } from "@/lib/env";
 import { sendMemberWelcomeEmail } from "@/lib/email/welcome-member";
-import { formatTransactionalFromEmail } from "@/lib/email/policy";
+import { resolveTransactionalSender } from "@/lib/email/policy";
 import { getMarketingData } from "@/lib/data/site";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -46,13 +46,18 @@ export async function POST(request: Request) {
 
     const { settings } = await getMarketingData();
 
+    const resend = getResendEnv();
+    const sender = resolveTransactionalSender(
+      settings.site_name,
+      settings.transactional_from_email,
+      resend.fromEmail,
+    );
+
     await sendMemberWelcomeEmail(
       parsed.data.email,
       settings.site_name,
-      formatTransactionalFromEmail(
-        settings.site_name,
-        settings.transactional_from_email,
-      ),
+      sender.fromEmail,
+      sender.replyTo,
     );
 
     return NextResponse.json({ queued: true });

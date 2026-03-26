@@ -69,4 +69,29 @@ describe("sendResendEmail", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("passes reply-to when provided", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ id: "email_02" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    await sendResendEmail({
+      to: "socio@gym.com",
+      from: "Nova Forza <onboarding@resend.dev>",
+      replyTo: "pedidos@gmail.com",
+      subject: "Test",
+      html: "<p>Hola</p>",
+      text: "Hola",
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.resend.com/emails",
+      expect.objectContaining({
+        body: expect.stringContaining("\"reply_to\":[\"pedidos@gmail.com\"]"),
+      }),
+    );
+  });
 });

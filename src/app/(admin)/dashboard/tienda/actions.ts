@@ -15,8 +15,8 @@ import {
 } from "@/lib/cart/member-bridge";
 import { getMarketingData } from "@/lib/data/site";
 import { defaultSiteSettings } from "@/lib/data/default-content";
-import { hasMedusaAdminEnv } from "@/lib/env";
-import { formatTransactionalFromEmail } from "@/lib/email/policy";
+import { getResendEnv, hasMedusaAdminEnv } from "@/lib/env";
+import { resolveTransactionalSender } from "@/lib/email/policy";
 import { sendPickupRequestEmails } from "@/lib/email/pickup-request";
 import {
   storeCategorySchema,
@@ -115,9 +115,11 @@ export async function resendDashboardPickupRequestEmail(pickupRequestId: string)
   const siteName = settings.site_name ?? defaultSiteSettings.site_name;
   const internalRecipient =
     settings.notification_email ?? defaultSiteSettings.notification_email;
-  const fromEmail = formatTransactionalFromEmail(
+  const resend = getResendEnv();
+  const sender = resolveTransactionalSender(
     siteName,
     settings.transactional_from_email ?? defaultSiteSettings.transactional_from_email,
+    resend.fromEmail,
   );
 
   try {
@@ -125,7 +127,8 @@ export async function resendDashboardPickupRequestEmail(pickupRequestId: string)
       pickupRequest,
       siteName,
       internalRecipient,
-      fromEmail,
+      fromEmail: sender.fromEmail,
+      replyTo: sender.replyTo,
     });
 
     try {

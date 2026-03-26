@@ -6,10 +6,19 @@ interface SendResendEmailInput {
   html: string;
   text: string;
   from?: string;
+  replyTo?: string | string[] | null;
 }
 
 function normalizeRecipients(to: string | string[]) {
   return Array.isArray(to) ? to : [to];
+}
+
+function normalizeReplyTo(replyTo: string | string[] | null | undefined) {
+  if (!replyTo) {
+    return undefined;
+  }
+
+  return Array.isArray(replyTo) ? replyTo : [replyTo];
 }
 
 function parseResendErrorPayload(payload: unknown) {
@@ -57,6 +66,7 @@ export async function sendResendEmail(input: SendResendEmailInput) {
       body: JSON.stringify({
         from: input.from ?? resend.fromEmail,
         to: normalizeRecipients(input.to),
+        reply_to: normalizeReplyTo(input.replyTo),
         subject: input.subject,
         html: input.html,
         text: input.text,

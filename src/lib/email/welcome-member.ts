@@ -15,6 +15,7 @@ export async function sendMemberWelcomeEmail(
   email: string,
   siteName?: string | null,
   fromEmail?: string | null,
+  replyTo?: string | null,
 ) {
   const resolvedSiteName = siteName?.trim() || defaultSiteSettings.site_name;
   const safeEmail = escapeHtml(email);
@@ -24,6 +25,7 @@ export async function sendMemberWelcomeEmail(
   await sendResendEmail({
     to: email,
     from: fromEmail ?? undefined,
+    replyTo: replyTo ?? undefined,
     subject: `${resolvedSiteName} | Tu cuenta ya esta creada`,
     html: `
       <div style="margin:0;padding:32px;background:#f5f5f0;font-family:Arial,sans-serif;color:#111111;">

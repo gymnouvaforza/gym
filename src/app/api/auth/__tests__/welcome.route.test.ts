@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const welcomeRouteMocks = vi.hoisted(() => ({
   hasResendEnv: vi.fn(),
+  getResendEnv: vi.fn(),
   createSupabaseAdminClient: vi.fn(),
   getMarketingData: vi.fn(),
   sendMemberWelcomeEmail: vi.fn(),
@@ -9,6 +10,7 @@ const welcomeRouteMocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/env", () => ({
   hasResendEnv: welcomeRouteMocks.hasResendEnv,
+  getResendEnv: welcomeRouteMocks.getResendEnv,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -28,6 +30,9 @@ import { POST } from "@/app/api/auth/welcome/route";
 describe("POST /api/auth/welcome", () => {
   beforeEach(() => {
     welcomeRouteMocks.hasResendEnv.mockReturnValue(true);
+    welcomeRouteMocks.getResendEnv.mockReturnValue({
+      fromEmail: "Nova Forza <onboarding@resend.dev>",
+    });
     welcomeRouteMocks.createSupabaseAdminClient.mockReturnValue({
       auth: {
         admin: {
@@ -47,7 +52,7 @@ describe("POST /api/auth/welcome", () => {
     welcomeRouteMocks.getMarketingData.mockResolvedValue({
       settings: {
         site_name: "Nova Forza",
-        transactional_from_email: "pedidos@novaforza.pe",
+        transactional_from_email: "pedidos@gmail.com",
       },
     });
     welcomeRouteMocks.sendMemberWelcomeEmail.mockResolvedValue(undefined);
@@ -72,7 +77,8 @@ describe("POST /api/auth/welcome", () => {
     expect(welcomeRouteMocks.sendMemberWelcomeEmail).toHaveBeenCalledWith(
       "member@gym.com",
       "Nova Forza",
-      "Nova Forza <pedidos@novaforza.pe>",
+      "Nova Forza <onboarding@resend.dev>",
+      "pedidos@gmail.com",
     );
     expect(payload).toEqual({ queued: true });
   });

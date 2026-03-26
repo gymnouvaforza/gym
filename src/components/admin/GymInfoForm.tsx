@@ -116,7 +116,7 @@ export default function GymInfoForm({ settings, disabledReason }: GymInfoFormPro
                   <Input type="email" {...field} />
                 </FormControl>
                 <p className="text-xs leading-5 text-[#5f6368]">
-                  Es el correo que usa Resend para enviar emails. Debe pertenecer al dominio autorizado del gym.
+                  Es el remitente visible de los emails transaccionales. Si no pertenece a un dominio verificado en Resend, se usara como reply-to y el envio saldra desde el remitente tecnico configurado.
                 </p>
                 <FormMessage />
               </FormItem>
