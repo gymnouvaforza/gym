@@ -116,12 +116,27 @@ async function syncCartMember(
     return cart;
   }
 
-  if (trace) {
-    await trace.step("attach_customer", () =>
-      attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email!),
-    );
-  } else {
-    await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email!);
+  try {
+    if (trace) {
+      await trace.step("attach_customer", () =>
+        attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email!),
+      );
+    } else {
+      await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email!);
+    }
+  } catch {
+    const recoveredCart = trace
+      ? await trace.step(
+          "recover_cart_after_attach_failure",
+          () => retrieveCart(cartId),
+          (currentCart) => ({
+            itemCount: currentCart.summary.itemCount,
+            customerId: currentCart.customerId,
+          }),
+        )
+      : await retrieveCart(cartId);
+
+    return recoveredCart;
   }
 
   return {

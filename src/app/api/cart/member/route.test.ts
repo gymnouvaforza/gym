@@ -10,6 +10,7 @@ const memberRouteMocks = vi.hoisted(() => ({
   resolveOrCreateMemberCommerceCustomer: vi.fn(),
   createSupabaseServerClient: vi.fn(),
   mapMedusaCart: vi.fn(),
+  retrieveCart: vi.fn(),
 }));
 
 vi.mock("@/lib/cart/member-bridge", () => ({
@@ -21,6 +22,7 @@ vi.mock("@/lib/cart/member-bridge", () => ({
 
 vi.mock("@/lib/cart/medusa", () => ({
   mapMedusaCart: memberRouteMocks.mapMedusaCart,
+  retrieveCart: memberRouteMocks.retrieveCart,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -93,6 +95,7 @@ describe("POST /api/cart/member", () => {
     memberRouteMocks.attachCartToMember.mockRejectedValue(
       new Error("No se pudo vincular el carrito a la cuenta del miembro: Not Found"),
     );
+    memberRouteMocks.retrieveCart.mockRejectedValue(new Error("Cart with id cart_01 does not exist"));
 
     const response = await POST(
       new Request("http://localhost/api/cart/member", {
@@ -150,6 +153,37 @@ describe("POST /api/cart/member", () => {
       "cus_02",
       "socio@gym.com",
     );
+    expect(payload.customer.medusa_customer_id).toBe("cus_02");
+    expect(payload.cart.id).toBe("cart_01");
+  });
+
+  it("keeps the cart when attach fails but the cart can still be retrieved", async () => {
+    memberRouteMocks.attachCartToMember
+      .mockRejectedValueOnce(
+        new Error("No se pudo vincular el carrito a la cuenta del miembro: Not Found"),
+      )
+      .mockRejectedValueOnce(
+        new Error("No se pudo vincular el carrito a la cuenta del miembro: Not Found"),
+      );
+    memberRouteMocks.retrieveCart.mockResolvedValue({
+      id: "cart_01",
+      items: [],
+      summary: { itemCount: 0 },
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/cart/member", {
+        method: "POST",
+        body: JSON.stringify({
+          cartId: "cart_01",
+        }),
+      }),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(memberRouteMocks.revalidateMemberCommerceCustomer).toHaveBeenCalledTimes(1);
+    expect(memberRouteMocks.retrieveCart).toHaveBeenCalledWith("cart_01");
     expect(payload.customer.medusa_customer_id).toBe("cus_02");
     expect(payload.cart.id).toBe("cart_01");
   });

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { GYM_CART_COOKIE } from "@/lib/cart/cookie";
-import { mapMedusaCart } from "@/lib/cart/medusa";
+import { mapMedusaCart, retrieveCart } from "@/lib/cart/medusa";
 import {
   attachCartToMember,
   revalidateMemberCommerceCustomer,
@@ -44,23 +44,34 @@ export async function POST(request: Request) {
   try {
     let customerBridge = await resolveOrCreateMemberCommerceCustomer(user);
     let cartResponse = null;
+    let fallbackCart = null;
 
     if (cartId) {
       try {
         cartResponse = await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email);
       } catch (attachError) {
-        if (!isMissingCartMessage(getErrorMessage(attachError))) {
+        const attachMessage = getErrorMessage(attachError);
+
+        if (!isMissingCartMessage(attachMessage)) {
           throw attachError;
         }
 
-        customerBridge = await revalidateMemberCommerceCustomer(user);
-        cartResponse = await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email);
+        try {
+          customerBridge = await revalidateMemberCommerceCustomer(user);
+          cartResponse = await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email);
+        } catch (retryError) {
+          try {
+            fallbackCart = await retrieveCart(cartId);
+          } catch {
+            throw retryError;
+          }
+        }
       }
     }
 
     return NextResponse.json({
       customer: customerBridge,
-      cart: cartResponse ? mapMedusaCart(cartResponse.cart) : null,
+      cart: fallbackCart ?? (cartResponse ? mapMedusaCart(cartResponse.cart) : null),
     });
   } catch (error) {
     const message = getErrorMessage(error);
