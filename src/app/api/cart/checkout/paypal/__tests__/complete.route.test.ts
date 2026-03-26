@@ -153,6 +153,30 @@ describe("POST /api/cart/checkout/paypal/complete", () => {
     expect(response.headers.get("set-cookie")).toContain(`${GYM_CART_COOKIE}=`);
   });
 
+  it("returns 202 when checkout is still being processed", async () => {
+    completeRouteMocks.completePayPalCheckout.mockResolvedValue({
+      kind: "processing",
+      message: "Tu pago con PayPal se esta procesando.",
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/cart/checkout/paypal/complete", {
+        method: "POST",
+        body: JSON.stringify({
+          cartId: "cart_01",
+        }),
+      }),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(payload).toEqual({
+      processing: true,
+      error: "Tu pago con PayPal se esta procesando.",
+    });
+    expect(response.headers.get("set-cookie")).toBeNull();
+  });
+
   it("returns the checkout error when completion fails", async () => {
     completeRouteMocks.completePayPalCheckout.mockRejectedValue(
       new Error("No se pudo completar el checkout con PayPal."),

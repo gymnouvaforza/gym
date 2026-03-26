@@ -61,6 +61,7 @@ type PickupCheckoutPayload = {
   pickupRequest?: PickupRequestDetail;
   emailWarning?: string | null;
   error?: string;
+  processing?: boolean;
 };
 
 export function CartProvider({
@@ -373,6 +374,11 @@ export function CartProvider({
           notes: input?.notes,
         },
       );
+
+      if (response.status === 202 && payload?.processing) {
+        setError(payload.error ?? "Tu pago con PayPal se esta procesando.");
+        return null;
+      }
 
       if (!response.ok || !payload?.pickupRequest) {
         throw new Error(payload?.error ?? "No se pudo completar el pago con PayPal.");

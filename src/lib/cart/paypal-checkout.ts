@@ -55,7 +55,14 @@ export type CompletePayPalCheckoutResult =
   | {
       kind: "stale-cart";
       message: string;
+    }
+  | {
+      kind: "processing";
+      message: string;
     };
+
+export const CHECKOUT_PROCESSING_MESSAGE =
+  "Tu pago con PayPal se esta procesando. Espera unos segundos y revisa tu carrito o Mi cuenta antes de volver a intentarlo.";
 
 function buildCheckoutIdempotencyKey(cartId: string, orderId: string) {
   return `paypal-complete:${cartId}:${orderId}`;
@@ -229,7 +236,7 @@ export async function recoverCompletedPickupCheckout(
   trace?: CheckoutTrace,
 ) {
   const retryDelaysMs = isCheckoutInProgressMessage(checkoutMessage)
-    ? [0, 1200, 2200, 4000, 6500, 9000, 12000]
+    ? [0]
     : [0, 800, 1800, 3200];
   let nextPickupRequestId = pickupRequestId ?? null;
   let recoveredOrderId: string | null = null;
@@ -600,6 +607,13 @@ export async function completePayPalCheckout({
       return {
         kind: "success",
         ...finalized,
+      };
+    }
+
+    if (isCheckoutInProgressMessage(checkoutMessage)) {
+      return {
+        kind: "processing",
+        message: CHECKOUT_PROCESSING_MESSAGE,
       };
     }
 

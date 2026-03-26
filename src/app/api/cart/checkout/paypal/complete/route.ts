@@ -69,6 +69,21 @@ export async function POST(request: Request) {
       );
     }
 
+    if (result.kind === "processing") {
+      trace.flush("success", {
+        processing: true,
+        message: result.message,
+      });
+
+      return NextResponse.json(
+        {
+          processing: true,
+          error: result.message,
+        },
+        { status: 202 },
+      );
+    }
+
     trace.flush("success", {
       orderId: result.pickupRequest.orderId,
       pickupRequestId: result.pickupRequest.id,
