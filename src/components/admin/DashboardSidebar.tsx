@@ -33,7 +33,7 @@ export default function DashboardSidebar() {
   const pathname = usePathname();
 
   return (
-    <AdminSurface className="w-full p-4 lg:sticky lg:top-6 lg:w-72">
+    <AdminSurface className="w-full p-4 xl:sticky xl:top-5 xl:w-full">
       <div className="mb-5 flex items-center justify-between gap-3 border-b border-black/8 pb-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#d71920]">
@@ -46,7 +46,7 @@ export default function DashboardSidebar() {
         <Badge variant="muted">admin</Badge>
       </div>
 
-      <nav className="flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
+      <nav className="flex gap-2 overflow-x-auto pb-1 xl:block xl:space-y-2 xl:overflow-visible xl:pb-0">
         {links.map((link) => {
           const Icon = link.icon;
           const isRootDashboardLink = link.href === "/dashboard";
@@ -60,7 +60,7 @@ export default function DashboardSidebar() {
               href={link.href}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex min-w-fit items-center gap-3 rounded-none border border-transparent px-3.5 py-3 text-sm text-[#5f6368] transition-colors hover:border-black/8 hover:bg-[#faf8f2] hover:text-[#111111] lg:min-w-0",
+                "flex min-w-fit items-center gap-3 rounded-none border border-transparent px-3.5 py-3 text-sm text-[#5f6368] transition-colors hover:border-black/8 hover:bg-[#faf8f2] hover:text-[#111111] xl:min-w-0",
                 isActive && "border-[#d71920]/12 bg-[#fff3f3] text-[#111111]",
               )}
             >

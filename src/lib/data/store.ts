@@ -290,6 +290,155 @@ export function normalizeStoreProductPayload(values: StoreProductValues) {
   };
 }
 
+function coerceMoneyValue(value: unknown, fallback = 0) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  return fallback;
+}
+
+function coerceOptionalMoneyValue(value: unknown) {
+  if (value === "" || value === null || typeof value === "undefined") {
+    return null;
+  }
+
+  const parsed = coerceMoneyValue(value, Number.NaN);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function buildStoreProductPreview(
+  values: StoreProductInput | StoreProductValues,
+  categories: StoreCategory[],
+  sourceProduct?: Pick<Product, "id" | "category" | "options" | "variants"> | null,
+): Product {
+  const name = typeof values.name === "string" ? values.name.trim() : "";
+  const slug = slugify(
+    typeof values.slug === "string" && values.slug.trim() ? values.slug : name || "producto-preview",
+  );
+  const categoryId = typeof values.category_id === "string" ? values.category_id : "";
+  const eyebrow =
+    typeof values.eyebrow === "string" && values.eyebrow.trim() ? values.eyebrow.trim() : undefined;
+  const shortDescription =
+    typeof values.short_description === "string" ? values.short_description.trim() : "";
+  const description = typeof values.description === "string" ? values.description.trim() : "";
+  const price = coerceMoneyValue(values.price);
+  const paypalPriceUsd = coerceOptionalMoneyValue(values.paypal_price_usd);
+  const comparePrice = coerceOptionalMoneyValue(values.compare_price);
+  const discountLabel =
+    typeof values.discount_label === "string" && values.discount_label.trim()
+      ? values.discount_label.trim()
+      : undefined;
+  const currency =
+    typeof values.currency === "string" && values.currency.trim()
+      ? values.currency.trim().toUpperCase()
+      : getDefaultCommerceCurrencyCode();
+  const pickupNote =
+    typeof values.pickup_note === "string" && values.pickup_note.trim()
+      ? values.pickup_note.trim()
+      : undefined;
+  const pickupSummary =
+    typeof values.pickup_summary === "string" && values.pickup_summary.trim()
+      ? values.pickup_summary.trim()
+      : undefined;
+  const pickupEta =
+    typeof values.pickup_eta === "string" && values.pickup_eta.trim()
+      ? values.pickup_eta.trim()
+      : undefined;
+  const tags = parseTextareaLines(typeof values.tags_text === "string" ? values.tags_text : "");
+  const highlights = parseTextareaLines(
+    typeof values.highlights_text === "string" ? values.highlights_text : "",
+  );
+  const benefits = parseTextareaLines(typeof values.benefits_text === "string" ? values.benefits_text : "");
+  const usageSteps = parseTextareaLines(
+    typeof values.usage_steps_text === "string" ? values.usage_steps_text : "",
+  );
+  const images = parseTextareaLines(typeof values.images_text === "string" ? values.images_text : "");
+  const safeImages = images.length > 0 ? images : ["/images/products/product-1.png"];
+  const specifications = parseSpecificationLines(
+    typeof values.specifications_text === "string" ? values.specifications_text : "",
+  );
+  const stockStatus = values.stock_status;
+  const featured = Boolean(values.featured);
+  const pickupOnly = Boolean(values.pickup_only);
+  const ctaLabel = typeof values.cta_label === "string" ? values.cta_label.trim() : "Disponible en tienda";
+  const order = typeof values.order === "number" ? values.order : 0;
+  const active = Boolean(values.active);
+  const category = resolveRootProductCategory(
+    categoryId,
+    categories,
+    sourceProduct?.category ?? "suplementos",
+  );
+
+  const options =
+    sourceProduct?.options && sourceProduct.options.length > 0
+      ? sourceProduct.options
+      : [
+          {
+            id: "preview-option",
+            title: "Presentacion",
+            values: [name || "Producto"],
+          },
+        ];
+
+  const variants =
+    sourceProduct?.variants && sourceProduct.variants.length > 0
+      ? sourceProduct.variants
+      : [
+          {
+            id: "preview-variant",
+            title: name || "Producto",
+            inventory_quantity: 10,
+            price,
+            currency,
+            options: options.flatMap((option) =>
+              option.values.slice(0, 1).map((value) => ({
+                option_id: option.id,
+                option_title: option.title,
+                value,
+              })),
+            ),
+          },
+        ];
+
+  return {
+    id: sourceProduct?.id ?? `preview-${slug}`,
+    slug,
+    name,
+    eyebrow,
+    category,
+    short_description: shortDescription,
+    description,
+    price,
+    paypal_price_usd: paypalPriceUsd,
+    compare_price: comparePrice,
+    discount_label: discountLabel,
+    currency,
+    stock_status: stockStatus,
+    pickup_only: pickupOnly,
+    pickup_note: pickupNote,
+    pickup_summary: pickupSummary,
+    pickup_eta: pickupEta,
+    featured,
+    images: safeImages,
+    tags,
+    highlights,
+    benefits: benefits.length > 0 ? benefits : undefined,
+    usage_steps: usageSteps.length > 0 ? usageSteps : undefined,
+    specifications: specifications.length > 0 ? specifications : undefined,
+    options,
+    variants,
+    cta_label: ctaLabel,
+    order,
+    active,
+  };
+}
+
 export function mapDashboardProduct(
   product: DBProduct,
   categories: StoreCategory[],

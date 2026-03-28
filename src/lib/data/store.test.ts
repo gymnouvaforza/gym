@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildStoreProductPreview,
   buildStoreCategoryTree,
   normalizeStoreCategoryPayload,
   normalizeStoreProductPayload,
@@ -73,5 +74,53 @@ describe("store data helpers", () => {
     expect(productPayload.paypal_price_usd).toBe(13.95);
     expect(productPayload.images).toEqual(["/img/a.png", "/img/b.png"]);
     expect(productPayload.specifications?.[0]).toEqual({ label: "Peso", value: "2 kg" });
+  });
+
+  it("builds a storefront preview product from draft form values", () => {
+    const preview = buildStoreProductPreview(
+      {
+        name: " Elite Whey ",
+        slug: "",
+        category_id: "sub-prot",
+        eyebrow: " Recovery ",
+        short_description: "Proteina limpia para recuperarte mejor.",
+        description: "Descripcion larga para revisar como queda la ficha de producto en tienda.",
+        price: 45.5,
+        paypal_price_usd: 12.3,
+        compare_price: "49.99",
+        discount_label: " Promo ",
+        currency: "pen",
+        stock_status: "low_stock",
+        featured: true,
+        pickup_only: true,
+        pickup_note: "Disponible hoy",
+        pickup_summary: "Recogida en club",
+        pickup_eta: "Listo en recepcion",
+        tags_text: "Proteina\nRecuperacion",
+        highlights_text: "24 g por toma\nAlta digestibilidad",
+        benefits_text: "Recuperacion mas rapida",
+        usage_steps_text: "Mezcla una toma con agua",
+        images_text: "",
+        specifications_text: "Peso: 2 kg\nSabor: Chocolate",
+        cta_label: "Reservar",
+        order: 2,
+        active: true,
+      },
+      categories,
+    );
+
+    expect(preview.slug).toBe("elite-whey");
+    expect(preview.category).toBe("suplementos");
+    expect(preview.images).toEqual(["/images/products/product-1.png"]);
+    expect(preview.tags).toEqual(["Proteina", "Recuperacion"]);
+    expect(preview.highlights).toEqual(["24 g por toma", "Alta digestibilidad"]);
+    expect(preview.benefits).toEqual(["Recuperacion mas rapida"]);
+    expect(preview.usage_steps).toEqual(["Mezcla una toma con agua"]);
+    expect(preview.specifications).toEqual([
+      { label: "Peso", value: "2 kg" },
+      { label: "Sabor", value: "Chocolate" },
+    ]);
+    expect(preview.options?.[0]?.title).toBe("Presentacion");
+    expect(preview.variants?.[0]?.price).toBe(45.5);
   });
 });

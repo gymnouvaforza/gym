@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -18,6 +20,7 @@ import {
 
 interface ProductDetailProps {
   product: Product;
+  previewMode?: boolean;
 }
 
 function getPickupHeading(product: Product) {
@@ -41,10 +44,13 @@ function getPickupCopy(product: Product) {
     return product.pickup_note;
   }
 
-  return "Tu pedido queda reservado para recepción y confirmación directa con el club.";
+  return "Tu pedido queda reservado para recepcion y confirmacion directa con el club.";
 }
 
-export default function ProductDetail({ product }: Readonly<ProductDetailProps>) {
+export default function ProductDetail({
+  product,
+  previewMode = false,
+}: Readonly<ProductDetailProps>) {
   const stockMeta = getProductStockMeta(product.stock_status);
   const comparePrice = product.compare_price ?? null;
   const showComparePrice = comparePrice !== null && comparePrice > product.price;
@@ -62,39 +68,57 @@ export default function ProductDetail({ product }: Readonly<ProductDetailProps>)
         ];
 
   return (
-    <section className="section-shell py-6 md:py-8">
-      <nav
-        aria-label="Breadcrumb"
-        className="mb-5 flex flex-wrap items-center gap-2 text-[10px] font-medium text-[#8a867f]"
-      >
-        <Link href="/" className="transition hover:text-[#d71920]">
-          Inicio
-        </Link>
-        <span>&gt;</span>
-        <Link href="/tienda" className="transition hover:text-[#d71920]">
-          Tienda
-        </Link>
-        <span>&gt;</span>
-        <Link
-          href={`/tienda?categoria=${product.category}`}
-          className="transition hover:text-[#d71920]"
+    <section className={previewMode ? "py-0" : "section-shell py-6 md:py-8"}>
+      {!previewMode ? (
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-5 flex flex-wrap items-center gap-2 text-[10px] font-medium text-[#8a867f]"
         >
-          {productCategoryLabels[product.category]}
-        </Link>
-        <span>&gt;</span>
-        <span className="font-semibold text-[#111111]">{product.name}</span>
-      </nav>
+          <Link href="/" className="transition hover:text-[#d71920]">
+            Inicio
+          </Link>
+          <span>&gt;</span>
+          <Link href="/tienda" className="transition hover:text-[#d71920]">
+            Tienda
+          </Link>
+          <span>&gt;</span>
+          <Link
+            href={`/tienda?categoria=${product.category}`}
+            className="transition hover:text-[#d71920]"
+          >
+            {productCategoryLabels[product.category]}
+          </Link>
+          <span>&gt;</span>
+          <span className="font-semibold text-[#111111]">{product.name}</span>
+        </nav>
+      ) : (
+        <div className="mb-5 inline-flex items-center border border-[#ddd5ca] bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#6b7280]">
+          Preview ficha PDP
+        </div>
+      )}
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.98fr)] xl:items-start">
+      <div
+        className={
+          previewMode
+            ? "grid gap-6"
+            : "grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.98fr)] xl:items-start"
+        }
+      >
         <ProductGallery name={product.name} images={product.images} />
 
-        <div className="space-y-6">
+        <div className={previewMode ? "space-y-5" : "space-y-6"}>
           <div className="space-y-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#d71920]">
               {product.eyebrow ?? "Suplemento de elite"}
             </p>
             <div className="max-w-xl space-y-4">
-              <h1 className="font-display text-4xl font-extrabold uppercase leading-[0.92] tracking-[0.01em] text-[#0f2341] sm:text-5xl">
+              <h1
+                className={
+                  previewMode
+                    ? "font-display text-3xl font-extrabold uppercase leading-[0.95] tracking-[0.01em] text-[#0f2341] sm:text-4xl"
+                    : "font-display text-4xl font-extrabold uppercase leading-[0.92] tracking-[0.01em] text-[#0f2341] sm:text-5xl"
+                }
+              >
                 {product.name}
               </h1>
 
@@ -129,7 +153,7 @@ export default function ProductDetail({ product }: Readonly<ProductDetailProps>)
             </div>
           </div>
 
-          <ProductPurchasePanel product={product} />
+          <ProductPurchasePanel product={product} previewMode={previewMode} />
 
           <div className="border border-black/8 bg-[#F7F4EF] p-5">
             <div className="flex items-start gap-4">

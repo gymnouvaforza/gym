@@ -2,12 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Save } from "lucide-react";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useDeferredValue, useMemo, useState, useTransition } from "react";
+import { useForm, useWatch } from "react-hook-form";
 
 import { saveStoreProduct } from "@/app/(admin)/dashboard/tienda/actions";
 import { productStockStatusLabels } from "@/lib/data/products";
 import {
+  buildStoreProductPreview,
   flattenStoreCategoryOptions,
   toStoreProductFormValues,
   type StoreCategory,
@@ -28,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import AdminSurface from "./AdminSurface";
 import ImageUpload from "./ImageUpload";
+import StoreProductPreview from "./StoreProductPreview";
 
 interface StoreProductFormProps {
   product?: StoreDashboardProduct | null;
@@ -49,6 +51,13 @@ export default function StoreProductForm({
   });
 
   const categoryOptions = flattenStoreCategoryOptions(categories);
+  const watchedValues = useWatch({ control: form.control }) as StoreProductInput;
+  const previewValues = watchedValues ?? toStoreProductFormValues(product);
+  const deferredPreviewValues = useDeferredValue(previewValues);
+  const previewProduct = useMemo(
+    () => buildStoreProductPreview(deferredPreviewValues, categories, product),
+    [categories, deferredPreviewValues, product],
+  );
 
   function onSubmit(values: StoreProductInput) {
     setFeedback(null);
@@ -64,8 +73,12 @@ export default function StoreProductForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid gap-5 md:grid-cols-2">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid gap-6 xl:grid-cols-[minmax(0,1.32fr)_minmax(360px,0.95fr)]"
+      >
+        <div className="space-y-6">
+          <div className="grid gap-5 md:grid-cols-2">
           <FormField
             control={form.control}
             name="name"
@@ -521,6 +534,11 @@ export default function StoreProductForm({
             </Button>
           </div>
         </AdminSurface>
+        </div>
+
+        <aside className="xl:sticky xl:top-6 xl:self-start">
+          <StoreProductPreview product={previewProduct} persistedSlug={product?.slug ?? null} />
+        </aside>
       </form>
     </Form>
   );

@@ -17,7 +17,7 @@ export default async function DashboardLayout({
 }>) {
   if (!hasSupabasePublicEnv()) {
     return (
-      <div className="section-shell py-10">
+      <div className="min-h-screen bg-[#f6f3ec] px-4 py-10 sm:px-6 xl:px-8 2xl:px-10">
         <Card className="p-6 text-sm text-[#5f6368]">
           Configura Supabase para usar el backoffice interno.
         </Card>
@@ -29,22 +29,22 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[#f6f3ec]">
-      <div className="section-shell py-6 lg:py-8">
-        <AdminSurface className="mb-6 px-5 py-5 sm:px-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="w-full px-4 py-5 sm:px-6 lg:py-6 xl:px-8 2xl:px-10">
+        <AdminSurface className="mb-6 px-5 py-5 sm:px-6 xl:px-7">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#d71920]">
                 Backoffice del gimnasio
               </p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#111111]">
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#111111] xl:text-[2rem]">
                 Operacion diaria, sin ruido
               </h1>
-              <p className="mt-2 text-sm text-[#5f6368]">
+              <p className="mt-2 max-w-3xl text-sm text-[#5f6368]">
                 Leads, contenido y ajustes globales del gimnasio en una sola base.
               </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="rounded-none border border-black/8 bg-[#fbfbf8] px-4 py-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center xl:shrink-0">
+              <div className="rounded-none border border-black/8 bg-[#fbfbf8] px-4 py-3 xl:min-w-[280px]">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
                   Sesion activa
                 </p>
@@ -55,9 +55,9 @@ export default async function DashboardLayout({
           </div>
         </AdminSurface>
 
-        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[304px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]">
           <DashboardSidebar />
-          <div className="min-w-0 space-y-6">{children}</div>
+          <div className="min-w-0 space-y-6 xl:space-y-7">{children}</div>
         </div>
       </div>
     </div>

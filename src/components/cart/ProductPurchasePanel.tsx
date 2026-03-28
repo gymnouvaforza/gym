@@ -10,6 +10,7 @@ import { formatUsdPrice } from "@/lib/data/products";
 
 interface ProductPurchasePanelProps {
   product: Product;
+  previewMode?: boolean;
 }
 
 function resolveInitialOptionValue(product: Product) {
@@ -20,7 +21,79 @@ function resolveInitialOptionValue(product: Product) {
   return null;
 }
 
-export default function ProductPurchasePanel({ product }: Readonly<ProductPurchasePanelProps>) {
+function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchasePanelProps, "product">>) {
+  const primaryOption = product.options?.[0];
+  const previewOptionValue = primaryOption?.values[0] ?? product.name;
+
+  return (
+    <div className="space-y-6">
+      {primaryOption ? (
+        <div className="space-y-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#111111]">
+            {primaryOption.title}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {primaryOption.values.map((value, index) => {
+              const isSelected = value === previewOptionValue || (!previewOptionValue && index === 0);
+
+              return (
+                <span
+                  key={`${primaryOption.id}-${value}`}
+                  className={`inline-flex min-h-11 items-center border px-5 text-[11px] font-bold uppercase tracking-wider ${
+                    isSelected
+                      ? "border-[#d71920] bg-white text-[#d71920]"
+                      : "border-[#d5d9e2] bg-white text-[#111111]"
+                  }`}
+                >
+                  {value}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="space-y-3">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#111111]">Cantidad</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="inline-flex h-12 w-fit items-center border border-[#111111] bg-white">
+            <span className="flex h-full w-12 items-center justify-center text-[#9ca3af]">
+              <Minus className="h-4 w-4" />
+            </span>
+            <span className="flex h-full min-w-12 items-center justify-center border-x border-[#111111] px-4 text-sm font-semibold text-[#111111]">
+              1
+            </span>
+            <span className="flex h-full w-12 items-center justify-center text-[#9ca3af]">
+              <Plus className="h-4 w-4" />
+            </span>
+          </div>
+
+          <Button
+            type="button"
+            className="h-12 rounded-none bg-[#d71920] px-8 text-[11px] font-bold uppercase tracking-[0.16em] text-white hover:bg-[#d71920]"
+            disabled
+          >
+            Compra disponible en storefront
+          </Button>
+        </div>
+      </div>
+
+      {product.paypal_price_usd !== null ? (
+        <p className="text-sm leading-6 text-[#5f6368]">
+          PayPal cobrara aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
+          unidad. Si tu cuenta opera en otra moneda, la conversion final la hara PayPal.
+        </p>
+      ) : null}
+
+      <p className="text-sm leading-6 text-[#5f6368]">
+        Esta ficha es solo una preview del dashboard. La compra real y el carrito se activan en la
+        tienda publicada.
+      </p>
+    </div>
+  );
+}
+
+function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurchasePanelProps, "product">>) {
   const { addItem, isBusy, error } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedOptionValue, setSelectedOptionValue] = useState<string | null>(
@@ -56,7 +129,7 @@ export default function ProductPurchasePanel({ product }: Readonly<ProductPurcha
 
   async function handleAddToCart() {
     if (!selectedVariant?.id) {
-      setSelectionError("Selecciona una variante válida antes de añadir al carrito.");
+      setSelectionError("Selecciona una variante valida antes de anadir al carrito.");
       return;
     }
 
@@ -137,15 +210,15 @@ export default function ProductPurchasePanel({ product }: Readonly<ProductPurcha
               void handleAddToCart();
             }}
           >
-            {isUnavailable ? "No disponible" : isBusy ? "Añadiendo..." : "Añadir al carrito"}
+            {isUnavailable ? "No disponible" : isBusy ? "Anadiendo..." : "Anadir al carrito"}
           </Button>
         </div>
       </div>
 
       {product.paypal_price_usd !== null ? (
         <p className="text-sm leading-6 text-[#5f6368]">
-          PayPal cobrará aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
-          unidad. Si tu cuenta opera en otra moneda, la conversión final la hará PayPal.
+          PayPal cobrara aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
+          unidad. Si tu cuenta opera en otra moneda, la conversion final la hara PayPal.
         </p>
       ) : null}
 
@@ -153,4 +226,15 @@ export default function ProductPurchasePanel({ product }: Readonly<ProductPurcha
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
     </div>
   );
+}
+
+export default function ProductPurchasePanel({
+  product,
+  previewMode = false,
+}: Readonly<ProductPurchasePanelProps>) {
+  if (previewMode) {
+    return <PreviewProductPurchasePanel product={product} />;
+  }
+
+  return <InteractiveProductPurchasePanel product={product} />;
 }

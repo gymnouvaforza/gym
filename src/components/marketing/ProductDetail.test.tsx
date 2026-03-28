@@ -22,7 +22,9 @@ vi.mock("next/image", () => ({
 }));
 
 vi.mock("@/components/cart/ProductPurchasePanel", () => ({
-  default: () => <div>Anadir al carrito</div>,
+  default: ({ previewMode }: { previewMode?: boolean }) => (
+    <div>{previewMode ? "Compra disponible en storefront" : "Anadir al carrito"}</div>
+  ),
 }));
 
 const product: Product = {
@@ -93,5 +95,13 @@ describe("ProductDetail", () => {
     expect(screen.getByText("Como usar")).toBeInTheDocument();
     expect(screen.getByText("Especificaciones")).toBeInTheDocument();
     expect(screen.getByText("Anadir al carrito")).toBeInTheDocument();
+  });
+
+  it("switches to preview mode without rendering the live purchase CTA", () => {
+    render(<ProductDetail product={product} previewMode />);
+
+    expect(screen.getByText("Preview ficha PDP")).toBeInTheDocument();
+    expect(screen.getByText("Compra disponible en storefront")).toBeInTheDocument();
+    expect(screen.queryByText("Anadir al carrito")).not.toBeInTheDocument();
   });
 });
