@@ -80,8 +80,8 @@ function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchaseP
 
       {product.paypal_price_usd !== null ? (
         <p className="text-sm leading-6 text-[#5f6368]">
-          PayPal cobrara aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
-          unidad. Si tu cuenta opera en otra moneda, la conversion final la hara PayPal.
+          PayPal cobrará aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
+          unidad. Si tu cuenta opera en otra moneda, la conversión final la hará PayPal.
         </p>
       ) : null}
 
@@ -129,7 +129,7 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
 
   async function handleAddToCart() {
     if (!selectedVariant?.id) {
-      setSelectionError("Selecciona una variante valida antes de anadir al carrito.");
+      setSelectionError("Selecciona una variante válida antes de añadir al carrito.");
       return;
     }
 
@@ -210,15 +210,15 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
               void handleAddToCart();
             }}
           >
-            {isUnavailable ? "No disponible" : isBusy ? "Anadiendo..." : "Anadir al carrito"}
+            {isUnavailable ? "No disponible" : isBusy ? "Añadiendo..." : "Añadir al carrito"}
           </Button>
         </div>
       </div>
 
       {product.paypal_price_usd !== null ? (
         <p className="text-sm leading-6 text-[#5f6368]">
-          PayPal cobrara aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
-          unidad. Si tu cuenta opera en otra moneda, la conversion final la hara PayPal.
+          PayPal cobrará aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
+          unidad. Si tu cuenta opera en otra moneda, la conversión final la hará PayPal.
         </p>
       ) : null}
 
