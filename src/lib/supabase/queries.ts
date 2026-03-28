@@ -9,25 +9,35 @@ import {
   type CmsDocumentKey,
 } from "@/lib/data/default-cms";
 import { defaultSiteSettings } from "@/lib/data/default-content";
+import {
+  defaultMarketingPlans,
+  defaultMarketingScheduleRows,
+  type MarketingPlan,
+  type MarketingScheduleRow,
+} from "@/lib/data/marketing-content";
 import { hasSupabasePublicEnv, hasSupabaseServiceRole } from "@/lib/env";
 import { parseSeoKeywordsInput } from "@/lib/seo";
 import { resolveTopbarVariant, toIsoDateTimeOrNull } from "@/lib/topbar";
-import type { ContactFormValues } from "@/lib/validators/contact";
-import type { CmsDocumentValues } from "@/lib/validators/cms-document";
-import type { SiteSettingsValues } from "@/lib/validators/settings";
-import { trimToNull } from "@/lib/utils";
 import {
   mapStoreCategory,
   normalizeStoreCategoryPayload,
   normalizeStoreProductPayload,
   type StoreCategory,
 } from "@/lib/data/store";
+import type { ContactFormValues } from "@/lib/validators/contact";
+import type { CmsDocumentValues } from "@/lib/validators/cms-document";
+import type { MarketingContentValues } from "@/lib/validators/marketing";
+import type { SiteSettingsValues } from "@/lib/validators/settings";
 import type { StoreCategoryValues, StoreProductValues } from "@/lib/validators/store";
+import { trimToNull } from "@/lib/utils";
 
 import type {
   Database,
   DBCmsDocument,
+  DBMarketingPlan,
+  DBMarketingScheduleRow,
   DBProduct,
+  Json,
   Lead,
   LeadStatus,
   SiteSettings,
@@ -44,6 +54,8 @@ const leadStatuses: LeadStatus[] = ["new", "contacted", "closed"];
 
 export interface MarketingSnapshot {
   settings: SiteSettings;
+  plans: MarketingPlan[];
+  scheduleRows: MarketingScheduleRow[];
   isFallback: boolean;
   warning: string | null;
 }
@@ -51,6 +63,8 @@ export interface MarketingSnapshot {
 export interface DashboardSnapshot extends MarketingSnapshot {
   leads: Lead[];
 }
+
+export type DashboardMarketingSnapshot = MarketingSnapshot;
 
 export interface CmsSnapshot {
   documents: DBCmsDocument[];
@@ -74,6 +88,79 @@ function safeStringArray(value: string[] | null | undefined) {
   }
 
   return value.map((item) => item.trim()).filter(Boolean);
+}
+
+export function normalizeMarketingPlan(
+  row: Partial<DBMarketingPlan> | null | undefined,
+  index = 0,
+): MarketingPlan {
+  const fallback = defaultMarketingPlans[index] ?? defaultMarketingPlans[0];
+
+  return {
+    ...fallback,
+    ...row,
+    id: row?.id ?? fallback.id,
+    site_settings_id: row?.site_settings_id ?? fallback.site_settings_id,
+    title: safeString(row?.title, fallback.title),
+    description: trimToNull(row?.description) ?? fallback.description,
+    price_label: safeString(row?.price_label, fallback.price_label),
+    billing_label: safeString(row?.billing_label, fallback.billing_label),
+    badge: trimToNull(row?.badge) ?? fallback.badge,
+    features: Array.isArray(row?.features)
+      ? row.features
+      : (typeof row?.features === "string" ? JSON.parse(row.features) : fallback.features),
+    is_featured: row?.is_featured ?? fallback.is_featured,
+    order: row?.order ?? fallback.order,
+    is_active: row?.is_active ?? fallback.is_active,
+    created_at: row?.created_at ?? fallback.created_at,
+    updated_at: row?.updated_at ?? fallback.updated_at,
+  };
+}
+
+export function normalizeMarketingPlans(
+  rows: Partial<DBMarketingPlan>[] | null | undefined,
+): MarketingPlan[] {
+  if (!rows?.length) {
+    return defaultMarketingPlans.map((plan) => ({ ...plan, features: [...plan.features] }));
+  }
+
+  return rows
+    .map((row, index) => normalizeMarketingPlan(row, index))
+    .sort((left, right) => left.order - right.order);
+}
+
+export function normalizeMarketingScheduleRow(
+  row: Partial<DBMarketingScheduleRow> | null | undefined,
+  index = 0,
+): MarketingScheduleRow {
+  const fallback = defaultMarketingScheduleRows[index] ?? defaultMarketingScheduleRows[0];
+
+  return {
+    ...fallback,
+    ...row,
+    id: row?.id ?? fallback.id,
+    site_settings_id: row?.site_settings_id ?? fallback.site_settings_id,
+    label: safeString(row?.label, fallback.label),
+    description: trimToNull(row?.description) ?? fallback.description,
+    opens_at: safeString(row?.opens_at, fallback.opens_at),
+    closes_at: safeString(row?.closes_at, fallback.closes_at),
+    order: row?.order ?? fallback.order,
+    is_active: row?.is_active ?? fallback.is_active,
+    created_at: row?.created_at ?? fallback.created_at,
+    updated_at: row?.updated_at ?? fallback.updated_at,
+  };
+}
+
+export function normalizeMarketingScheduleRows(
+  rows: Partial<DBMarketingScheduleRow>[] | null | undefined,
+): MarketingScheduleRow[] {
+  if (!rows?.length) {
+    return defaultMarketingScheduleRows.map((row) => ({ ...row }));
+  }
+
+  return rows
+    .map((row, index) => normalizeMarketingScheduleRow(row, index))
+    .sort((left, right) => left.order - right.order);
 }
 
 export function normalizeCmsDocument(
@@ -189,13 +276,30 @@ export function normalizeLeads(rows: Partial<Lead>[] | null | undefined): Lead[]
         message: safeString(row.message, "Lead sin mensaje."),
         source: safeString(row.source, "website"),
         status,
-        metadata: row.metadata ?? {},
+        metadata: (row.metadata as Json) ?? {},
         created_at: row.created_at ?? new Date(0).toISOString(),
       });
 
       return leads;
     }, [])
     .sort((left, right) => right.created_at.localeCompare(left.created_at));
+}
+export function normalizeLead(row: Partial<Lead> | null | undefined): Lead {
+  const status = (row && leadStatuses.includes(row.status as LeadStatus))
+    ? (row.status as LeadStatus)
+    : "new";
+
+  return {
+    id: row?.id || "unknown",
+    name: safeString(row?.name, "Nombre no disponible"),
+    email: safeString(row?.email, "sin-email@invalid.local"),
+    phone: trimToNull(row?.phone),
+    message: safeString(row?.message, "Lead sin mensaje."),
+    source: safeString(row?.source, "website"),
+    status,
+    metadata: (row?.metadata as Json) ?? {},
+    created_at: row?.created_at ?? new Date(0).toISOString(),
+  };
 }
 
 export function buildLeadInsertPayload(
@@ -270,6 +374,44 @@ export function buildCmsDocumentPayload(
   };
 }
 
+function buildMarketingPlanPayload(
+  values: MarketingContentValues["plans"][number],
+): Database["public"]["Tables"]["marketing_plans"]["Insert"] {
+  return {
+    id: values.id,
+    site_settings_id: SETTINGS_ID,
+    title: values.title.trim(),
+    description: trimToNull(values.description),
+    price_label: values.price_label.trim(),
+    billing_label: values.billing_label.trim(),
+    badge: trimToNull(values.badge),
+    features: values.features.map((feature) => ({
+      label: feature.label.trim(),
+      included: feature.included,
+    })),
+    is_featured: values.is_featured,
+    order: values.order,
+    is_active: values.is_active,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function buildMarketingScheduleRowPayload(
+  values: MarketingContentValues["scheduleRows"][number],
+): Database["public"]["Tables"]["marketing_schedule_rows"]["Insert"] {
+  return {
+    id: values.id,
+    site_settings_id: SETTINGS_ID,
+    label: values.label.trim(),
+    description: trimToNull(values.description),
+    opens_at: values.opens_at.trim(),
+    closes_at: values.closes_at.trim(),
+    order: values.order,
+    is_active: values.is_active,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 function mapSupabaseError(error: PostgrestError | Error | null | undefined, entityName: string) {
   const errorRecord = error as { message?: string } | null | undefined;
   const message = error instanceof Error ? error.message : errorRecord?.message;
@@ -280,6 +422,8 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
   if (!hasSupabasePublicEnv()) {
     return {
       settings: defaultSiteSettings,
+      plans: defaultMarketingPlans,
+      scheduleRows: defaultMarketingScheduleRows,
       isFallback: true,
       warning: "Supabase no esta configurado. Se muestran datos fallback.",
     };
@@ -287,30 +431,91 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
 
   try {
     const supabase = createSupabasePublicClient();
-    const { data: settings } = await supabase
-      .from("site_settings")
-      .select("*")
-      .eq("id", SETTINGS_ID)
-      .maybeSingle();
+    const [{ data: settings }, { data: plans }, { data: scheduleRows }] = await Promise.all([
+      supabase.from("site_settings").select("*").eq("id", SETTINGS_ID).maybeSingle(),
+      supabase.from("marketing_plans").select("*").eq("site_settings_id", SETTINGS_ID),
+      supabase
+        .from("marketing_schedule_rows")
+        .select("*")
+        .eq("site_settings_id", SETTINGS_ID),
+    ]);
 
     return {
       settings: normalizeSiteSettings(settings),
+      plans: normalizeMarketingPlans(plans).filter((plan) => plan.is_active),
+      scheduleRows: normalizeMarketingScheduleRows(scheduleRows).filter((row) => row.is_active),
       isFallback: false,
       warning: null,
     };
   } catch {
     return {
       settings: defaultSiteSettings,
+      plans: defaultMarketingPlans,
+      scheduleRows: defaultMarketingScheduleRows,
       isFallback: true,
       warning: "No se pudieron cargar los datos reales de Supabase. Se muestra contenido fallback.",
     };
   }
 });
 
+export async function getDashboardMarketingSnapshot(): Promise<DashboardMarketingSnapshot> {
+  if (!hasSupabasePublicEnv()) {
+    return {
+      settings: defaultSiteSettings,
+      plans: defaultMarketingPlans,
+      scheduleRows: defaultMarketingScheduleRows,
+      isFallback: true,
+      warning: "Supabase no esta configurado. Marketing usa contenido fallback.",
+    };
+  }
+
+  try {
+    const supabase = createSupabasePublicClient();
+    const [{ data: settings }, { data: plans }, { data: scheduleRows }] = await Promise.all([
+      supabase.from("site_settings").select("*").eq("id", SETTINGS_ID).maybeSingle(),
+      supabase.from("marketing_plans").select("*").eq("site_settings_id", SETTINGS_ID),
+      supabase
+        .from("marketing_schedule_rows")
+        .select("*")
+        .eq("site_settings_id", SETTINGS_ID),
+    ]);
+
+    return {
+      settings: normalizeSiteSettings(settings),
+      plans: normalizeMarketingPlans(plans),
+      scheduleRows: normalizeMarketingScheduleRows(scheduleRows),
+      isFallback: false,
+      warning: null,
+    };
+  } catch {
+    return {
+      settings: defaultSiteSettings,
+      plans: defaultMarketingPlans,
+      scheduleRows: defaultMarketingScheduleRows,
+      isFallback: true,
+      warning: "No se pudo cargar el marketing real. Se muestra contenido fallback.",
+    };
+  }
+}
+
+export async function getLeadById(id: string): Promise<Lead | null> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return normalizeLead(data);
+}
+
 export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
   if (!hasSupabasePublicEnv()) {
     return {
       settings: defaultSiteSettings,
+      plans: defaultMarketingPlans,
+      scheduleRows: defaultMarketingScheduleRows,
       leads: [],
       isFallback: true,
       warning: "Supabase no esta configurado. El dashboard usa contenido fallback.",
@@ -319,16 +524,27 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
 
   const publicSupabase = createSupabasePublicClient();
 
-  const { data: settings, error: settingsError } = await publicSupabase
-    .from("site_settings")
-    .select("*")
-    .eq("id", SETTINGS_ID)
-    .maybeSingle();
+  const [
+    { data: settings, error: settingsError },
+    { data: plans, error: plansError },
+    { data: scheduleRows, error: scheduleRowsError },
+  ] = await Promise.all([
+    publicSupabase.from("site_settings").select("*").eq("id", SETTINGS_ID).maybeSingle(),
+    publicSupabase.from("marketing_plans").select("*").eq("site_settings_id", SETTINGS_ID),
+    publicSupabase
+      .from("marketing_schedule_rows")
+      .select("*")
+      .eq("site_settings_id", SETTINGS_ID),
+  ]);
 
   const warnings: string[] = [];
 
   if (settingsError) {
     warnings.push("No se pudieron cargar los ajustes reales del sitio. Se muestran valores fallback.");
+  }
+
+  if (plansError || scheduleRowsError) {
+    warnings.push("No se pudo cargar parte del contenido comercial editable.");
   }
 
   if (!hasSupabaseServiceRole()) {
@@ -340,6 +556,10 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
   if (!hasSupabaseServiceRole()) {
     return {
       settings: settingsError ? defaultSiteSettings : normalizeSiteSettings(settings),
+      plans: plansError ? defaultMarketingPlans : normalizeMarketingPlans(plans),
+      scheduleRows: scheduleRowsError
+        ? defaultMarketingScheduleRows
+        : normalizeMarketingScheduleRows(scheduleRows),
       leads: [],
       isFallback: true,
       warning: warnings.join(" "),
@@ -358,6 +578,10 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
 
   return {
     settings: settingsError ? defaultSiteSettings : normalizeSiteSettings(settings),
+    plans: plansError ? defaultMarketingPlans : normalizeMarketingPlans(plans),
+    scheduleRows: scheduleRowsError
+      ? defaultMarketingScheduleRows
+      : normalizeMarketingScheduleRows(scheduleRows),
     leads: leadsError ? [] : normalizeLeads(leads),
     isFallback: warnings.length > 0,
     warning: warnings.length > 0 ? warnings.join(" ") : null,
@@ -474,6 +698,112 @@ export async function saveSiteSettingsRecord(
   if (error) {
     throw new Error(mapSupabaseError(error, "los ajustes"));
   }
+}
+
+export async function getMarketingPlansRecord(
+  supabase: GymSupabaseClient,
+  options?: { includeInactive?: boolean },
+) {
+  let query = supabase
+    .from("marketing_plans")
+    .select("*")
+    .eq("site_settings_id", SETTINGS_ID)
+    .order("order", { ascending: true });
+
+  if (!options?.includeInactive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(mapSupabaseError(error, "los planes"));
+  }
+
+  return normalizeMarketingPlans(data);
+}
+
+export async function getMarketingScheduleRowsRecord(
+  supabase: GymSupabaseClient,
+  options?: { includeInactive?: boolean },
+) {
+  let query = supabase
+    .from("marketing_schedule_rows")
+    .select("*")
+    .eq("site_settings_id", SETTINGS_ID)
+    .order("order", { ascending: true });
+
+  if (!options?.includeInactive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(mapSupabaseError(error, "los horarios"));
+  }
+
+  return normalizeMarketingScheduleRows(data);
+}
+
+type MarketingPlanInsert = Database["public"]["Tables"]["marketing_plans"]["Insert"];
+type MarketingScheduleRowInsert =
+  Database["public"]["Tables"]["marketing_schedule_rows"]["Insert"];
+
+async function replaceMarketingTableRows(
+  supabase: GymSupabaseClient,
+  table: "marketing_plans" | "marketing_schedule_rows",
+  payloads: MarketingPlanInsert[] | MarketingScheduleRowInsert[],
+) {
+  const { data: existingRows, error: existingError } = await supabase
+    .from(table)
+    .select("id")
+    .eq("site_settings_id", SETTINGS_ID);
+
+  if (existingError) {
+    throw new Error(mapSupabaseError(existingError, "el contenido de marketing"));
+  }
+
+  const keepIds = new Set(
+    payloads
+      .map((item) => item.id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0),
+  );
+  const idsToDelete = (existingRows ?? [])
+    .map((row) => row.id)
+    .filter((id) => !keepIds.has(id));
+
+  if (payloads.length > 0) {
+    const { error } =
+      table === "marketing_plans"
+        ? await supabase.from("marketing_plans").upsert(payloads as MarketingPlanInsert[])
+        : await supabase
+            .from("marketing_schedule_rows")
+            .upsert(payloads as MarketingScheduleRowInsert[]);
+
+    if (error) {
+      throw new Error(mapSupabaseError(error, "el contenido de marketing"));
+    }
+  }
+
+  if (idsToDelete.length > 0) {
+    const { error } = await supabase.from(table).delete().in("id", idsToDelete);
+
+    if (error) {
+      throw new Error(mapSupabaseError(error, "el contenido de marketing"));
+    }
+  }
+}
+
+export async function saveMarketingContentRecord(
+  supabase: GymSupabaseClient,
+  values: MarketingContentValues,
+) {
+  const planPayloads = values.plans.map(buildMarketingPlanPayload);
+  const schedulePayloads = values.scheduleRows.map(buildMarketingScheduleRowPayload);
+
+  await replaceMarketingTableRows(supabase, "marketing_plans", planPayloads);
+  await replaceMarketingTableRows(supabase, "marketing_schedule_rows", schedulePayloads);
 }
 
 export async function listCmsDocumentsRecord(

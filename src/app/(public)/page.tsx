@@ -20,14 +20,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PublicHomePage() {
-  const { settings } = await getMarketingData();
+  const { settings, plans, scheduleRows } = await getMarketingData();
 
   return (
     <div className="bg-[#151518]">
       <HeroSection settings={settings} />
       <ValueSection />
-      <PlansSection settings={settings} />
-      <ScheduleSection />
+      <PlansSection settings={settings} plans={plans} />
+      <ScheduleSection rows={scheduleRows} />
       <TeamSection />
       <ProductsSection />
       <TestimonialsSection />

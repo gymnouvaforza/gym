@@ -99,6 +99,139 @@ on conflict (id) do update set
   footer_text = excluded.footer_text,
   updated_at = excluded.updated_at;
 
+insert into public.marketing_plans (
+  id,
+  site_settings_id,
+  title,
+  description,
+  price_label,
+  billing_label,
+  badge,
+  features,
+  is_featured,
+  "order",
+  is_active,
+  created_at,
+  updated_at
+)
+values
+  (
+    '11111111-1111-1111-1111-111111111111',
+    1,
+    'Basico Forza',
+    null,
+    'S/150',
+    '/mes',
+    null,
+    '[{"label":"Acceso zona pesas libre","included":true},{"label":"Horarios limitados","included":false},{"label":"Sin asesoria nutricional","included":false}]'::jsonb,
+    false,
+    0,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  ),
+  (
+    '22222222-2222-2222-2222-222222222222',
+    1,
+    'Elite Mensual',
+    null,
+    'S/280',
+    '/mes',
+    'Recomendado',
+    '[{"label":"Acceso total 24/7","included":true},{"label":"Evaluacion nutricional","included":true},{"label":"1 Sesion PT mensual","included":true},{"label":"Acceso a clases grupales","included":true}]'::jsonb,
+    true,
+    1,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  ),
+  (
+    '33333333-3333-3333-3333-333333333333',
+    1,
+    'Plan Anual Pro',
+    null,
+    'S/2500',
+    '/ano',
+    null,
+    '[{"label":"Todo lo del plan Elite","included":true},{"label":"2 Sesiones PT/mes","included":true},{"label":"Kit Nova Forza de bienvenida","included":true},{"label":"Invitado mensual gratuito","included":true}]'::jsonb,
+    false,
+    2,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+on conflict (id) do update set
+  site_settings_id = excluded.site_settings_id,
+  title = excluded.title,
+  description = excluded.description,
+  price_label = excluded.price_label,
+  billing_label = excluded.billing_label,
+  badge = excluded.badge,
+  features = excluded.features,
+  is_featured = excluded.is_featured,
+  "order" = excluded."order",
+  is_active = excluded.is_active,
+  updated_at = excluded.updated_at;
+
+insert into public.marketing_schedule_rows (
+  id,
+  site_settings_id,
+  label,
+  description,
+  opens_at,
+  closes_at,
+  "order",
+  is_active,
+  created_at,
+  updated_at
+)
+values
+  (
+    '44444444-4444-4444-4444-444444444444',
+    1,
+    'Lunes - Viernes',
+    null,
+    '05:00 AM',
+    '11:00 PM',
+    0,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  ),
+  (
+    '55555555-5555-5555-5555-555555555555',
+    1,
+    'Sabados',
+    null,
+    '07:00 AM',
+    '08:00 PM',
+    1,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  ),
+  (
+    '66666666-6666-6666-6666-666666666666',
+    1,
+    'Domingos y Feriados',
+    null,
+    '08:00 AM',
+    '04:00 PM',
+    2,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+on conflict (id) do update set
+  site_settings_id = excluded.site_settings_id,
+  label = excluded.label,
+  description = excluded.description,
+  opens_at = excluded.opens_at,
+  closes_at = excluded.closes_at,
+  "order" = excluded."order",
+  is_active = excluded.is_active,
+  updated_at = excluded.updated_at;
+
 insert into public.cms_documents (
   key,
   kind,

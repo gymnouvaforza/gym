@@ -16,13 +16,13 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://novaforza.pe"),
+  metadataBase: new URL("https://titangym-peru.com"),
   title: {
-    default: "Nova Forza",
-    template: "%s | Nova Forza",
+    default: "Titan Gym | Lima",
+    template: "%s | Titan Gym",
   },
   description:
-    "Gimnasio premium local enfocado en fuerza, progreso real y asesoria cercana.",
+    "El gimnasio de fuerza de referencia en Lima. Resultados reales con asesoría personalizada.",
   icons: {
     icon: "/images/favicon/favicon.jpg",
     shortcut: "/images/favicon/favicon.jpg",

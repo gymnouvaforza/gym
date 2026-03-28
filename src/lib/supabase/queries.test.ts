@@ -36,7 +36,7 @@ describe("supabase queries helpers", () => {
       footer_text: "Footer",
     });
 
-    expect(settings.site_name).toBe("Nova Forza");
+    expect(settings.site_name).toBe("Titan Gym");
     expect(settings.hero_title).toBe("Construye fuerza real");
     expect(settings.hero_video_url).toBe("/video/custom-hero.mp4");
     expect(settings.topbar_text).toBe("Promo activa");

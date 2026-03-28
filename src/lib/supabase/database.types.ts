@@ -5726,6 +5726,109 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_plans: {
+        Row: {
+          badge: string | null
+          billing_label: string
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          order: number
+          price_label: string
+          site_settings_id: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge?: string | null
+          billing_label: string
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          order?: number
+          price_label: string
+          site_settings_id?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          badge?: string | null
+          billing_label?: string
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          order?: number
+          price_label?: string
+          site_settings_id?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_plans_site_settings_id_fkey"
+            columns: ["site_settings_id"]
+            isOneToOne: false
+            referencedRelation: "site_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_schedule_rows: {
+        Row: {
+          closes_at: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          label: string
+          opens_at: string
+          order: number
+          site_settings_id: number
+          updated_at: string
+        }
+        Insert: {
+          closes_at: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          opens_at: string
+          order?: number
+          site_settings_id?: number
+          updated_at?: string
+        }
+        Update: {
+          closes_at?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          opens_at?: string
+          order?: number
+          site_settings_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_schedule_rows_site_settings_id_fkey"
+            columns: ["site_settings_id"]
+            isOneToOne: false
+            referencedRelation: "site_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           address: string | null
@@ -6619,6 +6722,9 @@ export type LeadStatus = Database["public"]["Enums"]["lead_status"]
 export type DBCmsDocument = Database["public"]["Tables"]["cms_documents"]["Row"]
 export type DBMemberCommerceCustomer =
   Database["public"]["Tables"]["member_commerce_customers"]["Row"]
+export type DBMarketingPlan = Database["public"]["Tables"]["marketing_plans"]["Row"]
+export type DBMarketingScheduleRow =
+  Database["public"]["Tables"]["marketing_schedule_rows"]["Row"]
 export type SiteSettings = Database["public"]["Tables"]["site_settings"]["Row"]
 export type DBProduct = Database["public"]["Tables"]["products"]["Row"]
 export type DBStoreCategory = Database["public"]["Tables"]["store_categories"]["Row"]

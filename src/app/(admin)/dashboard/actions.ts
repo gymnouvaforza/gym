@@ -7,11 +7,13 @@ import { hasSupabaseServiceRole } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import {
   saveCmsDocumentRecord,
+  saveMarketingContentRecord,
   saveSiteSettingsRecord,
   updateLeadStatusRecord,
 } from "@/lib/supabase/queries";
 import { cmsDocumentSchema, type CmsDocumentValues } from "@/lib/validators/cms-document";
 import { leadStatusSchema } from "@/lib/validators/lead";
+import { marketingContentSchema, type MarketingContentValues } from "@/lib/validators/marketing";
 import { siteSettingsSchema, type SiteSettingsValues } from "@/lib/validators/settings";
 
 async function getAuthenticatedSupabase() {
@@ -31,9 +33,12 @@ function revalidateApp() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/cms");
   revalidatePath("/dashboard/leads");
+  revalidatePath("/dashboard/marketing");
   revalidatePath("/dashboard/web");
   revalidatePath("/dashboard/info");
   revalidatePath("/dashboard/advanced");
+  revalidatePath("/planes");
+  revalidatePath("/horarios");
   revalidatePath("/privacidad");
   revalidatePath("/cookies");
   revalidatePath("/terminos");
@@ -49,6 +54,34 @@ export async function saveSiteSettings(values: SiteSettingsValues) {
   const supabase = await getAuthenticatedSupabase();
   await saveSiteSettingsRecord(supabase, parsed);
   revalidateApp();
+}
+
+export type ActionResponse = {
+  success: boolean;
+  error?: string;
+};
+
+export async function saveMarketingContent(values: MarketingContentValues): Promise<ActionResponse> {
+  try {
+    const parsed = marketingContentSchema.parse(values);
+    const supabase = await getAuthenticatedSupabase();
+
+    await saveMarketingContentRecord(supabase, parsed);
+    revalidateApp();
+
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error desconocido al guardar marketing.";
+    console.error("[saveMarketingContent] Error persistence:", {
+      message,
+      error,
+    });
+    
+    return { 
+      success: false, 
+      error: message 
+    };
+  }
 }
 
 export async function updateLeadStatus(id: string, status: "new" | "contacted" | "closed") {

@@ -1,6 +1,15 @@
 "use client";
 
-import { BarChart3, Building, FileText, Globe, Settings2, ShoppingBag, Users } from "lucide-react";
+import {
+  BarChart3,
+  Building,
+  CalendarClock,
+  FileText,
+  Globe,
+  Settings2,
+  ShoppingBag,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -13,6 +22,7 @@ const links = [
   { href: "/dashboard", label: "Inicio", icon: BarChart3 },
   { href: "/dashboard/leads", label: "Contactos", icon: Users },
   { href: "/dashboard/tienda", label: "Tienda", icon: ShoppingBag },
+  { href: "/dashboard/marketing", label: "Marketing", icon: CalendarClock },
   { href: "/dashboard/web", label: "Diseno Web", icon: Globe },
   { href: "/dashboard/cms", label: "Legales y Errores", icon: FileText },
   { href: "/dashboard/info", label: "Datos del Gym", icon: Building },
@@ -27,7 +37,7 @@ export default function DashboardSidebar() {
       <div className="mb-5 flex items-center justify-between gap-3 border-b border-black/8 pb-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#d71920]">
-            Nova Forza
+            Titan Gym
           </p>
           <p className="mt-2 text-sm text-[#5f6368]">
             Panel limpio para operar leads, tienda, contenido y ajustes.

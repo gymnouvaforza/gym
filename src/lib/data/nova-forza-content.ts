@@ -14,21 +14,6 @@ export interface PlanFeature {
   included: boolean;
 }
 
-export interface Plan {
-  name: string;
-  price: string;
-  billing: string;
-  featured?: boolean;
-  badge?: string;
-  features: PlanFeature[];
-}
-
-export interface OperatingHour {
-  day: string;
-  open: string;
-  close: string;
-}
-
 export interface TeamMember {
   name: string;
   role: string;
@@ -81,47 +66,6 @@ export const novaForzaHomeContent = {
       description: "Metodo claro para que veas cambios reales en fuerza, fisico y rendimiento.",
     },
   ] satisfies ValueProp[],
-  plans: [
-    {
-      name: "Basico Forza",
-      price: "S/150",
-      billing: "/mes",
-      features: [
-        { label: "Acceso zona pesas libre", included: true },
-        { label: "Horarios limitados", included: false },
-        { label: "Sin asesoria nutricional", included: false },
-      ],
-    },
-    {
-      name: "Elite Mensual",
-      price: "S/280",
-      billing: "/mes",
-      featured: true,
-      badge: "Recomendado",
-      features: [
-        { label: "Acceso total 24/7", included: true },
-        { label: "Evaluacion nutricional", included: true },
-        { label: "1 Sesion PT mensual", included: true },
-        { label: "Acceso a clases grupales", included: true },
-      ],
-    },
-    {
-      name: "Plan Anual Pro",
-      price: "S/2500",
-      billing: "/ano",
-      features: [
-        { label: "Todo lo del plan Elite", included: true },
-        { label: "2 Sesiones PT/mes", included: true },
-        { label: "Kit Nova Forza de bienvenida", included: true },
-        { label: "Invitado mensual gratuito", included: true },
-      ],
-    },
-  ] satisfies Plan[],
-  operatingHours: [
-    { day: "Lunes - Viernes", open: "05:00 AM", close: "11:00 PM" },
-    { day: "Sabados", open: "07:00 AM", close: "08:00 PM" },
-    { day: "Domingos y Feriados", open: "08:00 AM", close: "04:00 PM" },
-  ] satisfies OperatingHour[],
   team: [
     {
       name: "Carlos Mendoza",
