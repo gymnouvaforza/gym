@@ -40,6 +40,12 @@ jobs:
       PAYPAL_ENVIRONMENT: ${{ vars.PAYPAL_ENVIRONMENT }}
       PAYPAL_WEBHOOK_ID: ${{ secrets.PAYPAL_WEBHOOK_ID }}
       PAYPAL_AUTO_CAPTURE: ${{ vars.PAYPAL_AUTO_CAPTURE }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_FROM_EMAIL: ${{ secrets.SMTP_FROM_EMAIL }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
       ADMIN_ALLOWED_EMAILS: ${{ vars.ADMIN_ALLOWED_EMAILS }}

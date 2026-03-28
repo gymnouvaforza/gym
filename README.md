@@ -1,70 +1,85 @@
 # Nova Forza
 
-Base de producto para el gimnasio **Nova Forza** con dos superficies activas:
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase&logoColor=white)
+![Medusa](https://img.shields.io/badge/Medusa-v2-111827)
 
-- web publica en `src/app/(public)`
-- backoffice interno en `src/app/(admin)/dashboard`
+Base de producto para un gimnasio local con web publica, backoffice propio y capa commerce desacoplada. Hoy esta orientado a **Nova Forza**, pero la estructura se esta manteniendo lo bastante limpia como para servir de base a futuros forks del vertical fitness o negocios locales similares.
 
-La capa commerce entra ahora en una migracion progresiva hacia **Medusa + Next.js**, manteniendo **Supabase** como infraestructura PostgreSQL cuando encaja.
+## Que incluye hoy
 
-## Arquitectura actual
+- web publica comercial en `src/app/(public)`
+- login y dashboard propio en `src/app/(admin)/dashboard`
+- leads y ajustes globales en Supabase
+- tienda, carrito y checkout pickup
+- mi-cuenta y seguimiento de pedidos pickup
 
-- `Next.js 16` y `React 19` para storefront y panel interno
-- `Supabase` para auth, leads, ajustes globales y resto de dominio propio
-- `apps/medusa` como backend de comercio separado
+## Vistas del producto
 
-Mas detalle en [docs/commerce-medusa-migration.md](/C:/digitalbitsolutions/gym/docs/commerce-medusa-migration.md).
+### Web publica y tienda
+![Home publica](.github/assets/readme/home-public.png)
+![Tienda publica](.github/assets/readme/storefront-shop.png)
 
-## Frontera de responsabilidades
+### Dashboard propio
+![Dashboard overview](.github/assets/readme/dashboard-overview.png)
+![Dashboard leads](.github/assets/readme/dashboard-leads.png)
+![Dashboard tienda](.github/assets/readme/dashboard-store.png)
 
-La operativa diaria de tienda se hace desde `src/app/(admin)/dashboard`.
-El admin nativo de Medusa no es el panel del negocio en este proyecto.
+### Checkout y cuenta
+![Checkout pickup](.github/assets/readme/pickup-checkout.png)
+![Mi cuenta](.github/assets/readme/account.png)
+![Home mobile](.github/assets/readme/home-mobile.png)
 
-### Next.js + Supabase propio
+## Arquitectura
 
-- marketing
-- contenido
-- login
-- dashboard
-- leads
-- ajustes del sitio
-- modulos del gimnasio no-commerce
+- `Next.js 16` y `React 19` para la experiencia publica y el backoffice
+- `Supabase` para auth, leads, settings y dominio no-commerce
+- `apps/medusa` como backend de catalogo y operaciones commerce
+- `Tailwind CSS v4`, `TypeScript`, `react-hook-form`, `zod` y `Vitest`
 
-### Medusa
+Mas contexto en [docs/commerce-medusa-migration.md](docs/commerce-medusa-migration.md).
 
-- productos
-- categorias
-- precios
-- inventario base
-- futura base para carrito y checkout
+## Frontera operativa
 
-## Regla operativa de tienda
+La regla del proyecto es simple:
 
-- el dashboard propio es la unica UI de gestion para el equipo
-- Medusa se usa como motor de catalogo y APIs, no como panel operativo
-- si falta una capacidad de commerce, se expone primero en el dashboard propio antes de dar la integracion por cerrada
+- la UI operativa del negocio vive en `src/app/(admin)/dashboard`
+- Medusa se usa como motor de catalogo y APIs, no como panel del negocio
+- Supabase sigue siendo el backend principal del gym y la capa de soporte para IDs puente y dominio propio
+- el storefront no cae a datos locales ni a tablas legacy cuando Medusa falla
 
 ## Desarrollo local
 
-### Storefront y panel
+### Frontend y dashboard
 
 ```bash
 npm install
 npm run dev
 ```
 
-### Backend commerce
+### Medusa en modo desarrollo
 
 ```bash
 npm --prefix apps/medusa install
 npm run dev:medusa
 ```
 
+### Medusa + Redis con Docker
+
+```bash
+npm run dev:backend
+```
+
+Si trabajas en Windows con Docker Desktop, revisa [docs/local-redis-windows.md](docs/local-redis-windows.md).
+
 ## Variables de entorno
 
 Completa `.env.local` a partir de `.env.example`.
 
-### Propias del proyecto actual
+### Core del proyecto
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -73,7 +88,7 @@ Completa `.env.local` a partir de `.env.example`.
 - `ADMIN_USER`
 - `ADMIN_PASSWORD`
 
-### Nuevas para commerce
+### Storefront y dashboard de tienda
 
 - `COMMERCE_PROVIDER=medusa`
 - `STORE_ADMIN_PROVIDER=medusa`
@@ -88,42 +103,36 @@ Completa `.env.local` a partir de `.env.example`.
 - `MEDUSA_REGION_NAME=Peru`
 - `MEDUSA_COUNTRY_CODE=PE`
 
-El runtime de commerce ya no admite fallback a Supabase ni a catalogo local. Si Medusa no responde,
-la tienda y el dashboard muestran un error explicito.
+### Correo transaccional pickup
 
-Por defecto el proyecto queda preparado para trabajar en **sol peruano (`PEN`)** y locale
-`es-PE`, pero puedes cambiarlo por entorno sin tocar codigo.
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_FROM_EMAIL` opcional
 
-## Supabase y Medusa
+## Notas para forks
 
-Medusa debe conectarse a PostgreSQL por `DATABASE_URL` directa. No usa el cliente JS de Supabase para resolver comercio.
+Si mas adelante reutilizas esta base para otro negocio:
 
-La recomendacion operativa mas segura es:
+- manten branding y contenido editable fuera del codigo duro siempre que sea posible
+- conserva la frontera `Next.js UI -> Medusa catalogo -> Supabase soporte`
+- cambia moneda, region y proveedor por entorno, no por hardcode
+- reemplaza las capturas de `.github/assets/readme/` por assets del nuevo proyecto
 
-- usar **Supabase Postgres** para Medusa
-- mantener **Medusa** como propietario de sus tablas
-- evitar mezclar tablas internas de Medusa con el dominio del gym sin una frontera clara
-- usar Supabase tambien para persistir los IDs puente `medusa_category_id` y `medusa_product_id`
+## Documentacion relacionada
 
-## Seeds de comercio
+- [Migracion commerce a Medusa](docs/commerce-medusa-migration.md)
+- [Deploy full stack con Dokploy](docs/dokploy-full-stack.md)
+- [Snapshot visual del producto](docs/product-snapshot.md)
+- [Auditoria legacy de fase 0](docs/legacy-audit-phase-0.md)
+- [Smoke checklist del core](docs/core-smoke-checklist.md)
+- [Smoke de PayPal sandbox](docs/paypal-sandbox-smoke.md)
+- [SMTP con Gmail para pickup](docs/smtp-gmail-setup.md)
+- [Redis local en Windows](docs/local-redis-windows.md)
 
-La app Medusa incluye un seed inicial de Nova Forza:
-
-```bash
-npm run medusa:seed:nova
-```
-
-Ese seed deja la base para catalogo, categorias, stock simple y la publishable key del storefront.
-Los datos locales ya no alimentan la app en runtime; si se conservan, quedan solo como fixtures o
-material de seed.
-
-## Deploy y preproduccion
-
-La ruta operativa recomendada para este repo es desplegar `web` y `Medusa` en el mismo VPS usando Docker y Dokploy, manteniendo `Supabase` como base de datos y storage externos.
-
-La receta completa esta documentada en [docs/dokploy-full-stack.md](/C:/digitalbitsolutions/gym/docs/dokploy-full-stack.md).
-
-## QA
+## Calidad
 
 Antes de cerrar cambios relevantes:
 

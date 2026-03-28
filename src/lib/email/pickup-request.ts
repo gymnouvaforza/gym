@@ -1,7 +1,7 @@
 import { formatCartAmount } from "@/lib/cart/format";
 import type { PickupRequestDetail } from "@/lib/cart/types";
 
-import { sendResendEmail } from "./resend";
+import { sendSmtpEmail } from "./smtp";
 
 interface PickupRequestEmailContext {
   pickupRequest: PickupRequestDetail;
@@ -265,7 +265,7 @@ export async function sendPickupRequestEmails({
   await Promise.all(
     deliveries.map(async (delivery) => {
       try {
-        await sendResendEmail({
+        await sendSmtpEmail({
           to: delivery.recipient,
           from: fromEmail ?? undefined,
           replyTo: replyTo ?? undefined,

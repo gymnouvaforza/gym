@@ -1,0 +1,49 @@
+services:
+  medusa:
+    build:
+      context: ./apps/medusa
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 9000
+      DATABASE_URL: ${DATABASE_URL}
+      MEDUSA_DB_INSECURE_SSL: ${MEDUSA_DB_INSECURE_SSL:-true}
+      REDIS_URL: redis://redis:6379
+      STORE_CORS: ${STORE_CORS:-http://localhost:3000}
+      ADMIN_CORS: ${ADMIN_CORS:-http://localhost:3000,http://localhost:9000}
+      AUTH_CORS: ${AUTH_CORS:-http://localhost:3000,http://localhost:9000}
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET}
+      PAYPAL_ENVIRONMENT: ${PAYPAL_ENVIRONMENT:-sandbox}
+      PAYPAL_AUTO_CAPTURE: ${PAYPAL_AUTO_CAPTURE:-true}
+      PAYPAL_WEBHOOK_ID: ${PAYPAL_WEBHOOK_ID}
+      S3_URL: ${S3_URL}
+      S3_BUCKET: ${S3_BUCKET:-medusa-media}
+      S3_REGION: ${S3_REGION:-eu-central-1}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      COMMERCE_CURRENCY_CODE: ${COMMERCE_CURRENCY_CODE:-PEN}
+      MEDUSA_REGION_ID: ${MEDUSA_REGION_ID}
+      MEDUSA_REGION_NAME: ${MEDUSA_REGION_NAME:-Peru}
+      MEDUSA_COUNTRY_CODE: ${MEDUSA_COUNTRY_CODE:-PE}
+    ports:
+      - "9000:9000"
+    depends_on:
+      - redis
+    networks:
+      - gym-local
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - gym-local
+
+networks:
+  gym-local:
+    driver: bridge

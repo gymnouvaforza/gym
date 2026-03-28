@@ -34,22 +34,26 @@ Mantener una base limpia, minima y coherente para:
 - backend principal en Supabase
 - futura app movil reutilizando el mismo backend
 
-## Limites del MVP actual
+## Limites del core actual
 
-En esta fase el alcance real es:
+En esta fase el alcance real ya incluye:
 
-- home publica
-- formulario de contacto
+- home publica y paginas legales
+- formulario de contacto y leads
 - login
-- dashboard con resumen, leads y ajustes globales
-- esquema base de Supabase para `site_settings` y `leads`
+- dashboard con resumen, leads, info, web, CMS ligero y tienda
+- tienda publica y detalle de producto
+- carrito y checkout pickup
+- registro y mi-cuenta
+- Supabase para auth, settings, leads y dominio propio
+- Medusa para catalogo operativo y pedidos pickup vinculados
 
 No se deben introducir aun:
 
-- pagos online
 - reservas completas
-- ecommerce completo fuera del modulo tienda ya acotado
 - logica de miembros compleja
+- rutinas o backoffice de miembros completo
+- ecommerce completo fuera del flujo de tienda y pickup ya acotado
 - automatizaciones AI/LLM
 - i18n
 - integraciones pesadas por adelantado

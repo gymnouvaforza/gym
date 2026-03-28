@@ -92,15 +92,34 @@ Este script es **idempotente**. Se encarga de:
 
 Para iniciar el flujo completo de e-commerce:
 
-1. Levantar ambos proyectos en terminales separadas:
+1. Levantar Redis local con Docker Desktop desde la raiz del repo:
+```bash
+npm run dev:redis
+```
+2. Levantar ambos proyectos en terminales separadas:
 ```bash
 # Terminal 1: Backend de E-commerce
-cd apps/medusa
-npm run dev
+cd root_project
+npm run dev:medusa
 
 # Terminal 2: Storefront Institucional
 cd root_project
 npm run dev
 ```
-2. Ir a `http://localhost:3000/tienda` para visualizar la tienda unida.
-3. Ir a `http://localhost:9000/app` para gestionar productos internamente en la tienda Medusa.
+3. Ir a `http://localhost:3000/tienda` para visualizar la tienda unida.
+4. Ir a `http://localhost:9000/app` para gestionar productos internamente en la tienda Medusa.
+
+### Redis local en Windows
+
+Si trabajas en Windows, deja `REDIS_URL=redis://localhost:6379` en `apps/medusa/.env` y usa:
+
+```bash
+npm run dev:redis
+```
+
+Comandos adicionales:
+
+```bash
+npm run dev:redis:status
+npm run dev:redis:reset
+```

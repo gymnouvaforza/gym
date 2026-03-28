@@ -1,5 +1,3 @@
-export const RESEND_ALLOWED_FROM_DOMAIN = "novaforza.pe";
-
 export function normalizeEmailAddress(value: string) {
   return value.trim().toLowerCase();
 }
@@ -7,11 +5,6 @@ export function normalizeEmailAddress(value: string) {
 function extractMailbox(value: string) {
   const match = value.match(/<([^>]+)>/);
   return normalizeEmailAddress(match ? match[1] : value);
-}
-
-export function isAllowedTransactionalMailbox(value: string) {
-  const normalized = normalizeEmailAddress(value);
-  return normalized.endsWith(`@${RESEND_ALLOWED_FROM_DOMAIN}`);
 }
 
 export function formatTransactionalFromEmail(siteName: string, mailbox: string) {
@@ -22,11 +15,17 @@ export function resolveTransactionalSender(
   siteName: string,
   configuredMailbox: string | null | undefined,
   fallbackFromEmail: string,
+  additionalAllowedMailboxes: Array<string | null | undefined> = [],
 ) {
   const normalizedConfigured = configuredMailbox?.trim()
     ? normalizeEmailAddress(configuredMailbox)
     : null;
   const fallbackMailbox = extractMailbox(fallbackFromEmail);
+  const allowedMailboxes = new Set(
+    [fallbackMailbox, ...additionalAllowedMailboxes]
+      .filter((value): value is string => Boolean(value?.trim()))
+      .map(extractMailbox),
+  );
 
   if (!normalizedConfigured) {
     return {
@@ -35,7 +34,7 @@ export function resolveTransactionalSender(
     };
   }
 
-  if (isAllowedTransactionalMailbox(normalizedConfigured)) {
+  if (allowedMailboxes.has(normalizedConfigured)) {
     return {
       fromEmail: formatTransactionalFromEmail(siteName, normalizedConfigured),
       replyTo: null,

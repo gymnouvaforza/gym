@@ -4,7 +4,7 @@ import { mapPickupRequest } from "@/lib/cart/pickup-request";
 import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
 import { defaultSiteSettings } from "@/lib/data/default-content";
 import { getMarketingData } from "@/lib/data/site";
-import { getResendEnv, hasResendEnv } from "@/lib/env";
+import { getSmtpEnv } from "@/lib/env";
 import { resolveTransactionalSender } from "@/lib/email/policy";
 import { sendPickupRequestEmails } from "@/lib/email/pickup-request";
 import { ensurePayPalProviderEnabledForRegion } from "@/lib/medusa/paypal-admin";
@@ -197,19 +197,16 @@ async function finalizePickupRequestEmail(
   const { settings } = await getMarketingData();
   const internalRecipient =
     settings.notification_email ?? defaultSiteSettings.notification_email;
-  const resend = getResendEnv();
+  const smtp = getSmtpEnv();
   const sender = resolveTransactionalSender(
     settings.site_name ?? defaultSiteSettings.site_name,
     settings.transactional_from_email ?? defaultSiteSettings.transactional_from_email,
-    resend.fromEmail,
+    smtp.fromEmail,
+    [smtp.user],
   );
 
   if (pickupRequest.emailStatus === "pending") {
     try {
-      if (!hasResendEnv()) {
-        throw new Error("RESEND_API_KEY no está configurada.");
-      }
-
       if (trace) {
         await trace.step("email_send", () =>
           sendPickupRequestEmails({

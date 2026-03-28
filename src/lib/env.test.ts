@@ -45,6 +45,12 @@ const envKeysUnderTest = [
   "PAYMENT_TEST_STATE",
   "RESEND_API_KEY",
   "RESEND_FROM_EMAIL",
+  "SMTP_FROM_EMAIL",
+  "SMTP_HOST",
+  "SMTP_PASSWORD",
+  "SMTP_PORT",
+  "SMTP_SECURE",
+  "SMTP_USER",
   "SUPABASE_SERVICE_ROLE_KEY",
 ] as const;
 
@@ -252,6 +258,52 @@ describe("env provider constraints", () => {
       cardExpiry: "12/2030",
       cardCvv: "123",
     });
+  });
+
+  it("accepts a valid SMTP configuration with explicit alias fallback", async () => {
+    const env = await importEnvModule({
+      NODE_ENV: "test",
+      SMTP_HOST: "smtp.gmail.com",
+      SMTP_PORT: "587",
+      SMTP_SECURE: "false",
+      SMTP_USER: "club@gmail.com",
+      SMTP_PASSWORD: "app-password",
+      SMTP_FROM_EMAIL: "Nova Forza <pedidos@novaforza.pe>",
+    });
+
+    expect(env.hasSmtpEnv()).toBe(true);
+    expect(env.getSmtpEnv()).toEqual({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      user: "club@gmail.com",
+      password: "app-password",
+      fromEmail: "Nova Forza <pedidos@novaforza.pe>",
+    });
+  });
+
+  it("defaults SMTP secure mode based on port 465", async () => {
+    const env = await importEnvModule({
+      NODE_ENV: "test",
+      SMTP_HOST: "smtp.gmail.com",
+      SMTP_PORT: "465",
+      SMTP_USER: "club@gmail.com",
+      SMTP_PASSWORD: "app-password",
+    });
+
+    expect(env.getSmtpEnv().secure).toBe(true);
+    expect(env.getSmtpEnv().fromEmail).toBe("club@gmail.com");
+  });
+
+  it("throws when SMTP is incomplete", async () => {
+    const env = await importEnvModule({
+      NODE_ENV: "test",
+      SMTP_HOST: "smtp.gmail.com",
+      SMTP_USER: "club@gmail.com",
+    });
+
+    expect(env.hasSmtpEnv()).toBe(false);
+    expect(() => env.getSmtpEnv()).toThrow("SMTP_HOST");
   });
 
   it("allows overriding the sandbox payment profile through env vars", async () => {

@@ -41,7 +41,7 @@ Defaults esperados:
 3. Verifica que el producto del carrito tenga `paypal_price_usd` configurado en Medusa.
 4. Verifica que el shipping option de pickup exista y tenga precio `0`.
 5. Verifica que `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` y `NEXT_PUBLIC_PAYPAL_CLIENT_ID` apunten al mismo entorno sandbox.
-6. Verifica que `RESEND_API_KEY` este presente si quieres comprobar envio real de email.
+6. Verifica que la configuracion SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) este presente si quieres comprobar envio real de email.
 
 ## Flujo smoke
 

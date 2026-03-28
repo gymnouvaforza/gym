@@ -75,6 +75,12 @@ const serverEnvSchema = publicEnvSchema.extend({
   PAYMENT_TEST_STATE: optionalString(z.string().min(1)),
   RESEND_API_KEY: optionalString(z.string().min(1)),
   RESEND_FROM_EMAIL: optionalString(z.string().min(1)),
+  SMTP_FROM_EMAIL: optionalString(z.string().min(1)),
+  SMTP_HOST: optionalString(z.string().min(1)),
+  SMTP_PASSWORD: optionalString(z.string().min(1)),
+  SMTP_PORT: optionalString(z.string().regex(/^\d+$/)),
+  SMTP_SECURE: optionalEnum(["true", "false"]),
+  SMTP_USER: optionalString(z.string().min(1)),
   SUPABASE_SERVICE_ROLE_KEY: optionalString(z.string().min(1)),
 });
 
@@ -129,6 +135,12 @@ const serverEnv = serverEnvSchema.parse({
   PAYMENT_TEST_STATE: process.env.PAYMENT_TEST_STATE,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
+  SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL,
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+  SMTP_PORT: process.env.SMTP_PORT,
+  SMTP_SECURE: process.env.SMTP_SECURE,
+  SMTP_USER: process.env.SMTP_USER,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 });
 
@@ -260,14 +272,46 @@ export function hasResendEnv() {
   return Boolean(serverEnv.RESEND_API_KEY);
 }
 
+export function hasSmtpEnv() {
+  return Boolean(
+    serverEnv.SMTP_HOST &&
+      serverEnv.SMTP_PORT &&
+      serverEnv.SMTP_USER &&
+      serverEnv.SMTP_PASSWORD,
+  );
+}
+
 export function getResendEnv() {
   if (!serverEnv.RESEND_API_KEY) {
-    throw new Error("Missing RESEND_API_KEY. Configuralo para enviar los emails pickup.");
+    throw new Error("Missing RESEND_API_KEY. Configuralo para enviar emails con Resend.");
   }
 
   return {
     apiKey: serverEnv.RESEND_API_KEY,
     fromEmail: serverEnv.RESEND_FROM_EMAIL ?? "Nova Forza <onboarding@resend.dev>",
+  };
+}
+
+export function getSmtpEnv() {
+  if (!serverEnv.SMTP_HOST || !serverEnv.SMTP_PORT || !serverEnv.SMTP_USER || !serverEnv.SMTP_PASSWORD) {
+    throw new Error(
+      "Missing SMTP configuration. Set SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASSWORD to send pickup emails.",
+    );
+  }
+
+  const port = Number.parseInt(serverEnv.SMTP_PORT, 10);
+
+  if (Number.isNaN(port) || port <= 0) {
+    throw new Error("SMTP_PORT must be a positive number.");
+  }
+
+  return {
+    host: serverEnv.SMTP_HOST,
+    port,
+    secure: serverEnv.SMTP_SECURE === undefined ? port === 465 : serverEnv.SMTP_SECURE === "true",
+    user: serverEnv.SMTP_USER,
+    password: serverEnv.SMTP_PASSWORD,
+    fromEmail: serverEnv.SMTP_FROM_EMAIL ?? serverEnv.SMTP_USER,
   };
 }
 

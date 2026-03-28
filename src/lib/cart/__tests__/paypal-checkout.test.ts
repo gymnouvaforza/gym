@@ -32,7 +32,8 @@ vi.mock("@/lib/data/site", () => ({
 }));
 
 vi.mock("@/lib/env", () => ({
-  hasResendEnv: vi.fn(),
+  hasSmtpEnv: vi.fn(),
+  getSmtpEnv: vi.fn(),
 }));
 
 vi.mock("@/lib/email/pickup-request", () => ({
