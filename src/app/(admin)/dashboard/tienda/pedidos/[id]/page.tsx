@@ -4,6 +4,7 @@ import AdminSection from "@/components/admin/AdminSection";
 import AdminSurface from "@/components/admin/AdminSurface";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
 import PickupRequestStatusControl from "@/components/admin/PickupRequestStatusControl";
+import PickupRequestTimeline from "@/components/admin/PickupRequestTimeline";
 import ResendPickupRequestEmailButton from "@/components/admin/ResendPickupRequestEmailButton";
 import SyncPickupRequestFromOrderButton from "@/components/admin/SyncPickupRequestFromOrderButton";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,9 @@ import {
   pickupRequestPaymentStatusLabels,
   pickupRequestStatusLabels,
 } from "@/lib/cart/pickup-request";
+import { getPickupRequestOperationalHint } from "@/lib/data/pickup-request-dashboard";
 import { getPickupRequestById } from "@/lib/data/pickup-requests";
+import { cn } from "@/lib/utils";
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -33,6 +36,13 @@ function formatDate(value: string | null) {
   }
 }
 
+const hintToneClasses = {
+  default: "border-[#d71920]/10 bg-[#fff5f5]",
+  muted: "border-black/8 bg-[#f7f5f1]",
+  success: "border-emerald-200 bg-emerald-50",
+  warning: "border-amber-200 bg-amber-50",
+} as const;
+
 export default async function DashboardStorePickupRequestDetailPage({
   params,
 }: Readonly<{
@@ -45,17 +55,22 @@ export default async function DashboardStorePickupRequestDetailPage({
     notFound();
   }
 
+  const hint = getPickupRequestOperationalHint(pickupRequest);
+
   return (
     <div className="space-y-6">
       <DashboardPageHeader
         title={pickupRequest.requestNumber}
-        description="Detalle congelado del pedido pickup, con lineas, totales, estado operativo, pago y control del email."
+        description="Detalle congelado del pedido pickup, con lineas, timeline operativo, pago y control de comunicacion."
         eyebrow="Pedidos pickup"
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
         <div className="space-y-4">
-          <AdminSection title="Lineas" description="Snapshot del pedido pagado para recogida.">
+          <AdminSection
+            title="Lineas"
+            description="Snapshot del pedido pagado para recogida, tal y como quedo proyectado."
+          >
             <div className="space-y-3">
               {pickupRequest.lineItems.map((lineItem) => (
                 <AdminSurface key={lineItem.id} inset className="p-4">
@@ -96,7 +111,10 @@ export default async function DashboardStorePickupRequestDetailPage({
         </div>
 
         <div className="space-y-4">
-          <AdminSection title="Estado" description="Control operativo del pedido pickup.">
+          <AdminSection
+            title="Estado y acciones"
+            description="Lectura rapida del pedido y controles operativos para el equipo."
+          >
             <AdminSurface inset className="space-y-5 p-5">
               <div className="flex flex-wrap gap-2">
                 <Badge variant={getPickupRequestStatusTone(pickupRequest.status)}>
@@ -109,20 +127,74 @@ export default async function DashboardStorePickupRequestDetailPage({
                   {pickupRequestPaymentStatusLabels[pickupRequest.paymentStatus]}
                 </Badge>
               </div>
-              <PickupRequestStatusControl
-                pickupRequestId={pickupRequest.id}
-                status={pickupRequest.status}
-              />
-              <ResendPickupRequestEmailButton pickupRequestId={pickupRequest.id} />
-              <SyncPickupRequestFromOrderButton
-                pickupRequestId={pickupRequest.id}
-                cartId={pickupRequest.cartId}
-                orderId={pickupRequest.orderId}
-              />
+
+              <div className={cn("rounded-none border p-4", hintToneClasses[hint.tone])}>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7a7f87]">
+                  Siguiente foco
+                </p>
+                <p className="mt-2 text-sm font-semibold text-[#111111]">{hint.label}</p>
+                <p className="mt-2 text-sm leading-6 text-[#5f6368]">{hint.description}</p>
+              </div>
+
+              <PickupRequestTimeline pickupRequest={pickupRequest} />
+
+              <div className="space-y-3 border-t border-black/8 pt-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7a7f87]">
+                  Cambiar estado
+                </p>
+                <PickupRequestStatusControl
+                  pickupRequestId={pickupRequest.id}
+                  status={pickupRequest.status}
+                />
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-none border border-black/8 bg-white p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7a7f87]">
+                    Email al cliente
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-[#5f6368]">
+                    {pickupRequest.emailStatus === "failed" && pickupRequest.emailError
+                      ? pickupRequest.emailError
+                      : pickupRequest.emailSentAt
+                        ? `Ultimo envio: ${formatDate(pickupRequest.emailSentAt)}`
+                        : "Aun no hay confirmacion de envio registrada."}
+                  </p>
+                  <ResendPickupRequestEmailButton
+                    pickupRequestId={pickupRequest.id}
+                    emailStatus={pickupRequest.emailStatus}
+                    size="sm"
+                    className="mt-4 tracking-normal"
+                    title="Reenviar o reintentar la notificacion del pedido pickup."
+                  />
+                </div>
+
+                <div className="rounded-none border border-black/8 bg-white p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7a7f87]">
+                    Snapshot Medusa
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-[#5f6368]">
+                    {pickupRequest.orderId
+                      ? "Relee la orden de Medusa y vuelve a congelar lineas, totales y trazabilidad."
+                      : "Todavia no hay order vinculada en Medusa, asi que no puedes relanzar la sincronizacion."}
+                  </p>
+                  <SyncPickupRequestFromOrderButton
+                    pickupRequestId={pickupRequest.id}
+                    cartId={pickupRequest.cartId}
+                    orderId={pickupRequest.orderId}
+                    size="sm"
+                    className="mt-4 tracking-normal"
+                    title="Refrescar el snapshot local con la orden de Medusa."
+                  />
+                </div>
+              </div>
             </AdminSurface>
           </AdminSection>
 
-          <AdminSection title="Resumen" description="Totales, pago, notas y trazabilidad del pedido.">
+          <AdminSection
+            title="Resumen"
+            description="Totales, pago, notas y trazabilidad del pedido."
+          >
             <AdminSurface inset className="space-y-4 p-5">
               <div className="flex items-center justify-between text-sm text-[#5f6368]">
                 <span>Articulos</span>
@@ -149,7 +221,11 @@ export default async function DashboardStorePickupRequestDetailPage({
               ) : null}
               {pickupRequest.exchangeRate ? (
                 <div className="text-sm leading-6 text-[#5f6368]">
-                  Tipo de cambio: <strong className="text-[#111111]">S/ {pickupRequest.exchangeRate.toFixed(3)} por USD</strong>.
+                  Tipo de cambio:{" "}
+                  <strong className="text-[#111111]">
+                    S/ {pickupRequest.exchangeRate.toFixed(3)} por USD
+                  </strong>
+                  .
                   {pickupRequest.exchangeRateSource
                     ? ` Fuente: ${pickupRequest.exchangeRateSource}.`
                     : ""}

@@ -3,21 +3,45 @@
 import { useTransition } from "react";
 
 import { resendDashboardPickupRequestEmail } from "@/app/(admin)/dashboard/tienda/actions";
+import { Button, type ButtonProps } from "@/components/ui/button";
+import type { PickupRequestEmailStatus } from "@/lib/cart/types";
 
 interface ResendPickupRequestEmailButtonProps {
   pickupRequestId: string;
+  emailStatus?: PickupRequestEmailStatus;
+  label?: string;
+  title?: string;
+  variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
+  className?: string;
 }
 
 export default function ResendPickupRequestEmailButton({
   pickupRequestId,
+  emailStatus = "sent",
+  label,
+  title,
+  variant = "outline",
+  size = "default",
+  className,
 }: Readonly<ResendPickupRequestEmailButtonProps>) {
   const [isPending, startTransition] = useTransition();
+  const resolvedLabel =
+    label ??
+    (emailStatus === "failed"
+      ? "Reintentar email"
+      : emailStatus === "pending"
+        ? "Enviar email"
+        : "Reenviar email");
 
   return (
-    <button
+    <Button
       type="button"
       disabled={isPending}
-      className="inline-flex h-12 items-center justify-center border border-black/12 bg-white px-5 text-sm font-semibold text-[#111111] transition hover:border-[#d71920] hover:text-[#d71920] disabled:cursor-not-allowed disabled:opacity-50"
+      variant={variant}
+      size={size}
+      title={title}
+      className={className}
       onClick={() => {
         startTransition(async () => {
           try {
@@ -29,7 +53,7 @@ export default function ResendPickupRequestEmailButton({
         });
       }}
     >
-      {isPending ? "Reenviando..." : "Reenviar email"}
-    </button>
+      {isPending ? "Enviando..." : resolvedLabel}
+    </Button>
   );
 }

@@ -1,18 +1,30 @@
 "use client";
 
 import { useTransition } from "react";
+
 import { syncPickupRequestFromMedusaOrderAction } from "@/app/(admin)/dashboard/tienda/actions";
+import { Button, type ButtonProps } from "@/components/ui/button";
 
 interface SyncPickupRequestFromOrderButtonProps {
   pickupRequestId: string;
   cartId: string;
   orderId: string | null;
+  label?: string;
+  title?: string;
+  variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
+  className?: string;
 }
 
 export default function SyncPickupRequestFromOrderButton({
   pickupRequestId,
   cartId,
   orderId,
+  label,
+  title,
+  variant = "outline",
+  size = "default",
+  className,
 }: Readonly<SyncPickupRequestFromOrderButtonProps>) {
   const [isPending, startTransition] = useTransition();
 
@@ -21,26 +33,35 @@ export default function SyncPickupRequestFromOrderButton({
   }
 
   return (
-    <button
+    <Button
       type="button"
       disabled={isPending}
-      className="inline-flex h-12 items-center justify-center border border-black/12 bg-white px-5 text-sm font-semibold text-[#111111] transition hover:border-[#111111] hover:bg-black/4 disabled:cursor-not-allowed disabled:opacity-50"
+      variant={variant}
+      size={size}
+      title={title}
+      className={className}
       onClick={() => {
-        if (!confirm("¿Deseas sincronizar este pedido de Medusa con la solicitud pickup local? Esto sobrescribirá los datos del snapshot si ya existen.")) {
+        if (
+          !confirm(
+            "Deseas sincronizar este pedido de Medusa con la solicitud pickup local? Esto sobrescribira el snapshot actual si ya existe.",
+          )
+        ) {
           return;
         }
 
         startTransition(async () => {
           try {
             await syncPickupRequestFromMedusaOrderAction(pickupRequestId, cartId, orderId);
-            alert("Sincronización completada correctamente. Los datos del pedido se han actualizado.");
+            alert(
+              "Sincronizacion completada correctamente. El snapshot local ya refleja el pedido de Medusa.",
+            );
           } catch (error) {
             alert(error instanceof Error ? error.message : "No se pudo sincronizar el pedido.");
           }
         });
       }}
     >
-      {isPending ? "Sincronizando..." : "Sincronizar con Medusa"}
-    </button>
+      {isPending ? "Sincronizando..." : (label ?? "Actualizar snapshot")}
+    </Button>
   );
 }
