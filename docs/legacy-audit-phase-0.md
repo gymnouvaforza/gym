@@ -69,12 +69,61 @@ Estado:
 
 - resuelto
 
+### 5. Placeholder vacio en `src/app/[locale]`
+
+Hallazgo:
+
+- quedaba una carpeta vacia de routing que sugeria i18n o una capa multilenguaje activa
+- chocaba con la regla actual del proyecto de no reintroducir i18n
+
+Accion:
+
+- eliminado el placeholder vacio para que la estructura de rutas refleje solo superficies reales
+
+Estado:
+
+- resuelto
+
+### 6. Datasets legacy sin uso en `src/data/`
+
+Hallazgo:
+
+- existian archivos antiguos de FAQs, planes, schedules, trainers, testimonials y value props sin consumidores reales
+- mantenian viva la idea de varias fuentes de contenido comercial en paralelo
+
+Accion:
+
+- retirados los datasets muertos
+- se conserva solo el contenido local que hoy sigue siendo intencional: `training-zones` y el bloque estatico controlado de `nova-forza-content`
+
+Estado:
+
+- resuelto
+
+### 7. CRUD legacy de tienda en `src/lib/supabase/queries.ts`
+
+Hallazgo:
+
+- seguia existiendo un bloque completo de lectura/escritura de categorias y productos contra tablas legacy de Supabase
+- no estaba conectado al runtime actual, pero si podia inducir a error sobre la fuente de verdad de commerce
+
+Accion:
+
+- eliminado el bloque muerto
+- la frontera operativa vuelve a quedar clara: dashboard propio -> repository Medusa -> Supabase solo como soporte de enlaces
+
+Estado:
+
+- resuelto
+
 ## Restos que se conservan de forma consciente
 
 - `docs/commerce-medusa-migration.md`: sigue siendo valido porque documenta la frontera actual Next + Medusa + Supabase
 - `docs/paypal-sandbox-smoke.md`: se conserva como smoke especializado del flujo PayPal pickup
 - rutas admin como `/dashboard/cms` y `/dashboard/advanced`: presentes, pero todavia no deben interpretarse como CMS completo ni como modulo avanzado cerrado
 - capturas sueltas en `docs/assets/` y `docs/images/`: no forman parte del snapshot vigente; mientras no se retiren, deben tratarse como material legacy no canonico
+- `src/lib/data/nova-forza-content.ts`: sigue siendo contenido estatico consciente para `team`, `testimonials`, `contact`, `nav` y copy de soporte mientras marketing fase 2 siga fuera de alcance
+- `src/data/training-zones.ts`: se conserva como contenido local intencional hasta que exista una issue explicita para volverlo editable
 
 ## Criterio para futuras limpiezas
 

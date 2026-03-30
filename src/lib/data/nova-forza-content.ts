@@ -1,3 +1,8 @@
+/**
+ * Marketing phase 2 remains intentionally out of scope for the current core closeout.
+ * Keep team, testimonials, contact and support copy static here until a dedicated issue
+ * moves them to Supabase-backed editable content.
+ */
 export interface NavItem {
   href: string;
   label: string;

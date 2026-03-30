@@ -14,6 +14,7 @@ Base de producto para un gimnasio local con web publica, backoffice propio y cap
 - web publica comercial en `src/app/(public)`
 - login y dashboard propio en `src/app/(admin)/dashboard`
 - leads y ajustes globales en Supabase
+- planes y horarios editables desde dashboard/Supabase
 - tienda, carrito y checkout pickup
 - mi-cuenta y seguimiento de pedidos pickup
 
@@ -50,6 +51,7 @@ La regla del proyecto es simple:
 - Medusa se usa como motor de catalogo y APIs, no como panel del negocio
 - Supabase sigue siendo el backend principal del gym y la capa de soporte para IDs puente y dominio propio
 - el storefront no cae a datos locales ni a tablas legacy cuando Medusa falla
+- testimonios, zonas y equipo siguen estaticos de forma consciente hasta la siguiente fase de marketing
 
 ## Desarrollo local
 
@@ -127,6 +129,7 @@ Si mas adelante reutilizas esta base para otro negocio:
 - [Deploy full stack con Dokploy](docs/dokploy-full-stack.md)
 - [Snapshot visual del producto](docs/product-snapshot.md)
 - [Auditoria legacy de fase 0](docs/legacy-audit-phase-0.md)
+- [Matriz de cierre del core 12-16](docs/core-closure-matrix.md)
 - [Smoke checklist del core](docs/core-smoke-checklist.md)
 - [Smoke de PayPal sandbox](docs/paypal-sandbox-smoke.md)
 - [SMTP con Gmail para pickup](docs/smtp-gmail-setup.md)

@@ -25,6 +25,20 @@ Verifica:
 - las secciones principales aparecen
 - el formulario de contacto esta visible
 
+### 1.5. Rutas publicas de marketing
+
+Rutas:
+
+- `/planes`
+- `/horarios`
+
+Verifica:
+
+- ambas rutas cargan sin error
+- `/planes` refleja la misma oferta comercial activa que alimenta la home
+- `/horarios` refleja la misma agenda visible que alimenta la home
+- no aparecen rutas vacias, contenido legacy ni placeholders contradictorios
+
 ### 2. Contacto y leads
 
 Ruta: `/`
