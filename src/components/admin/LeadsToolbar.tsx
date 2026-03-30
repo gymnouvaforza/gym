@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { Download, Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 
@@ -13,9 +13,14 @@ import AdminSurface from "./AdminSurface";
 interface LeadsToolbarProps {
   filters: LeadFilters;
   availableSources: string[];
+  disabledReason?: string;
 }
 
-export default function LeadsToolbar({ filters, availableSources }: LeadsToolbarProps) {
+export default function LeadsToolbar({
+  filters,
+  availableSources,
+  disabledReason,
+}: LeadsToolbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -63,6 +68,10 @@ export default function LeadsToolbar({ filters, availableSources }: LeadsToolbar
     filters.status !== DEFAULT_LEAD_FILTERS.status ||
     filters.source !== DEFAULT_LEAD_FILTERS.source ||
     filters.sort !== DEFAULT_LEAD_FILTERS.sort;
+  const exportQuery = searchParams.toString();
+  const exportHref = exportQuery
+    ? `/api/dashboard/leads/export?${exportQuery}`
+    : "/api/dashboard/leads/export";
 
   return (
     <AdminSurface inset className="flex flex-col gap-4 p-4 md:flex-row md:items-end">
@@ -139,17 +148,40 @@ export default function LeadsToolbar({ filters, availableSources }: LeadsToolbar
         </div>
       </div>
 
-      {hasFilters ? (
+      <div className="flex flex-wrap gap-3 md:ml-auto">
         <Button
           type="button"
           variant="outline"
-          onClick={handleClear}
-          className="h-11 border-dashed border-[#7a7f87]/30 font-medium tracking-normal text-[#5f6368] hover:text-[#d71920]"
+          asChild={!disabledReason}
+          disabled={Boolean(disabledReason)}
+          title={disabledReason ?? "Exporta la vista actual en CSV."}
+          className="h-11 font-medium tracking-normal"
         >
-          <X className="h-4 w-4" />
-          Limpiar
+          {disabledReason ? (
+            <span>
+              <Download className="h-4 w-4" />
+              Exportar CSV
+            </span>
+          ) : (
+            <a href={exportHref}>
+              <Download className="h-4 w-4" />
+              Exportar CSV
+            </a>
+          )}
         </Button>
-      ) : null}
+
+        {hasFilters ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClear}
+            className="h-11 border-dashed border-[#7a7f87]/30 font-medium tracking-normal text-[#5f6368] hover:text-[#d71920]"
+          >
+            <X className="h-4 w-4" />
+            Limpiar
+          </Button>
+        ) : null}
+      </div>
     </AdminSurface>
   );
 }

@@ -4,6 +4,7 @@ import {
   getAvailableSources,
   getLeadMetadataEntries,
   parseLeadFilters,
+  serializeLeadsToCsv,
 } from "./leads";
 
 const mockLeads: Lead[] = [
@@ -170,6 +171,26 @@ describe("leads data helpers", () => {
     it("returns an empty list for empty or unsupported metadata", () => {
       expect(getLeadMetadataEntries({ nested: { foo: "bar" }, empty: "", nope: [] })).toEqual([]);
       expect(getLeadMetadataEntries(null)).toEqual([]);
+    });
+  });
+
+  describe("serializeLeadsToCsv", () => {
+    it("includes follow-up fields and escapes multiline content", () => {
+      const csv = serializeLeadsToCsv([
+        {
+          ...mockLeads[1],
+          message: "Primera linea\nSegunda linea",
+          metadata: { interest: "plan progreso" },
+        },
+      ]);
+
+      expect(csv).toContain("nombre,email,telefono,estado,origen,fecha_entrada,ultimo_contacto,canal,resultado,siguiente_paso,interes,mensaje");
+      expect(csv).toContain('"Jane Smith"');
+      expect(csv).toContain('"WhatsApp"');
+      expect(csv).toContain('"Enviar precios"');
+      expect(csv).toContain('"plan progreso"');
+      expect(csv).toContain('"Primera linea');
+      expect(csv).toContain('Segunda linea"');
     });
   });
 });

@@ -85,6 +85,7 @@ export default async function DashboardLeadsPage({
             key={`${filters.q}|${filters.status}|${filters.source}|${filters.sort}`}
             filters={filters}
             availableSources={availableSources}
+            disabledReason={disabledReason}
           />
           <LeadsTable
             leads={filteredLeads}

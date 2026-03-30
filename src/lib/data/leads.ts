@@ -159,3 +159,52 @@ export function getLeadMetadataEntries(metadata: Json | null | undefined): LeadM
 
   return entries;
 }
+
+function getLeadInterest(metadata: Json | null | undefined) {
+  const entries = getLeadMetadataEntries(metadata);
+  return entries.find((entry) => entry.key === "interest")?.value ?? "";
+}
+
+function escapeCsvValue(value: string | null | undefined) {
+  const normalized = value ?? "";
+  const escaped = normalized.replace(/"/g, '""');
+  return `"${escaped}"`;
+}
+
+export function serializeLeadsToCsv(leads: Lead[]) {
+  const header = [
+    "nombre",
+    "email",
+    "telefono",
+    "estado",
+    "origen",
+    "fecha_entrada",
+    "ultimo_contacto",
+    "canal",
+    "resultado",
+    "siguiente_paso",
+    "interes",
+    "mensaje",
+  ];
+
+  const rows = leads.map((lead) =>
+    [
+      lead.name,
+      lead.email,
+      lead.phone ?? "",
+      lead.status,
+      lead.source,
+      lead.created_at,
+      lead.contacted_at ?? "",
+      lead.channel ?? "",
+      lead.outcome ?? "",
+      lead.next_step ?? "",
+      getLeadInterest(lead.metadata),
+      lead.message,
+    ]
+      .map((value) => escapeCsvValue(value))
+      .join(","),
+  );
+
+  return [header.join(","), ...rows].join("\n");
+}
