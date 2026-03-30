@@ -44,7 +44,7 @@ Epic: [#15 Store + pickup hardening](https://github.com/cdryampi/gym/issues/15)
 - [#29](https://github.com/cdryampi/gym/issues/29) Mejorar `/dashboard/tienda/pedidos` con filtros, timeline y acciones mas claras.
 - [#30](https://github.com/cdryampi/gym/issues/30) Crear detalle privado de pedido en `/mi-cuenta/pedidos/[id]`.
 - [#31](https://github.com/cdryampi/gym/issues/31) Endurecer el bridge miembro-carrito-pickup.
-- [#32](https://github.com/cdryampi/gym/issues/32) Documentar runbook de reconciliacion entre Next, Medusa y Supabase.
+- [#32](https://github.com/cdryampi/gym/issues/32) Documentar runbook de reconciliacion entre Next, Medusa y Supabase. Referencia local: `docs/store-pickup-reconciliation-runbook.md`.
 - [#33](https://github.com/cdryampi/gym/issues/33) Revisar UX del checkout pickup para estados de error y seguimiento.
 
 ## Fase 4 — Mi cuenta v2
