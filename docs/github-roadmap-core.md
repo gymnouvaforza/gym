@@ -61,7 +61,7 @@ Epic: [#17 Backlog de expansion](https://github.com/cdryampi/gym/issues/17)
 
 - [#37](https://github.com/cdryampi/gym/issues/37) Discovery del modulo Reservas. Referencia local: `docs/reservas-discovery.md`.
 - [#38](https://github.com/cdryampi/gym/issues/38) Discovery del modulo Miembros operativo. Referencia local: `docs/miembros-operativo-discovery.md`.
-- [#39](https://github.com/cdryampi/gym/issues/39) Discovery del modulo Rutinas.
+- [#39](https://github.com/cdryampi/gym/issues/39) Discovery del modulo Rutinas. Referencia local: `docs/rutinas-discovery.md`.
 - [#40](https://github.com/cdryampi/gym/issues/40) Revaluar si Planes debe seguir siendo solo contenido comercial o pasar a entidad de negocio.
 
 ## Etiquetas recomendadas
