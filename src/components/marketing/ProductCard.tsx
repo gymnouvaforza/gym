@@ -38,11 +38,11 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
         
         {/* BADGES POSICIONADOS */}
         <div className="absolute left-6 top-6 flex flex-col gap-2">
-           {product.featured && (
-             <span className="bg-[#d71920] px-3 py-1 font-black text-[9px] uppercase tracking-widest text-white shadow-xl">
-               PREMIUM
-             </span>
-           )}
+            {product.featured && (
+              <span className="bg-[#d71920] px-3 py-1 font-black text-[9px] uppercase tracking-widest text-white shadow-xl">
+                Premium
+              </span>
+            )}
            <ProductBadges product={product} compact className="flex-col items-start gap-1" />
         </div>
       </Link>
@@ -66,7 +66,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
               </p>
               {product.paypal_price_usd !== null && (
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[#7a7f87] border-l border-black/10 pl-3">
-                  ~ {formatUsdPrice(product.paypal_price_usd)}
+                  PayPal cobra aprox. {formatUsdPrice(product.paypal_price_usd)}
                 </p>
               )}
             </div>
@@ -90,7 +90,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
             className="h-12 px-8 rounded-none border-black/10 bg-white text-[#111111] font-black uppercase text-[10px] tracking-[0.2em] hover:bg-[#111111] hover:text-white transition-all shadow-sm"
             asChild
           >
-            <Link href={`/tienda/${product.slug}`}>Ver Detalle</Link>
+            <Link href={`/tienda/${product.slug}`}>Ver mas</Link>
           </Button>
         </div>
       </div>

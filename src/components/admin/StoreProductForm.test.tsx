@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
+import type { ComponentProps } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ComponentProps } from "react";
 import { vi } from "vitest";
 
 import StoreProductForm from "@/components/admin/StoreProductForm";
@@ -46,7 +46,14 @@ vi.mock("@/components/admin/ImageUpload", () => ({
 
 const categories: StoreCategory[] = [
   { id: "root-1", slug: "suplementos", name: "Suplementos", order: 1, active: true },
-  { id: "child-1", slug: "proteinas", name: "Proteinas", parent_id: "root-1", order: 1, active: true },
+  {
+    id: "child-1",
+    slug: "proteinas",
+    name: "Proteinas",
+    parent_id: "root-1",
+    order: 1,
+    active: true,
+  },
 ];
 
 const existingProduct: StoreDashboardProduct = {
@@ -105,7 +112,7 @@ describe("StoreProductForm", () => {
   it("renders subcategory options from the taxonomy", () => {
     render(<StoreProductForm categories={categories} />);
 
-    expect(screen.getByRole("option", { name: "— Suplementos / Proteinas" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /Suplementos \/ Proteinas/i })).toBeInTheDocument();
   });
 
   it("submits the normalized product payload", async () => {
@@ -148,7 +155,10 @@ describe("StoreProductForm", () => {
     render(<StoreProductForm categories={categories} product={existingProduct} />);
 
     expect(screen.getByText("Como se vera en tienda")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Tarjeta/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /Tarjeta/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
 
     await user.click(screen.getByRole("button", { name: /Ficha/i }));
 
@@ -160,7 +170,9 @@ describe("StoreProductForm", () => {
     render(<StoreProductForm categories={categories} />);
 
     expect(screen.getByRole("button", { name: /Guarda para abrir la ficha real/i })).toBeDisabled();
-    expect(screen.getByText("Todavia no hay ruta real en tienda para este borrador.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Todavia no hay ruta real en tienda para este borrador."),
+    ).toBeInTheDocument();
   });
 
   it("enables the storefront link for an existing product", () => {

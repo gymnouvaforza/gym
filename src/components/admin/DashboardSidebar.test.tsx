@@ -6,7 +6,7 @@ import { vi } from "vitest";
 
 import DashboardSidebar from "@/components/admin/DashboardSidebar";
 
-const pathnameMock = vi.hoisted(() => ({ current: "/dashboard/tienda" }));
+const pathnameMock = vi.hoisted(() => ({ current: "/dashboard/mobile" }));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => pathnameMock.current,
@@ -20,9 +20,15 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("next/image", () => ({
+  default: ({ alt }: ComponentProps<"img"> & { fill?: boolean }) => (
+    <div data-testid="mock-image" data-alt={alt} />
+  ),
+}));
+
 describe("DashboardSidebar", () => {
-  it("renders Rutinas as a child link under App Mobile", () => {
-    pathnameMock.current = "/dashboard/tienda";
+  it("renders ROUTINE DESIGNER as a child link under MOBILE HUB", () => {
+    pathnameMock.current = "/dashboard/mobile";
     render(<DashboardSidebar />);
 
     const nav = screen.getByRole("navigation");
@@ -30,37 +36,42 @@ describe("DashboardSidebar", () => {
       group.querySelector(":scope > a")?.textContent?.trim(),
     );
 
-    expect(screen.getByText("Titan Gym")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /App Mobile/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Rutinas/i })).toBeInTheDocument();
-    expect(topLevelLabels).toContain("App Mobile");
-    expect(topLevelLabels).not.toContain("Rutinas");
-    expect(screen.getByRole("link", { name: /Inicio/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Tienda/i })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: /Marketing/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Diseno Web/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Ajustes Internos/i })).toBeInTheDocument();
+    expect(screen.getByTestId("mock-image")).toHaveAttribute("data-alt", "Titan Logo");
+    expect(screen.getByRole("link", { name: /MOBILE HUB/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /ROUTINE DESIGNER/i })).toBeInTheDocument();
+    expect(topLevelLabels).toContain("MOBILE HUB");
+    expect(topLevelLabels).not.toContain("ROUTINE DESIGNER");
+    expect(screen.getByRole("link", { name: /COMMAND CENTER/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /RETAIL CONSOLE/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /CAMPAIGNS/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /IDENTITY STUDIO/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /KERNEL ARGS/i })).toBeInTheDocument();
   });
 
-  it("marks App Mobile as active on its own route", () => {
+  it("marks MOBILE HUB as active on its own route", () => {
     pathnameMock.current = "/dashboard/mobile";
     render(<DashboardSidebar />);
 
-    expect(screen.getByRole("link", { name: /App Mobile/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /MOBILE HUB/i })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("link", { name: /Rutinas/i })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: /ROUTINE DESIGNER/i })).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 
-  it("marks App Mobile and Rutinas as active on routines routes", () => {
+  it("marks MOBILE HUB and ROUTINE DESIGNER as active on routine routes", () => {
     pathnameMock.current = "/dashboard/rutinas/nueva";
     render(<DashboardSidebar />);
 
-    expect(screen.getByRole("link", { name: /App Mobile/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /MOBILE HUB/i })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("link", { name: /Rutinas/i })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /ROUTINE DESIGNER/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 });

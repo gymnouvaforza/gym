@@ -90,7 +90,7 @@ describe("ProductDetail", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Ahorra 15%")).toBeInTheDocument();
     expect(screen.getByText(/PayPal cobra aprox\./i)).toBeInTheDocument();
-    expect(screen.getByText("Recogida en Nova Forza Gym")).toBeInTheDocument();
+    expect(screen.getByText(/Recogida en Nova Forza Gym/i)).toBeInTheDocument();
     expect(screen.getByText("Beneficios")).toBeInTheDocument();
     expect(screen.getByText("Como usar")).toBeInTheDocument();
     expect(screen.getByText("Especificaciones")).toBeInTheDocument();

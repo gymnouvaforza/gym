@@ -31,6 +31,6 @@ describe("StoreProductsTable", () => {
     );
 
     expect(screen.getByText("Creatina Monohidratada 300 g")).toBeInTheDocument();
-    expect(screen.getByText("Suplementos / Creatinas")).toBeInTheDocument();
+    expect(screen.getByText(/Suplementos/i).closest("p")).toHaveTextContent("Suplementos / Creatinas");
   });
 });

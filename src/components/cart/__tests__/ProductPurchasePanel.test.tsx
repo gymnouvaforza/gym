@@ -65,7 +65,7 @@ function buildProduct(overrides: Partial<Product> = {}): Product {
 }
 
 describe("ProductPurchasePanel", () => {
-  it("blocks add to cart until a valid variant is selected when multiple variants exist", async () => {
+  it("blocks add to cart until a valid variant is selected when multiple variants exist", () => {
     cartProviderMocks.useCart.mockReturnValue({
       addItem: vi.fn(),
       isBusy: false,
@@ -74,7 +74,7 @@ describe("ProductPurchasePanel", () => {
 
     render(<ProductPurchasePanel product={buildProduct()} />);
 
-    expect(screen.getByRole("button", { name: "Añadir al carrito" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Anadir al carrito" })).toBeDisabled();
   });
 
   it("adds the selected variant and quantity to the cart", async () => {
@@ -91,7 +91,7 @@ describe("ProductPurchasePanel", () => {
 
     await user.click(screen.getByRole("button", { name: "Vanilla" }));
     await user.click(screen.getByRole("button", { name: "Aumentar cantidad" }));
-    await user.click(screen.getByRole("button", { name: "Añadir al carrito" }));
+    await user.click(screen.getByRole("button", { name: "Anadir al carrito" }));
 
     expect(addItemMock).toHaveBeenCalledWith({
       variantId: "variant_vanilla",
@@ -108,6 +108,6 @@ describe("ProductPurchasePanel", () => {
 
     render(<ProductPurchasePanel product={buildProduct()} />);
 
-    expect(screen.getByText(/PayPal cobrará aprox\./i)).toBeInTheDocument();
+    expect(screen.getByText(/PayPal cobra aprox\./i)).toBeInTheDocument();
   });
 });

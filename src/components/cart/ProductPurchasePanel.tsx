@@ -5,9 +5,9 @@ import { useMemo, useState } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { Product } from "@/data/types";
 import { formatUsdPrice } from "@/lib/data/products";
+import { cn } from "@/lib/utils";
 
 interface ProductPurchasePanelProps {
   product: Product;
@@ -22,7 +22,21 @@ function resolveInitialOptionValue(product: Product) {
   return null;
 }
 
-function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchasePanelProps, "product">>) {
+function PayPalHelper({ product }: Readonly<Pick<ProductPurchasePanelProps, "product">>) {
+  if (product.paypal_price_usd === null) {
+    return null;
+  }
+
+  return (
+    <p className="border-l-2 border-[#d71920] bg-black/5 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[#7a7f87]">
+      PayPal cobra aprox. {formatUsdPrice(product.paypal_price_usd)} por unidad.
+    </p>
+  );
+}
+
+function PreviewProductPurchasePanel({
+  product,
+}: Readonly<Pick<ProductPurchasePanelProps, "product">>) {
   const primaryOption = product.options?.[0];
   const previewOptionValue = primaryOption?.values[0] ?? product.name;
 
@@ -44,7 +58,7 @@ function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchaseP
                     "inline-flex h-12 items-center border px-6 text-[11px] font-black uppercase tracking-widest transition-all",
                     isSelected
                       ? "border-[#111111] bg-[#111111] text-white shadow-lg"
-                      : "border-black/10 bg-white text-[#7a7f87]"
+                      : "border-black/10 bg-white text-[#7a7f87]",
                   )}
                 >
                   {value}
@@ -56,13 +70,15 @@ function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchaseP
       ) : null}
 
       <div className="space-y-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]">Cantidad</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]">
+          Cantidad
+        </p>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
           <div className="inline-flex h-14 w-fit items-center border border-black/10 bg-white shadow-sm">
             <span className="flex h-full w-14 items-center justify-center text-black/20">
               <Minus className="h-4 w-4" />
             </span>
-            <span className="flex h-full min-w-14 items-center justify-center border-x border-black/10 px-6 text-sm font-bold text-[#111111] font-mono">
+            <span className="flex h-full min-w-14 items-center justify-center border-x border-black/10 px-6 font-mono text-sm font-bold text-[#111111]">
               01
             </span>
             <span className="flex h-full w-14 items-center justify-center text-black/20">
@@ -72,24 +88,29 @@ function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchaseP
 
           <Button
             type="button"
-            className="h-14 rounded-none bg-[#d71920] px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-xl opacity-50 cursor-not-allowed flex-1 sm:flex-none"
+            className="h-14 flex-1 cursor-not-allowed rounded-none bg-[#d71920] px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white opacity-50 shadow-xl sm:flex-none"
             disabled
           >
-            DISPONIBLE EN WEB
+            Compra disponible en storefront
           </Button>
         </div>
       </div>
 
-      <div className="space-y-4 pt-6 border-t border-black/5">
-         <p className="text-[10px] font-bold text-[#7a7f87] leading-relaxed uppercase tracking-wider italic">
-            * Vista previa de configuración. El proceso de compra real se activa en la versión de producción.
-         </p>
+      <PayPalHelper product={product} />
+
+      <div className="space-y-4 border-t border-black/5 pt-6">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-[#7a7f87] italic leading-relaxed">
+          Esta ficha es solo una preview del dashboard. El proceso de compra real se activa en la
+          version publicada.
+        </p>
       </div>
     </div>
   );
 }
 
-function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurchasePanelProps, "product">>) {
+function InteractiveProductPurchasePanel({
+  product,
+}: Readonly<Pick<ProductPurchasePanelProps, "product">>) {
   const { addItem, isBusy, error } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedOptionValue, setSelectedOptionValue] = useState<string | null>(
@@ -125,7 +146,7 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
 
   async function handleAddToCart() {
     if (!selectedVariant?.id) {
-      setSelectionError("Selecciona una variante antes de añadir al carrito.");
+      setSelectionError("Selecciona una variante antes de anadir al carrito.");
       return;
     }
 
@@ -156,8 +177,8 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
                   className={cn(
                     "inline-flex h-12 items-center border px-6 text-[11px] font-black uppercase tracking-widest transition-all",
                     isSelected
-                      ? "border-[#111111] bg-[#111111] text-white shadow-lg translate-y-[-2px]"
-                      : "border-black/10 bg-white text-[#7a7f87] hover:border-[#d71920]/40 hover:text-[#111111]"
+                      ? "translate-y-[-2px] border-[#111111] bg-[#111111] text-white shadow-lg"
+                      : "border-black/10 bg-white text-[#7a7f87] hover:border-[#d71920]/40 hover:text-[#111111]",
                   )}
                   onClick={() => {
                     setSelectedOptionValue(value);
@@ -173,25 +194,27 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
       ) : null}
 
       <div className="space-y-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]">Cantidad</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]">
+          Cantidad
+        </p>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
           <div className="inline-flex h-14 w-fit items-center border border-black/10 bg-white shadow-sm">
             <button
               type="button"
-              aria-label="Reducir"
-              className="flex h-full w-14 items-center justify-center text-[#111111] hover:bg-[#fbfbf8] transition-colors disabled:opacity-20"
+              aria-label="Reducir cantidad"
+              className="flex h-full w-14 items-center justify-center text-[#111111] transition-colors hover:bg-[#fbfbf8] disabled:opacity-20"
               disabled={isBusy || quantity <= 1}
               onClick={() => setQuantity((current) => Math.max(1, current - 1))}
             >
               <Minus className="h-4 w-4" />
             </button>
-            <span className="flex h-full min-w-14 items-center justify-center border-x border-black/10 px-6 text-sm font-bold text-[#111111] font-mono">
-              {quantity.toString().padStart(2, '0')}
+            <span className="flex h-full min-w-14 items-center justify-center border-x border-black/10 px-6 font-mono text-sm font-bold text-[#111111]">
+              {quantity.toString().padStart(2, "0")}
             </span>
             <button
               type="button"
-              aria-label="Aumentar"
-              className="flex h-full w-14 items-center justify-center text-[#111111] hover:bg-[#fbfbf8] transition-colors disabled:opacity-20"
+              aria-label="Aumentar cantidad"
+              className="flex h-full w-14 items-center justify-center text-[#111111] transition-colors hover:bg-[#fbfbf8] disabled:opacity-20"
               disabled={isBusy || quantity >= maxQuantity}
               onClick={() => setQuantity((current) => Math.min(maxQuantity, current + 1))}
             >
@@ -201,20 +224,24 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
 
           <Button
             type="button"
-            className="h-14 rounded-none bg-[#d71920] px-12 text-[11px] font-black uppercase tracking-[0.2em] text-white hover:bg-[#111111] transition-all shadow-xl flex-1 sm:flex-none"
+            className="h-14 flex-1 rounded-none bg-[#d71920] px-12 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-xl transition-all hover:bg-[#111111] sm:flex-none"
             disabled={isBusy || isUnavailable || (hasMultipleRealVariants && !selectedVariant)}
             onClick={() => {
               void handleAddToCart();
             }}
           >
-            {isUnavailable ? "AGOTADO" : isBusy ? "PROCESANDO..." : "AÑADIR AL CARRITO"}
+            {isUnavailable ? "AGOTADO" : isBusy ? "PROCESANDO..." : "Anadir al carrito"}
           </Button>
         </div>
       </div>
 
+      <PayPalHelper product={product} />
+
       {(selectionError || error) && (
-        <div className="p-4 bg-red-50 border-l-2 border-red-600">
-           <p className="text-[10px] font-black uppercase text-red-700 tracking-widest">{selectionError || error}</p>
+        <div className="border-l-2 border-red-600 bg-red-50 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-red-700">
+            {selectionError || error}
+          </p>
         </div>
       )}
     </div>

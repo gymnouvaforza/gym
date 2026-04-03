@@ -2,6 +2,22 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { createClient } from "@supabase/supabase-js";
 
+const liveEnvNames = [
+  "TEST_MOBILE_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "TEST_MOBILE_DEMO_TRAINER_EMAIL",
+  "TEST_MOBILE_DEMO_TRAINER_PASSWORD",
+  "TEST_MOBILE_DEMO_USER_1_EMAIL",
+  "TEST_MOBILE_DEMO_USER_1_PASSWORD",
+  "TEST_MOBILE_DEMO_USER_2_EMAIL",
+  "TEST_MOBILE_DEMO_USER_2_PASSWORD",
+  "TEST_MOBILE_DEMO_USER_3_EMAIL",
+  "TEST_MOBILE_DEMO_USER_3_PASSWORD",
+] as const;
+
+const hasLiveMobileEnv = liveEnvNames.every((name) => Boolean(process.env[name]));
+const describeLiveMobile = hasLiveMobileEnv ? describe : describe.skip;
+
 function getRequiredEnv(name: string) {
   const value = process.env[name];
 
@@ -33,7 +49,7 @@ async function signIn(email: string, password: string) {
   return data.session.access_token;
 }
 
-describe("mobile live API routes", () => {
+describeLiveMobile("mobile live API routes", () => {
   let trainerToken = "";
   let user1Token = "";
   let user2Token = "";
