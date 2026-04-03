@@ -1,4 +1,4 @@
-import { BarChart3, Dumbbell, ShieldCheck, Sparkles } from "lucide-react";
+import { BarChart3, Dumbbell, ShieldCheck, Sparkles, Activity } from "lucide-react";
 
 import { novaForzaHomeContent } from "@/lib/data/nova-forza-content";
 
@@ -11,44 +11,61 @@ const icons = {
 
 export default function ValueSection() {
   return (
-    <section id="propuesta" className="section-anchor bg-[#f5f5f0] py-24 md:py-32">
+    <section id="propuesta" className="section-anchor bg-[#fbfbf8] py-24 md:py-32">
       <div className="section-shell">
-        <div className="mb-16 text-center">
-          <div className="mx-auto flex max-w-4xl items-center justify-center gap-6">
-            <span className="hidden h-[5px] w-28 bg-[#ed1c24] md:block" />
-            <div>
-              <p className="section-kicker">La experiencia Nova Forza</p>
-              <h2 className="mt-4 font-display text-4xl uppercase leading-[0.92] text-[#111111] sm:text-5xl md:text-6xl">
-                Lo que se siente
-                <br />
-                entrenar aqui
-              </h2>
-            </div>
-            <span className="hidden h-[5px] w-28 bg-[#ed1c24] md:block" />
+        
+        {/* HEADER INDUSTRIAL */}
+        <div className="mb-20 space-y-6">
+          <div className="flex items-center gap-4">
+             <div className="h-1.5 w-1.5 bg-[#d71920]" />
+             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">
+               La Propuesta de Valor
+             </p>
+          </div>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-black/10 pb-12">
+             <h2 className="font-display text-6xl font-black uppercase leading-none tracking-tighter text-[#111111] sm:text-8xl italic">
+               LO QUE SE SIENTE <br />
+               <span className="text-black/10">ENTRENAR AQUI</span>
+             </h2>
+             <div className="flex items-center gap-4 text-[#d71920]">
+                <Activity className="h-8 w-8 animate-pulse" />
+                <p className="text-[10px] font-black uppercase tracking-widest max-w-[140px] leading-tight">
+                   Experiencia tecnica sin compromisos
+                </p>
+             </div>
           </div>
         </div>
 
-        <div className="grid gap-x-10 gap-y-16 md:grid-cols-2 xl:grid-cols-4">
+        {/* GRID DE VALORES */}
+        <div className="grid gap-px bg-black/5 md:grid-cols-2 xl:grid-cols-4 border border-black/5 shadow-2xl">
           {novaForzaHomeContent.valueProps.map((item) => {
-            const Icon = icons[item.icon];
+            const Icon = icons[item.icon as keyof typeof icons] || Dumbbell;
 
             return (
               <article
                 key={item.title}
-                className="mx-auto flex max-w-[310px] flex-col items-center text-center"
+                className="bg-white p-10 lg:p-12 space-y-8 group hover:bg-[#111111] transition-all duration-500"
               >
-                <div className="flex h-16 w-16 items-center justify-center text-[#3f3f46]">
-                  <Icon className="h-12 w-12 stroke-[1.8]" />
+                <div className="flex items-center gap-5">
+                  <div className="h-12 w-12 bg-black/5 flex items-center justify-center group-hover:bg-[#d71920] transition-colors">
+                    <Icon className="h-6 w-6 text-[#111111] group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="font-display text-2xl font-black uppercase leading-none tracking-tight italic text-[#111111] group-hover:text-white transition-colors">
+                    {item.title}
+                  </h3>
                 </div>
-                <h3 className="mt-8 font-display text-[30px] uppercase leading-none text-[#111111]">
-                  {item.title}
-                </h3>
-                <span className="mt-4 h-[3px] w-56 bg-[#ed1c24]" />
-                <p className="mt-5 text-[15px] leading-8 text-[#4b5563]">{item.description}</p>
+                
+                <div className="space-y-6">
+                   <div className="h-0.5 w-12 bg-[#d71920] group-hover:w-full transition-all duration-700" />
+                   <p className="text-sm font-medium leading-relaxed text-[#5f6368] group-hover:text-white/60 transition-colors">
+                     {item.description}
+                   </p>
+                </div>
               </article>
             );
           })}
         </div>
+
       </div>
     </section>
   );

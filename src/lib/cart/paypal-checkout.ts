@@ -16,6 +16,7 @@ import {
   attachCartToMember,
   listPickupRequests,
   markPickupRequestEmailResult,
+  revalidateMemberCommerceCustomer,
   resolveOrCreateMemberCommerceCustomer,
   retrieveOrderByCartId,
   retrievePickupRequest,
@@ -132,6 +133,25 @@ function getCheckoutErrorMessage(error: unknown) {
     : "No se pudo completar el checkout con PayPal.";
 }
 
+function shouldRetryCustomerAttach(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const normalized = error.message.toLowerCase();
+
+  if (!normalized.includes("no se pudo vincular el carrito a la cuenta del miembro")) {
+    return false;
+  }
+
+  return (
+    normalized.includes("not found") ||
+    normalized.includes("customer") ||
+    normalized.includes("internal server error") ||
+    normalized.includes("unknown error occurred")
+  );
+}
+
 async function resolveCheckoutEmail(cart: Cart, user?: CheckoutUser, email?: string | null) {
   return user?.email ?? email?.trim().toLowerCase() ?? cart.email;
 }
@@ -168,7 +188,36 @@ async function syncCartMember(
     } else {
       await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email!);
     }
-  } catch {
+  } catch (attachError) {
+    if (shouldRetryCustomerAttach(attachError)) {
+      const refreshedBridge = trace
+        ? await trace.step(
+            "refresh_member_customer",
+            () => revalidateMemberCommerceCustomer(user as User),
+            (bridge) => ({
+              medusaCustomerId: bridge.medusa_customer_id,
+            }),
+          )
+        : await revalidateMemberCommerceCustomer(user as User);
+
+      try {
+        if (trace) {
+          await trace.step("attach_customer_retry", () =>
+            attachCartToMember(cartId, refreshedBridge.medusa_customer_id, user.email!),
+          );
+        } else {
+          await attachCartToMember(cartId, refreshedBridge.medusa_customer_id, user.email!);
+        }
+
+        return {
+          ...cart,
+          customerId: refreshedBridge.medusa_customer_id,
+        };
+      } catch {
+        // Si Medusa sigue fallando, degradamos con el carrito recuperado como antes.
+      }
+    }
+
     const recoveredCart = trace
       ? await trace.step(
           "recover_cart_after_attach_failure",

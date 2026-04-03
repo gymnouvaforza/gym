@@ -54,50 +54,59 @@ export default function ProductToolbar({
   }, [localQuery, filters.query, updateParams]);
 
   return (
-    <div className="border border-black/8 bg-white p-4 shadow-[0_20px_60px_-40px_rgba(17,17,17,0.2)] sm:p-5">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="shrink-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6b7280]">
-            Catálogo
-          </p>
-          <div className="mt-1 flex items-center gap-2">
-            <p className="text-xs font-medium text-[#4b5563]">
-              {resultsCount} {resultsCount === 1 ? "producto" : "productos"}{" "}
-              {filters.query ? `para "${filters.query}"` : "disponibles"}
+    <div className="bg-[#111111] p-6 lg:p-8 shadow-2xl relative overflow-hidden group">
+      <div className="relative z-10 flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+        
+        <div className="shrink-0 space-y-1">
+          <div className="flex items-center gap-3">
+             <div className="h-1.5 w-1.5 rounded-none bg-[#d71920]" />
+             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">
+               Explorador de Catálogo
+             </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <h3 className="text-xl font-display font-black uppercase tracking-tight text-white italic">
+              {resultsCount} {resultsCount === 1 ? "Artículo" : "Artículos"}
+            </h3>
+            <span className="text-white/20 text-xs">/</span>
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+              {filters.query ? `Resultados para "${filters.query}"` : "Disponibles en Sala"}
             </p>
             {isPending && (
-              <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#d71920] border-t-transparent" />
+              <div className="ml-2 h-3 w-3 animate-spin rounded-none border-2 border-[#d71920] border-t-transparent" />
             )}
           </div>
         </div>
 
-        <div className="grid flex-1 gap-2.5 sm:grid-cols-[1fr,200px] xl:max-w-2xl">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9ca3af]" />
+        <div className="grid flex-1 gap-4 sm:grid-cols-[1fr,240px] xl:max-w-3xl">
+          <div className="relative group/search">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/20 group-focus-within/search:text-[#d71920] transition-colors" />
             <input
               type="search"
               value={localQuery}
               onChange={(e) => setLocalQuery(e.target.value)}
-              placeholder="Buscar..."
-              className="h-10 w-full border border-black/8 bg-[#faf8f4] pl-9 pr-4 text-sm text-[#111111] outline-none transition focus:border-[#d71920]/40 focus:bg-white"
+              placeholder="Buscar productos, marcas o categorías..."
+              className="h-14 w-full border border-white/10 bg-white/5 pl-12 pr-6 text-sm text-white outline-none transition-all focus:border-white/20 focus:bg-white/10 placeholder:text-white/20"
             />
           </div>
 
-          <div className="relative">
+          <div className="relative group/sort">
             <select
               defaultValue={filters.sort}
               onChange={(e) => updateParams({ sort: e.target.value })}
-              className="h-10 w-full border border-black/8 bg-[#faf8f4] px-4 py-0 text-sm text-[#111111] outline-none transition focus:border-[#d71920]/40 focus:bg-white"
+              className="h-14 w-full appearance-none border border-white/10 bg-white/5 px-6 pr-12 text-[11px] font-black uppercase tracking-widest text-white outline-none transition-all focus:border-white/20 focus:bg-white/10 cursor-pointer"
             >
               {Object.entries(sortLabels).map(([value, label]) => (
-                <option key={value} value={value}>
+                <option key={value} value={value} className="bg-[#111111] text-white">
                   {label}
                 </option>
               ))}
             </select>
+            <div className="pointer-events-none absolute right-4 top-1/2 h-1.5 w-1.5 -translate-y-1/2 bg-[#d71920] rotate-45" />
           </div>
         </div>
       </div>
+      <div className="absolute top-0 right-0 h-full w-1/4 bg-white/5 -skew-x-12 translate-x-20 pointer-events-none" />
     </div>
   );
 }

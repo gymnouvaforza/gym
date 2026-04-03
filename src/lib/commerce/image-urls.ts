@@ -2,6 +2,8 @@ import { SITE_URL } from "@/lib/seo";
 
 const LOCALHOST_HOSTS = new Set(["localhost", "127.0.0.1"]);
 const DEFAULT_PRODUCTS_PATH = "/images/products";
+export const PRODUCT_IMAGES_BUCKET = "product-images";
+const DEFAULT_PRODUCTS_BUCKET = PRODUCT_IMAGES_BUCKET;
 
 function trimUrl(value: string | null | undefined) {
   const normalized = value?.trim();
@@ -27,6 +29,35 @@ function getSupabaseAssetOrigin() {
   }
 }
 
+function getSupabaseProductsBucketUrl() {
+  const origin = getSupabaseAssetOrigin();
+
+  if (!origin) {
+    return null;
+  }
+
+  return joinUrl(
+    origin,
+    `/storage/v1/object/public/${DEFAULT_PRODUCTS_BUCKET}`,
+  );
+}
+
+function toSupabaseBucketUrl(pathname: string) {
+  const bucketBaseUrl = getSupabaseProductsBucketUrl();
+
+  if (!bucketBaseUrl) {
+    return null;
+  }
+
+  const fileName = pathname.split("/").filter(Boolean).at(-1);
+
+  if (!fileName) {
+    return null;
+  }
+
+  return joinUrl(bucketBaseUrl, `/${encodeURIComponent(fileName)}`);
+}
+
 function normalizePathname(pathname: string) {
   if (!pathname) {
     return null;
@@ -37,11 +68,15 @@ function normalizePathname(pathname: string) {
     return supabaseOrigin ? joinUrl(supabaseOrigin, pathname) : pathname;
   }
 
+  if (pathname.startsWith(`${DEFAULT_PRODUCTS_PATH}/`)) {
+    return toSupabaseBucketUrl(pathname) ?? pathname;
+  }
+
   if (pathname.startsWith("/images/")) {
     return pathname;
   }
 
-  return `${DEFAULT_PRODUCTS_PATH}/${pathname.replace(/^\/+/, "")}`;
+  return toSupabaseBucketUrl(pathname) ?? `${DEFAULT_PRODUCTS_PATH}/${pathname.replace(/^\/+/, "")}`;
 }
 
 export function normalizeCommerceImageUrl(value: string | null | undefined) {

@@ -6,11 +6,14 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@mobile-contracts": path.resolve(__dirname, "./packages/mobile-contracts/src/index.ts"),
     },
   },
   test: {
     exclude: [
+      "apps/mobile/**",
       "apps/medusa/**",
+      "**/node_modules/**",
       "node_modules/**",
       "tests/e2e/**",
       "playwright.config.ts",

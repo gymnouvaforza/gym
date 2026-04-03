@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { MedusaStoreProduct } from "@/lib/medusa/storefront-types";
 
@@ -17,6 +17,8 @@ import {
   getMedusaCommerceProducts,
   mapMedusaProduct,
 } from "@/lib/commerce/medusa";
+
+const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 function buildStoreProduct(overrides: Partial<MedusaStoreProduct> = {}) {
   return {
@@ -194,6 +196,14 @@ function buildStoreProduct(overrides: Partial<MedusaStoreProduct> = {}) {
 }
 
 describe("medusa commerce", () => {
+  beforeAll(() => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://nbjkfyjeewprnxxibhwz.supabase.co";
+  });
+
+  afterAll(() => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
+  });
+
   it("maps a Medusa store product to the storefront product contract", () => {
     const product = mapMedusaProduct(buildStoreProduct());
 
@@ -265,8 +275,8 @@ describe("medusa commerce", () => {
     );
 
     expect(product?.images).toEqual([
-      "/images/products/nova-whey.png",
-      "/images/products/nova-creatina.png",
+      "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/product-images/nova-whey.png",
+      "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/product-images/nova-creatina.png",
     ]);
   });
 

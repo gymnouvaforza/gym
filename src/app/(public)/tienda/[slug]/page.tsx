@@ -123,29 +123,32 @@ export default async function ProductDetailPage({
 
       <ProductDetail product={product} />
 
-      <section className="section-shell border-t border-black/8 py-12 md:py-16">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b7280]">
-              Completar tu entrenamiento
-            </p>
-            <h2 className="mt-3 font-display text-4xl uppercase leading-none text-[#111111] sm:text-5xl">
-              Mas productos de {productCategoryLabels[product.category]}
+      <section className="section-shell border-t border-black/10 py-20 lg:py-32">
+        <div className="mb-12 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+               <div className="h-1.5 w-1.5 bg-[#d71920]" />
+               <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">
+                 Completar tu Entrenamiento
+               </p>
+            </div>
+            <h2 className="font-display text-5xl font-black uppercase leading-none text-[#111111] sm:text-6xl italic">
+              Línea <span className="text-black/10">Relacionada</span>
             </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#4b5563]">
-              Seleccion premium para acompanar tu rutina y mantener una navegacion clara entre
-              suplementos, accesorios y merchandising.
+            <p className="max-w-2xl text-sm font-medium leading-7 text-[#5f6368] border-l border-black/5 pl-6">
+              Selección técnica recomendada por nuestros preparadores para maximizar el rendimiento 
+              en la categoría de {productCategoryLabels[product.category]}.
             </p>
           </div>
           <Link
             href={`/tienda?categoria=${product.category}`}
-            className="text-sm font-semibold uppercase tracking-[0.18em] text-[#111111] transition hover:text-[#d71920]"
+            className="h-12 px-8 bg-[#111111] text-white flex items-center justify-center font-black uppercase text-[10px] tracking-[0.2em] hover:bg-[#d71920] transition-all shadow-xl"
           >
-            Ver toda la categoria
+            Ver toda la gama
           </Link>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {relatedProducts.map((relatedProduct) => (
             <ProductCard key={relatedProduct.id} product={relatedProduct} />
           ))}

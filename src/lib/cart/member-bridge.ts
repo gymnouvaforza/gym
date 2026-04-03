@@ -34,14 +34,45 @@ function isExpectedMissingCartError(error: unknown) {
   );
 }
 
+function getNestedBridgeMessage(error: unknown): string | null {
+  if (!error || typeof error !== "object") {
+    return null
+  }
+
+  if ("message" in error && typeof error.message === "string" && error.message.trim()) {
+    return error.message.trim()
+  }
+
+  if ("body" in error && error.body && typeof error.body === "object") {
+    const body = error.body as Record<string, unknown>
+
+    if (typeof body.message === "string" && body.message.trim()) {
+      return body.message.trim()
+    }
+
+    if (typeof body.error === "string" && body.error.trim()) {
+      return body.error.trim()
+    }
+  }
+
+  if ("cause" in error && error.cause) {
+    return getNestedBridgeMessage(error.cause)
+  }
+
+  return null
+}
+
 function toBridgeError(error: unknown, fallback: string) {
   if (!isExpectedMissingCartError(error)) {
     console.error("[Medusa Bridge Error]:", error);
   }
 
-  if (error && typeof error === "object" && "message" in error) {
-    return String(error.message);
+  const nestedMessage = getNestedBridgeMessage(error);
+
+  if (nestedMessage) {
+    return nestedMessage;
   }
+
   return fallback;
 }
 

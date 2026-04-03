@@ -222,7 +222,7 @@ function resolveImages(product: MedusaStoreProduct) {
     ...((product.images ?? []).map((image) => asString(image.url))),
   ]);
 
-  return images.length > 0 ? Array.from(new Set(images)) : ["/images/products/product-1.png"];
+  return Array.from(new Set(images));
 }
 
 function resolveTags(product: MedusaStoreProduct) {

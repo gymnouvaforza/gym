@@ -207,6 +207,52 @@ describe("POST /api/cart/member", () => {
     expect(payload.cart.id).toBe("cart_01");
   });
 
+  it("retries attach when Medusa responds with an opaque bridge 500 for a stale customer", async () => {
+    memberRouteMocks.attachCartToMember
+      .mockRejectedValueOnce(
+        new Error(
+          "No se pudo vincular el carrito a la cuenta del miembro: An unknown error occurred.",
+        ),
+      )
+      .mockResolvedValueOnce({
+        cart: {
+          id: "cart_01",
+        },
+      });
+    memberRouteMocks.mapMedusaCart.mockReturnValue({
+      id: "cart_01",
+      items: [],
+      summary: { itemCount: 0 },
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/cart/member", {
+        method: "POST",
+        body: JSON.stringify({
+          cartId: "cart_01",
+        }),
+      }),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(memberRouteMocks.revalidateMemberCommerceCustomer).toHaveBeenCalledTimes(1);
+    expect(memberRouteMocks.attachCartToMember).toHaveBeenNthCalledWith(
+      1,
+      "cart_01",
+      "cus_01",
+      "socio@gym.com",
+    );
+    expect(memberRouteMocks.attachCartToMember).toHaveBeenNthCalledWith(
+      2,
+      "cart_01",
+      "cus_02",
+      "socio@gym.com",
+    );
+    expect(payload.customer.medusa_customer_id).toBe("cus_02");
+    expect(payload.cart.id).toBe("cart_01");
+  });
+
   it("keeps the cart when attach fails but the cart can still be retrieved", async () => {
     memberRouteMocks.attachCartToMember
       .mockRejectedValueOnce(

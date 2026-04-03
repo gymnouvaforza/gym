@@ -1,282 +1,380 @@
-import { Clock3, ShieldCheck, ShoppingBag } from "lucide-react";
+import { 
+  Clock3, 
+  ShieldCheck, 
+  ShoppingBag, 
+  User, 
+  Package, 
+  Zap, 
+  ArrowRight,
+  Activity,
+  History,
+  ExternalLink,
+  Lock
+} from "lucide-react";
 import Link from "next/link";
 
+import MemberAccountSettings from "@/components/auth/MemberAccountSettings";
 import AuthFeedbackDialog from "@/components/auth/AuthFeedbackDialog";
-import MemberSignOutButton from "@/components/auth/MemberSignOutButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireMemberUser } from "@/lib/auth";
 import { formatCartAmount } from "@/lib/cart/format";
 import {
-  getPickupRequestPaymentTone,
   getPickupRequestStatusTone,
   pickupRequestPaymentStatusLabels,
   pickupRequestStatusLabels,
 } from "@/lib/cart/pickup-request";
 import { getCurrentCartSnapshot } from "@/lib/cart/server";
+import { getMemberAccountViewModel } from "@/lib/data/member-account";
+import { ensureMemberProfileForUser } from "@/lib/data/gym-management";
 import { getMemberPickupRequestsHistory } from "@/lib/data/pickup-requests";
 import {
   formatMemberAccountDate,
   getMemberAccountQuickLinks,
-  getMemberAuthProviderLabel,
 } from "@/lib/member-account";
+import DashboardNotice from "@/components/admin/DashboardNotice";
+import { cn } from "@/lib/utils";
+import type { MemberAccountViewModel } from "@/lib/data/member-account";
+import type { PickupRequestDetail } from "@/lib/cart/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function MemberAccountPage() {
+  // 1. Autenticación
   const user = await requireMemberUser("/acceso?next=/mi-cuenta");
-  const activeCart = await getCurrentCartSnapshot();
-  const pickupHistory = await getMemberPickupRequestsHistory({
-    email: user.email,
-    supabaseUserId: user.id,
-  });
-  const latestPickupRequest = pickupHistory.pickupRequests[0] ?? null;
-  const previousPickupRequests = pickupHistory.pickupRequests.slice(1);
+  
+  // 2. Estados de Datos con Tipado Seguro
+  let account: MemberAccountViewModel = { 
+    fullName: "Socio Titan", 
+    email: user.email ?? "", 
+    providerLabel: "Autenticación Segura", 
+    canManagePassword: false,
+    phone: null
+  };
+  let activeCart: any = null; // Snapshot de carrito (medusa-adapter output)
+  let pickupHistory = { pickupRequests: [] as PickupRequestDetail[], warning: null as string | null };
+  let loadError: string | null = null;
+
+  // 3. Carga de Datos Resiliente
+  try {
+    try {
+      await ensureMemberProfileForUser(user);
+    } catch (e) {
+      console.warn("Soft error in ensureMemberProfileForUser:", e);
+    }
+
+    const [accResult, cartResult, historyResult] = await Promise.allSettled([
+      getMemberAccountViewModel(user),
+      getCurrentCartSnapshot(),
+      getMemberPickupRequestsHistory({
+        email: user.email,
+        supabaseUserId: user.id,
+      })
+    ]);
+
+    if (accResult.status === "fulfilled") account = accResult.value;
+    if (cartResult.status === "fulfilled") activeCart = cartResult.value;
+    if (historyResult.status === "fulfilled") pickupHistory = historyResult.value;
+    
+    if (accResult.status === "rejected" || historyResult.status === "rejected") {
+       console.error("Partial load failure:", { accResult, historyResult });
+       loadError = "Sincronización parcial. Los datos comerciales podrían no estar actualizados.";
+    }
+  } catch (globalError) {
+    console.error("Critical render error in MemberAccountPage:", globalError);
+    loadError = "Error de conexión con el servidor. Reintentando en breve.";
+  }
+
+  // 4. Lógica de Vista
+  const latestPickupRequest = pickupHistory?.pickupRequests?.[0] ?? null;
+  const previousPickupRequests = pickupHistory?.pickupRequests?.slice(1) ?? [];
   const quickLinks = getMemberAccountQuickLinks({
-    hasActiveCart: Boolean(activeCart && activeCart.items.length > 0),
-    hasPickupHistory: pickupHistory.pickupRequests.length > 0,
+    hasActiveCart: !!activeCart?.items?.length,
+    hasPickupHistory: pickupHistory?.pickupRequests?.length > 0,
   });
-  const authProviderLabel = getMemberAuthProviderLabel(user);
 
   return (
-    <main className="section-shell py-16">
+    <main className="min-h-screen bg-[#fbfbf8]">
       <AuthFeedbackDialog variant="welcome" />
-      <Card className="mx-auto max-w-5xl">
-        <CardHeader className="space-y-4 border-b border-black/8">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="success">Acceso activo</Badge>
-            <Badge variant="muted">{authProviderLabel}</Badge>
-          </div>
-          <div className="space-y-2">
-            <CardTitle>Mi cuenta</CardTitle>
-            <CardDescription>
-              Tu superficie privada para revisar tu acceso, retomar tu carrito y seguir tus
-              pedidos pickup sin convertir esto todavia en un modulo de miembros complejo.
-            </CardDescription>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-6 pt-6">
-          <div className="grid gap-4 lg:grid-cols-3">
-            <section className="rounded-none border border-black/8 bg-[#fbfbf8] p-5" id="cuenta">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-                Cuenta basica
-              </p>
-              <p className="mt-2 text-lg font-semibold text-[#111111]">{user.email}</p>
-              <dl className="mt-4 space-y-3 text-sm leading-6 text-[#5f6368]">
-                <div>
-                  <dt className="font-semibold text-[#111111]">Metodo de acceso</dt>
-                  <dd>{authProviderLabel}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-[#111111]">Alta de cuenta</dt>
-                  <dd>{formatMemberAccountDate(user.created_at)}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-[#111111]">Ultimo acceso</dt>
-                  <dd>{formatMemberAccountDate(user.last_sign_in_at)}</dd>
-                </div>
-              </dl>
-            </section>
-
-            <section className="rounded-none border border-black/8 bg-[#fbfbf8] p-5">
-              <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none border border-[#d71920]/10 bg-[#fff5f5] text-[#d71920]">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-                    Sesion y seguridad
-                  </p>
-                  <p className="text-sm leading-6 text-[#5f6368]">
-                    Tu acceso esta operativo. Desde aqui solo exponemos datos visibles y acciones
-                    basicas de cuenta, sin mezclarlo con gestion avanzada de miembros.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 border-t border-black/8 pt-4">
-                <MemberSignOutButton />
-              </div>
-            </section>
-
-            <section className="rounded-none border border-black/8 bg-[#fbfbf8] p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-                Accesos utiles
-              </p>
-              <div className="mt-4 space-y-3">
-                {quickLinks.map((link) => (
-                  <div key={link.href} className="border border-black/8 bg-white p-4">
-                    <p className="text-sm font-semibold text-[#111111]">{link.label}</p>
-                    <p className="mt-2 text-sm leading-6 text-[#5f6368]">{link.description}</p>
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      className="mt-3 tracking-normal"
-                    >
-                      <Link href={link.href}>Abrir</Link>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-
-          <section className="rounded-none border border-black/8 bg-[#fbfbf8] p-5" id="commerce">
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none border border-black/8 bg-white text-[#111111]">
-                <ShoppingBag className="h-5 w-5" />
-              </div>
-              <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-                  Commerce
-                </p>
-                {activeCart && activeCart.items.length > 0 ? (
-                  <>
-                    <p className="text-lg font-semibold text-[#111111]">
-                      Carrito activo con {activeCart.summary.itemCount} producto(s)
-                    </p>
-                    <p className="text-sm leading-6 text-[#5f6368]">
-                      Total estimado:{" "}
-                      {formatCartAmount(activeCart.summary.total, activeCart.summary.currencyCode)}
-                      . Puedes retomarlo desde el carrito y continuar el pago cuando quieras.
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm leading-6 text-[#5f6368]">
-                    Todavia no tienes un carrito activo. Cuando empieces una compra en la tienda,
-                    aqui veras su estado y podras retomarla.
-                  </p>
-                )}
-              </div>
+      
+      {/* HEADER INDUSTRIAL SUPERIOR */}
+      <header className="bg-[#111111] py-5 px-6 lg:px-12 flex items-center justify-between border-b border-white/10 sticky top-0 z-30">
+         <div className="flex items-center gap-6">
+            <div className="h-8 w-8 bg-white flex items-center justify-center p-1.5">
+               <Activity className="h-full w-full text-[#d71920]" />
             </div>
-          </section>
+            <div className="hidden sm:block">
+               <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Portal del Socio</p>
+               <p className="text-xs font-bold text-white uppercase tracking-widest">TITAN GYM SYSTEM <span className="text-white/20">/</span> V2.0</p>
+            </div>
+         </div>
+         <div className="flex items-center gap-4">
+            <Badge variant="success" className="bg-green-500/10 text-green-500 border-none font-black uppercase text-[8px] h-6 px-3">Sessión Activa</Badge>
+            <div className="h-6 w-px bg-white/10" />
+            <Link href="/" className="text-[10px] font-black uppercase text-white/60 hover:text-white transition-colors flex items-center gap-2">
+               Sitio Público <ExternalLink className="h-3 w-3" />
+            </Link>
+         </div>
+      </header>
 
-          <div className="space-y-6" id="pedidos-pickup">
-            <section className="rounded-none border border-black/8 bg-[#fbfbf8] p-5">
-              <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none border border-black/8 bg-white text-[#111111]">
-                  <Clock3 className="h-5 w-5" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-                    Ultimo pedido pickup
-                  </p>
-                  {latestPickupRequest ? (
-                    <>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-lg font-semibold text-[#111111]">
-                          {latestPickupRequest.requestNumber}
-                        </p>
-                        <Badge variant={getPickupRequestStatusTone(latestPickupRequest.status)}>
-                          {pickupRequestStatusLabels[latestPickupRequest.status]}
-                        </Badge>
-                        <Badge
-                          variant={getPickupRequestPaymentTone(
-                            latestPickupRequest.paymentStatus,
-                          )}
-                        >
-                          {pickupRequestPaymentStatusLabels[latestPickupRequest.paymentStatus]}
-                        </Badge>
-                      </div>
-                      <p className="text-sm leading-6 text-[#5f6368]">
-                        Total del pedido:{" "}
-                        {formatCartAmount(
-                          latestPickupRequest.total,
-                          latestPickupRequest.currencyCode,
-                        )}
-                        {latestPickupRequest.chargedCurrencyCode &&
-                        latestPickupRequest.chargedTotal !== null
-                          ? ` · Cargo PayPal: ${formatCartAmount(
-                              latestPickupRequest.chargedTotal,
-                              latestPickupRequest.chargedCurrencyCode,
-                            )}`
-                          : ""}
-                        .
-                      </p>
-                      <p className="text-sm leading-6 text-[#5f6368]">
-                        Estado del email:{" "}
-                        <strong className="text-[#111111]">
-                          {latestPickupRequest.emailStatus}
-                        </strong>
-                        .
-                        {latestPickupRequest.emailError
-                          ? ` Ultimo error: ${latestPickupRequest.emailError}`
-                          : " El resumen del pedido ya se ha procesado correctamente."}
-                      </p>
-                      <p className="text-sm leading-6 text-[#5f6368]">
-                        Pedido Medusa:{" "}
-                        <strong className="text-[#111111]">
-                          {latestPickupRequest.orderId ?? "pendiente"}
-                        </strong>
-                        . Ultima actualizacion:{" "}
-                        <strong className="text-[#111111]">
-                          {formatMemberAccountDate(latestPickupRequest.updatedAt)}
-                        </strong>
-                        .
-                      </p>
-                      <Button asChild variant="outline" size="sm" className="mt-2 tracking-normal">
-                        <Link href={`/mi-cuenta/pedidos/${latestPickupRequest.id}`}>
-                          Abrir detalle
-                        </Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <p className="text-sm leading-6 text-[#5f6368]">
-                      Cuando completes tu primer pedido pickup desde la tienda, aqui veras su
-                      referencia, estado y trazabilidad basica.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <section className="rounded-none border border-black/8 bg-[#fbfbf8] p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-                Historial de pedidos
-              </p>
-              {pickupHistory.warning ? (
-                <p className="mt-2 text-sm leading-6 text-amber-700">{pickupHistory.warning}</p>
-              ) : previousPickupRequests.length > 0 ? (
-                <div className="mt-4 space-y-3">
-                  {previousPickupRequests.map((pickupRequest) => (
-                    <div
-                      key={pickupRequest.id}
-                      className="flex flex-col gap-2 border border-black/8 bg-white p-4 md:flex-row md:items-center md:justify-between"
-                    >
-                      <div>
-                        <p className="text-sm font-semibold text-[#111111]">
-                          {pickupRequest.requestNumber}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-[#5f6368]">
-                          {formatCartAmount(pickupRequest.total, pickupRequest.currencyCode)} ·{" "}
-                          {formatMemberAccountDate(pickupRequest.updatedAt)}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <Badge variant={getPickupRequestStatusTone(pickupRequest.status)}>
-                          {pickupRequestStatusLabels[pickupRequest.status]}
-                        </Badge>
-                        <Badge variant={getPickupRequestPaymentTone(pickupRequest.paymentStatus)}>
-                          {pickupRequestPaymentStatusLabels[pickupRequest.paymentStatus]}
-                        </Badge>
-                        <Button asChild variant="outline" size="sm" className="tracking-normal">
-                          <Link href={`/mi-cuenta/pedidos/${pickupRequest.id}`}>Ver detalle</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-2 text-sm leading-6 text-[#5f6368]">
-                  Todavia no tienes mas pedidos pickup asociados a esta cuenta.
-                </p>
-              )}
-            </section>
+      <div className="w-full px-6 py-12 lg:px-12 lg:py-20 max-w-[1600px] mx-auto">
+        
+        {loadError && (
+          <div className="mb-12">
+             <DashboardNotice message={loadError} tone="warning" />
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        <div className="flex flex-col gap-12">
+          {/* TITULO HERO SECCIÓN */}
+          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between border-b border-black/5 pb-12">
+             <div className="space-y-3">
+                <p className="font-black text-[10px] uppercase tracking-[0.4em] text-[#d71920]">Zona de Entrenamiento Digital</p>
+                <h1 className="font-display text-6xl font-black uppercase tracking-tighter text-[#111111] sm:text-8xl italic">
+                  MI <span className="text-black/10">ESPACIO</span>
+                </h1>
+             </div>
+             <div className="flex items-center gap-6">
+                <div className="bg-white border border-black/10 p-6 shadow-xl text-center min-w-[180px]">
+                   <p className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Último Acceso</p>
+                   <p className="text-sm font-bold text-[#111111] uppercase tracking-tighter mt-1">{formatMemberAccountDate(user.last_sign_in_at)}</p>
+                </div>
+             </div>
+          </div>
+
+          {/* GRID PRINCIPAL */}
+          <div className="grid grid-cols-1 gap-12 xl:grid-cols-[400px_1fr]">
+             
+             {/* SIDEBAR: IDENTIDAD */}
+             <aside className="space-y-10">
+                <div className="sticky top-28 space-y-10">
+                   
+                   {/* ID CARD */}
+                   <div className="bg-[#111111] p-10 text-white shadow-2xl relative overflow-hidden group">
+                      <div className="relative z-10 space-y-10">
+                         <div className="flex justify-between items-start">
+                            <div className="h-20 w-20 bg-white flex items-center justify-center shadow-inner">
+                               <User className="h-10 w-10 text-[#111111]" />
+                            </div>
+                            <div className="bg-[#d71920] px-3 py-1">
+                               <p className="text-[9px] font-black uppercase tracking-widest text-white">PRO MEMBER</p>
+                            </div>
+                         </div>
+                         
+                         <div className="space-y-2">
+                            <p className="text-[11px] font-black uppercase tracking-widest text-white/30">Ficha del Socio</p>
+                            <h2 className="text-4xl font-display font-black uppercase tracking-tight leading-none italic">{account.fullName}</h2>
+                            <p className="text-sm font-medium text-white/60 mt-4 border-l-2 border-[#d71920] pl-4">{account.email}</p>
+                         </div>
+
+                         <div className="pt-8 border-t border-white/5 space-y-5">
+                            <div className="flex justify-between items-center">
+                               <span className="text-[10px] font-black uppercase text-white/20">Identificador</span>
+                               <span className="text-[10px] font-mono text-white/40">{user.id.slice(0,12).toUpperCase()}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                               <span className="text-[10px] font-black uppercase text-white/20">Miembro desde</span>
+                               <span className="text-[10px] font-bold text-white/60">{formatMemberAccountDate(user.created_at)}</span>
+                            </div>
+                         </div>
+                      </div>
+                      <div className="absolute -right-20 -bottom-20 h-80 w-80 bg-[#d71920]/10 rounded-full blur-[120px] group-hover:bg-[#d71920]/20 transition-all duration-700" />
+                   </div>
+
+                   {/* SECURITY & STATUS */}
+                   <div className="bg-white border border-black/10 p-8 shadow-sm space-y-6">
+                      <div className="flex items-center gap-3">
+                         <ShieldCheck className="h-5 w-5 text-green-600" />
+                         <p className="text-[11px] font-black uppercase tracking-widest text-[#111111]">Estatus de Cuenta</p>
+                      </div>
+                      <div className="bg-[#fbfbf8] p-4 border border-black/5">
+                         <p className="text-[9px] font-black uppercase text-[#7a7f87] mb-2">Auth Provider</p>
+                         <p className="text-xs font-bold text-[#111111] uppercase tracking-tighter italic">{account.providerLabel}</p>
+                      </div>
+                      <div className="flex items-center gap-3 px-2">
+                         <Lock className="h-3 w-3 text-black/20" />
+                         <p className="text-[10px] text-[#7a7f87] font-medium leading-relaxed">Protección de datos activa mediante políticas RLS de nivel 4.</p>
+                      </div>
+                   </div>
+
+                   {/* NAVIGATION LINKS */}
+                   <div className="space-y-4">
+                      <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[#111111] px-2">Acceso a Funciones</p>
+                      <div className="grid gap-2">
+                         {quickLinks.map((link) => (
+                            <Link 
+                              key={link.href} 
+                              href={link.href}
+                              className="group flex items-center justify-between bg-white border border-black/10 p-5 transition-all hover:border-[#111111] hover:translate-x-1"
+                            >
+                               <div className="flex items-center gap-4">
+                                  <div className="h-1.5 w-1.5 rounded-full bg-black/10 group-hover:bg-[#d71920]" />
+                                  <span className="text-[11px] font-black uppercase tracking-widest text-[#7a7f87] group-hover:text-[#111111]">{link.label}</span>
+                               </div>
+                               <ArrowRight className="h-4 w-4 text-black/10 group-hover:text-[#d71920]" />
+                            </Link>
+                         ))}
+                      </div>
+                   </div>
+
+                </div>
+             </aside>
+
+             {/* MAIN CONTENT AREA */}
+             <div className="space-y-16">
+                
+                {/* SECTION: PERFIL */}
+                <section className="space-y-8">
+                   <div className="flex items-center justify-between border-b border-black/10 pb-6">
+                      <div className="flex items-center gap-4">
+                         <div className="h-14 w-14 bg-[#111111] flex items-center justify-center">
+                            <Activity className="h-7 w-7 text-[#d71920]" />
+                         </div>
+                         <h2 className="font-display text-4xl font-black uppercase tracking-tighter text-[#111111]">Gestión de Perfil</h2>
+                      </div>
+                      <Badge variant="muted" className="h-8 px-4 font-black uppercase text-[9px] tracking-widest bg-black/5 border-none">Información General</Badge>
+                   </div>
+                   <div className="bg-white border border-black/10 p-10 shadow-lg">
+                      <MemberAccountSettings initialAccount={account} />
+                   </div>
+                </section>
+
+                {/* SECTION: E-COMMERCE */}
+                <section className="space-y-8">
+                   <div className="flex items-center gap-4 border-b border-black/10 pb-6">
+                      <div className="h-14 w-14 bg-[#111111] flex items-center justify-center">
+                         <ShoppingBag className="h-7 w-7 text-[#d71920]" />
+                      </div>
+                      <h2 className="font-display text-4xl font-black uppercase tracking-tighter text-[#111111]">E-Commerce & Carrito</h2>
+                   </div>
+                   
+                   <div className={cn(
+                     "p-12 border shadow-2xl transition-all relative overflow-hidden",
+                     activeCart && activeCart.items?.length > 0 ? "bg-[#111111] text-white border-[#111111]" : "bg-[#fbfbf8] border-black/10 border-dashed"
+                   )}>
+                      {activeCart && activeCart.items?.length > 0 ? (
+                         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
+                            <div className="space-y-4">
+                               <div className="flex items-center gap-3">
+                                  <Zap className="h-6 w-6 text-[#d71920] fill-current animate-bounce" />
+                                  <p className="text-xs font-black uppercase tracking-[0.3em] text-[#d71920]">Checkout Pendiente</p>
+                               </div>
+                               <h3 className="text-4xl font-display font-black uppercase tracking-tight italic">Tienes {activeCart.summary.itemCount} artículos esperando</h3>
+                               <p className="text-xl text-white/40">Total estimado: <span className="text-white font-bold">{formatCartAmount(activeCart.summary.total, activeCart.summary.currencyCode)}</span></p>
+                            </div>
+                            <Button asChild className="h-20 px-16 bg-[#d71920] text-white font-black uppercase tracking-[0.3em] hover:bg-white hover:text-[#111111] transition-all rounded-none text-xs shadow-xl">
+                               <Link href="/carrito">FINALIZAR PEDIDO</Link>
+                            </Button>
+                         </div>
+                      ) : (
+                         <div className="flex flex-col items-center justify-center py-10 gap-6">
+                            <div className="h-20 w-20 bg-black/5 flex items-center justify-center rounded-full">
+                               <ShoppingBag className="h-10 w-10 text-black/10" />
+                            </div>
+                            <div className="text-center space-y-2">
+                               <p className="text-xl font-black uppercase text-[#111111] tracking-tight">Tu carrito está vacío</p>
+                               <p className="text-sm text-[#7a7f87] max-w-sm">Explora el catálogo de suplementación y equipamiento profesional de Titan Gym.</p>
+                            </div>
+                            <Link href="/tienda" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d71920] hover:underline underline-offset-8">Ir a la Tienda Pro</Link>
+                         </div>
+                      )}
+                      {activeCart && activeCart.items?.length > 0 && (
+                         <div className="absolute top-0 right-0 h-full w-1/2 bg-[#d71920]/5 -skew-x-12 translate-x-20" />
+                      )}
+                   </div>
+                </section>
+
+                {/* SECTION: LOGÍSTICA */}
+                <section className="space-y-8">
+                   <div className="flex items-center gap-4 border-b border-black/10 pb-6">
+                      <div className="h-14 w-14 bg-[#111111] flex items-center justify-center">
+                         <Package className="h-7 w-7 text-[#d71920]" />
+                      </div>
+                      <h2 className="font-display text-4xl font-black uppercase tracking-tighter text-[#111111]">Logística de Recogida</h2>
+                   </div>
+
+                   <div className="grid grid-cols-1 gap-10 md:grid-cols-[1fr_320px]">
+                      <div className="bg-white border border-black/10 p-12 shadow-xl space-y-10">
+                         <div className="flex items-center justify-between border-b border-black/5 pb-8">
+                            <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">Tracking de Pedido Reciente</p>
+                            <History className="h-5 w-5 text-black/10" />
+                         </div>
+                         
+                         {latestPickupRequest ? (
+                            <div className="space-y-10">
+                               <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                                  <div className="space-y-2">
+                                     <p className="text-[10px] font-black uppercase text-[#d71920] tracking-widest">Referencia Oficial</p>
+                                     <h3 className="text-6xl font-display font-black uppercase tracking-tighter text-[#111111] italic leading-none">{latestPickupRequest.requestNumber}</h3>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-3">
+                                     <Badge variant="default" className={cn("text-[10px] font-black uppercase h-8 px-6 rounded-none tracking-widest", getPickupRequestStatusTone(latestPickupRequest.status) === 'success' ? 'bg-green-600' : 'bg-[#111111]')}>
+                                        {pickupRequestStatusLabels[latestPickupRequest.status]}
+                                     </Badge>
+                                     <p className="text-[10px] font-bold text-[#7a7f87] uppercase tracking-widest">Pago: {pickupRequestPaymentStatusLabels[latestPickupRequest.paymentStatus]}</p>
+                                  </div>
+                               </div>
+                               <div className="p-8 bg-[#fbfbf8] border border-black/10 flex flex-col md:flex-row md:items-center justify-between gap-10">
+                                  <div>
+                                     <p className="text-[10px] font-black uppercase text-[#7a7f87] mb-2 tracking-widest">Monto de Operación</p>
+                                     <p className="text-4xl font-display font-black text-[#111111] leading-none">{formatCartAmount(latestPickupRequest.total, latestPickupRequest.currencyCode)}</p>
+                                  </div>
+                                  <Button asChild variant="outline" className="h-14 px-10 border-[#111111] text-[#111111] hover:bg-[#111111] hover:text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-none shadow-lg">
+                                     <Link href={`/mi-cuenta/pedidos/${latestPickupRequest.id}`}>VER TRAZABILIDAD</Link>
+                                  </Button>
+                               </div>
+                            </div>
+                          ) : (
+                             <div className="py-16 text-center border-2 border-dashed border-black/5 bg-[#fbfbf8]">
+                                <p className="text-sm font-bold text-black/20 uppercase tracking-[0.4em]">Sin registros logísticos.</p>
+                             </div>
+                          )}
+                       </div>
+
+                       <div className="bg-[#111111] p-12 flex flex-col justify-center items-center gap-6 text-white shadow-2xl relative overflow-hidden">
+                          <Activity className="h-10 w-10 text-[#d71920]" />
+                          <div className="text-center space-y-2 relative z-10">
+                             <p className="text-8xl font-display font-black text-white leading-none tracking-tighter">{pickupHistory?.pickupRequests?.length || 0}</p>
+                             <p className="text-[11px] font-black uppercase text-white/30 tracking-[0.4em]">Pedidos Totales</p>
+                          </div>
+                       </div>
+                    </div>
+
+                    {previousPickupRequests.length > 0 && (
+                       <div className="bg-white border border-black/10 shadow-lg overflow-hidden mt-10">
+                          <div className="bg-[#111111] px-10 py-5 flex items-center justify-between border-b border-white/5">
+                             <p className="text-[11px] font-black uppercase tracking-[0.3em] text-white/60">Archivo Histórico</p>
+                             <span className="text-[10px] font-bold text-white/20 uppercase">{previousPickupRequests.length} Entradas</span>
+                          </div>
+                          <div className="divide-y divide-black/5">
+                             {previousPickupRequests.map((req: any) => (
+                                <div key={req.id} className="px-10 py-8 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-[#fbfbf8] transition-all gap-6">
+                                   <div className="space-y-2">
+                                      <div className="flex items-center gap-3">
+                                         <div className="h-1.5 w-1.5 rounded-full bg-[#d71920]" />
+                                         <p className="text-sm font-black uppercase text-[#111111] tracking-tight">{req.requestNumber}</p>
+                                      </div>
+                                      <p className="text-[10px] font-bold text-[#7a7f87] pl-4 uppercase tracking-widest">{formatMemberAccountDate(req.updatedAt)}</p>
+                                   </div>
+                                   <div className="flex items-center gap-10">
+                                      <div className="text-right">
+                                         <p className="text-[9px] font-black uppercase text-[#7a7f87] mb-1">Monto</p>
+                                         <p className="text-sm font-black text-[#111111]">{formatCartAmount(req.total, req.currencyCode)}</p>
+                                      </div>
+                                      <Link href={`/mi-cuenta/pedidos/${req.id}`} className="h-12 w-12 bg-white border border-black/10 flex items-center justify-center hover:bg-[#111111] hover:text-white transition-all shadow-sm">
+                                         <ArrowRight className="h-5 w-5" />
+                                      </Link>
+                                   </div>
+                                </div>
+                             ))}
+                          </div>
+                       </div>
+                    )}
+                 </section>
+              </div>
+           </div>
+        </div>
+      </div>
     </main>
   );
 }

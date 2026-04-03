@@ -67,3 +67,7 @@ next-env.d.ts
 .vscode/
 .claude
 .gemini
+.agents
+.agent
+_agents
+_agent

@@ -7,11 +7,7 @@ Solo deben vivir aqui scripts con un uso operativo claro, repetible y documentad
 
 - `seed.ts`
 - `seed-nova-forza.ts`
-- `verify-seed.ts`
-- `setup-bucket.ts`
-- `upload-images.ts`
 - `sync-supabase.ts`
-- `migrate-supabase.ts`
 
 ## Regla de mantenimiento
 

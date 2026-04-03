@@ -8,6 +8,16 @@ import { Button } from "@/components/ui/button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function MemberSignOutButton() {
+  return <MemberSignOutButtonWithRedirect />;
+}
+
+interface MemberSignOutButtonWithRedirectProps {
+  redirectTo?: string;
+}
+
+export function MemberSignOutButtonWithRedirect({
+  redirectTo = "/",
+}: Readonly<MemberSignOutButtonWithRedirectProps>) {
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
 
@@ -18,7 +28,7 @@ export default function MemberSignOutButton() {
       const supabase = createSupabaseBrowserClient();
       await supabase.auth.signOut();
     } finally {
-      router.push("/");
+      router.push(redirectTo);
       router.refresh();
       setIsPending(false);
     }

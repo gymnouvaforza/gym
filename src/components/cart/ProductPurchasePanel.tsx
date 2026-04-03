@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/data/types";
 import { formatUsdPrice } from "@/lib/data/products";
 
@@ -26,10 +27,10 @@ function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchaseP
   const previewOptionValue = primaryOption?.values[0] ?? product.name;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {primaryOption ? (
-        <div className="space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#111111]">
+        <div className="space-y-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]">
             {primaryOption.title}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -39,11 +40,12 @@ function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchaseP
               return (
                 <span
                   key={`${primaryOption.id}-${value}`}
-                  className={`inline-flex min-h-11 items-center border px-5 text-[11px] font-bold uppercase tracking-wider ${
+                  className={cn(
+                    "inline-flex h-12 items-center border px-6 text-[11px] font-black uppercase tracking-widest transition-all",
                     isSelected
-                      ? "border-[#d71920] bg-white text-[#d71920]"
-                      : "border-[#d5d9e2] bg-white text-[#111111]"
-                  }`}
+                      ? "border-[#111111] bg-[#111111] text-white shadow-lg"
+                      : "border-black/10 bg-white text-[#7a7f87]"
+                  )}
                 >
                   {value}
                 </span>
@@ -53,42 +55,36 @@ function PreviewProductPurchasePanel({ product }: Readonly<Pick<ProductPurchaseP
         </div>
       ) : null}
 
-      <div className="space-y-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#111111]">Cantidad</p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="inline-flex h-12 w-fit items-center border border-[#111111] bg-white">
-            <span className="flex h-full w-12 items-center justify-center text-[#9ca3af]">
+      <div className="space-y-4">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]">Cantidad</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+          <div className="inline-flex h-14 w-fit items-center border border-black/10 bg-white shadow-sm">
+            <span className="flex h-full w-14 items-center justify-center text-black/20">
               <Minus className="h-4 w-4" />
             </span>
-            <span className="flex h-full min-w-12 items-center justify-center border-x border-[#111111] px-4 text-sm font-semibold text-[#111111]">
-              1
+            <span className="flex h-full min-w-14 items-center justify-center border-x border-black/10 px-6 text-sm font-bold text-[#111111] font-mono">
+              01
             </span>
-            <span className="flex h-full w-12 items-center justify-center text-[#9ca3af]">
+            <span className="flex h-full w-14 items-center justify-center text-black/20">
               <Plus className="h-4 w-4" />
             </span>
           </div>
 
           <Button
             type="button"
-            className="h-12 rounded-none bg-[#d71920] px-8 text-[11px] font-bold uppercase tracking-[0.16em] text-white hover:bg-[#d71920]"
+            className="h-14 rounded-none bg-[#d71920] px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-xl opacity-50 cursor-not-allowed flex-1 sm:flex-none"
             disabled
           >
-            Compra disponible en storefront
+            DISPONIBLE EN WEB
           </Button>
         </div>
       </div>
 
-      {product.paypal_price_usd !== null ? (
-        <p className="text-sm leading-6 text-[#5f6368]">
-          PayPal cobrará aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
-          unidad. Si tu cuenta opera en otra moneda, la conversión final la hará PayPal.
-        </p>
-      ) : null}
-
-      <p className="text-sm leading-6 text-[#5f6368]">
-        Esta ficha es solo una preview del dashboard. La compra real y el carrito se activan en la
-        tienda publicada.
-      </p>
+      <div className="space-y-4 pt-6 border-t border-black/5">
+         <p className="text-[10px] font-bold text-[#7a7f87] leading-relaxed uppercase tracking-wider italic">
+            * Vista previa de configuración. El proceso de compra real se activa en la versión de producción.
+         </p>
+      </div>
     </div>
   );
 }
@@ -129,7 +125,7 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
 
   async function handleAddToCart() {
     if (!selectedVariant?.id) {
-      setSelectionError("Selecciona una variante válida antes de añadir al carrito.");
+      setSelectionError("Selecciona una variante antes de añadir al carrito.");
       return;
     }
 
@@ -141,11 +137,11 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {primaryOption ? (
-        <div className="space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#111111]">
-            {primaryOption.title}
+        <div className="space-y-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]">
+            Seleccionar {primaryOption.title}
           </p>
           <div className="flex flex-wrap gap-2">
             {primaryOption.values.map((value, index) => {
@@ -157,11 +153,12 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
                 <button
                   key={`${primaryOption.id}-${value}`}
                   type="button"
-                  className={`inline-flex min-h-11 items-center border px-5 text-[11px] font-bold uppercase tracking-wider transition ${
+                  className={cn(
+                    "inline-flex h-12 items-center border px-6 text-[11px] font-black uppercase tracking-widest transition-all",
                     isSelected
-                      ? "border-[#d71920] bg-white text-[#d71920]"
-                      : "border-[#d5d9e2] bg-white text-[#111111] hover:border-[#d71920]/35"
-                  }`}
+                      ? "border-[#111111] bg-[#111111] text-white shadow-lg translate-y-[-2px]"
+                      : "border-black/10 bg-white text-[#7a7f87] hover:border-[#d71920]/40 hover:text-[#111111]"
+                  )}
                   onClick={() => {
                     setSelectedOptionValue(value);
                     setSelectionError(null);
@@ -175,26 +172,26 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
         </div>
       ) : null}
 
-      <div className="space-y-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#111111]">Cantidad</p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="inline-flex h-12 w-fit items-center border border-[#111111] bg-white">
+      <div className="space-y-4">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]">Cantidad</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+          <div className="inline-flex h-14 w-fit items-center border border-black/10 bg-white shadow-sm">
             <button
               type="button"
-              aria-label="Reducir cantidad"
-              className="flex h-full w-12 items-center justify-center text-[#111111]"
+              aria-label="Reducir"
+              className="flex h-full w-14 items-center justify-center text-[#111111] hover:bg-[#fbfbf8] transition-colors disabled:opacity-20"
               disabled={isBusy || quantity <= 1}
               onClick={() => setQuantity((current) => Math.max(1, current - 1))}
             >
               <Minus className="h-4 w-4" />
             </button>
-            <span className="flex h-full min-w-12 items-center justify-center border-x border-[#111111] px-4 text-sm font-semibold text-[#111111]">
-              {quantity}
+            <span className="flex h-full min-w-14 items-center justify-center border-x border-black/10 px-6 text-sm font-bold text-[#111111] font-mono">
+              {quantity.toString().padStart(2, '0')}
             </span>
             <button
               type="button"
-              aria-label="Aumentar cantidad"
-              className="flex h-full w-12 items-center justify-center text-[#111111]"
+              aria-label="Aumentar"
+              className="flex h-full w-14 items-center justify-center text-[#111111] hover:bg-[#fbfbf8] transition-colors disabled:opacity-20"
               disabled={isBusy || quantity >= maxQuantity}
               onClick={() => setQuantity((current) => Math.min(maxQuantity, current + 1))}
             >
@@ -204,26 +201,22 @@ function InteractiveProductPurchasePanel({ product }: Readonly<Pick<ProductPurch
 
           <Button
             type="button"
-            className="h-12 rounded-none bg-[#d71920] px-8 text-[11px] font-bold uppercase tracking-[0.16em] text-white hover:bg-[#bf161c]"
+            className="h-14 rounded-none bg-[#d71920] px-12 text-[11px] font-black uppercase tracking-[0.2em] text-white hover:bg-[#111111] transition-all shadow-xl flex-1 sm:flex-none"
             disabled={isBusy || isUnavailable || (hasMultipleRealVariants && !selectedVariant)}
             onClick={() => {
               void handleAddToCart();
             }}
           >
-            {isUnavailable ? "No disponible" : isBusy ? "Añadiendo..." : "Añadir al carrito"}
+            {isUnavailable ? "AGOTADO" : isBusy ? "PROCESANDO..." : "AÑADIR AL CARRITO"}
           </Button>
         </div>
       </div>
 
-      {product.paypal_price_usd !== null ? (
-        <p className="text-sm leading-6 text-[#5f6368]">
-          PayPal cobrará aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong> por
-          unidad. Si tu cuenta opera en otra moneda, la conversión final la hará PayPal.
-        </p>
-      ) : null}
-
-      {selectionError ? <p className="text-sm text-red-700">{selectionError}</p> : null}
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {(selectionError || error) && (
+        <div className="p-4 bg-red-50 border-l-2 border-red-600">
+           <p className="text-[10px] font-black uppercase text-red-700 tracking-widest">{selectionError || error}</p>
+        </div>
+      )}
     </div>
   );
 }

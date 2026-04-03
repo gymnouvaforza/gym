@@ -3,15 +3,20 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ADMIN_LOGIN_PATH } from "@/lib/admin";
-import { isAllowedAdminEmail as isAllowedAdminEmailInList } from "@/lib/admin-access";
 import {
-  getAdminAllowedEmails,
   getLocalAdminEnv,
   hasLocalAdminEnv,
   hasSupabasePublicEnv,
   hasSupabaseServiceRole,
 } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  countUsersWithRole,
+  DASHBOARD_ADMIN_ROLE,
+  isUserRolesSchemaError,
+  listUserRolesForServerSession,
+  TRAINER_ROLE,
+} from "@/lib/user-roles";
 
 export const LOCAL_ADMIN_COOKIE = "gym_admin_session";
 export const MEMBER_LOGIN_PATH = "/acceso";
@@ -20,6 +25,14 @@ export interface LocalAdminUser {
   email: string;
   id: string;
   isLocalAdmin: true;
+}
+
+export type DashboardAccessMode = "admin" | "trainer" | "bootstrap" | "local";
+
+export interface DashboardAccessState {
+  accessMode: DashboardAccessMode | null;
+  accessWarning: string | null;
+  user: User | LocalAdminUser | null;
 }
 
 function isSupabaseAuthApiError(error: unknown) {
@@ -33,10 +46,6 @@ function isSupabaseAuthApiError(error: unknown) {
   };
 
   return candidate.__isAuthError === true || candidate.status === 401;
-}
-
-export function isAllowedAdminEmail(email: string | null | undefined) {
-  return isAllowedAdminEmailInList(email, getAdminAllowedEmails());
 }
 
 export async function isLocalAdminSession() {
@@ -80,25 +89,94 @@ export async function getCurrentMemberUser() {
   return getSupabaseUser();
 }
 
-export async function getCurrentAdminUser(): Promise<User | LocalAdminUser | null> {
+async function canBootstrapDashboardAccess() {
+  if (!hasSupabaseServiceRole()) {
+    return false;
+  }
+
+  try {
+    return (await countUsersWithRole(DASHBOARD_ADMIN_ROLE)) === 0;
+  } catch (error) {
+    if (isUserRolesSchemaError(error)) {
+      return true;
+    }
+
+    console.warn(
+      "Supabase admin role count could not be resolved while determining dashboard bootstrap access.",
+      error instanceof Error ? error.message : String(error),
+    );
+
+    return false;
+  }
+}
+
+export async function getDashboardAccessState(): Promise<DashboardAccessState> {
   const supabaseUser = await getSupabaseUser();
 
-  if (supabaseUser?.email && isAllowedAdminEmail(supabaseUser.email)) {
-    return supabaseUser;
+  if (supabaseUser?.id) {
+    try {
+      const roles = await listUserRolesForServerSession(supabaseUser.id);
+
+      if (roles.includes(DASHBOARD_ADMIN_ROLE) || roles.includes(TRAINER_ROLE)) {
+        const accessMode = roles.includes(DASHBOARD_ADMIN_ROLE) ? "admin" : "trainer";
+
+        return {
+          user: supabaseUser,
+          accessMode,
+          accessWarning: null,
+        };
+      }
+
+      if (await canBootstrapDashboardAccess()) {
+        return {
+          user: supabaseUser,
+          accessMode: "bootstrap",
+          accessWarning:
+            "El dashboard esta en modo bootstrap: todavia no existe ningun admin persistente en Supabase. Crea el rol `admin` en `public.user_roles` para cerrar este acceso provisional.",
+        };
+      }
+    } catch (error) {
+      if (isUserRolesSchemaError(error)) {
+        return {
+          user: supabaseUser,
+          accessMode: "bootstrap",
+          accessWarning:
+            "La tabla `public.user_roles` aun no esta disponible para el dashboard. Se habilita acceso provisional mientras terminas la migracion de roles.",
+        };
+      }
+
+      console.warn(
+        "Supabase dashboard roles could not be resolved while determining admin access.",
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 
   if (await isLocalAdminSession()) {
     const adminEnv = getLocalAdminEnv();
     if (adminEnv) {
       return {
-        email: `${adminEnv.user} (local)`,
-        id: `local-admin:${adminEnv.user}`,
-        isLocalAdmin: true,
+        user: {
+          email: `${adminEnv.user} (local)`,
+          id: `local-admin:${adminEnv.user}`,
+          isLocalAdmin: true,
+        },
+        accessMode: "local",
+        accessWarning: null,
       };
     }
   }
 
-  return null;
+  return {
+    user: null,
+    accessMode: null,
+    accessWarning: null,
+  };
+}
+
+export async function getCurrentAdminUser(): Promise<User | LocalAdminUser | null> {
+  const accessState = await getDashboardAccessState();
+  return accessState.user;
 }
 
 export async function requireMemberUser(redirectTo = MEMBER_LOGIN_PATH) {
@@ -121,13 +199,31 @@ export async function requireAdminUser(redirectTo = `${ADMIN_LOGIN_PATH}?error=a
   return user;
 }
 
+export async function requireSuperadminUser(
+  redirectTo = `${ADMIN_LOGIN_PATH}?error=admin-only`,
+) {
+  const accessState = await getDashboardAccessState();
+
+  if (
+    !accessState.user ||
+    !["admin", "bootstrap", "local"].includes(accessState.accessMode ?? "")
+  ) {
+    redirect(redirectTo);
+  }
+
+  return accessState.user;
+}
+
 export async function getDashboardCapabilities() {
-  const localAdminSession = await isLocalAdminSession();
+  const accessState = await getDashboardAccessState();
   const canManageRealData = hasSupabaseServiceRole();
 
   return {
     canManageRealData,
-    isLocalReadOnly: localAdminSession && !canManageRealData,
+    accessMode: accessState.accessMode,
+    accessWarning: accessState.accessWarning,
+    isBootstrap: accessState.accessMode === "bootstrap",
+    isLocalReadOnly: accessState.accessMode === "local" && !canManageRealData,
     isReadOnly: !canManageRealData,
   };
 }

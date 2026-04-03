@@ -25,7 +25,31 @@ function isRecoverableActiveCartLookupError(error: unknown) {
 
   return (
     normalized.includes("no se pudo recuperar el carrito activo del socio") &&
-    normalized.includes("not found")
+    (
+      normalized.includes("not found") ||
+      normalized.includes("customer") ||
+      normalized.includes("internal server error") ||
+      normalized.includes("unknown error occurred")
+    )
+  );
+}
+
+function isRecoverableAttachBridgeError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const normalized = error.message.toLowerCase();
+
+  if (!normalized.includes("no se pudo vincular el carrito a la cuenta del miembro")) {
+    return false;
+  }
+
+  return (
+    normalized.includes("not found") ||
+    normalized.includes("customer") ||
+    normalized.includes("internal server error") ||
+    normalized.includes("unknown error occurred")
   );
 }
 
@@ -66,7 +90,7 @@ export async function POST(request: Request) {
       } catch (attachError) {
         const attachMessage = getErrorMessage(attachError);
 
-        if (!isMissingCartMessage(attachMessage)) {
+        if (!isMissingCartMessage(attachMessage) && !isRecoverableAttachBridgeError(attachError)) {
           throw attachError;
         }
 

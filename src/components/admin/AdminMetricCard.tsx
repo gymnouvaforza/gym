@@ -17,6 +17,7 @@ interface AdminMetricCardProps {
   hint: string;
   icon: LucideIcon;
   tone?: keyof typeof toneClasses;
+  className?: string;
 }
 
 export default function AdminMetricCard({
@@ -25,9 +26,10 @@ export default function AdminMetricCard({
   hint,
   icon: Icon,
   tone = "default",
+  className,
 }: Readonly<AdminMetricCardProps>) {
   return (
-    <AdminSurface className="p-5 sm:p-6">
+    <AdminSurface className={cn("p-5 sm:p-6", className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-4">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#7a7f87]">

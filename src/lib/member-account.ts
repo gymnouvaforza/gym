@@ -1,8 +1,13 @@
 import { formatShortDate } from "@/lib/utils";
 
 interface AuthProviderLike {
+  email?: string | null;
   app_metadata?: {
+    full_name?: unknown;
     provider?: unknown;
+  } | null;
+  user_metadata?: {
+    full_name?: unknown;
   } | null;
   identities?: Array<{
     provider?: string | null;
@@ -43,6 +48,34 @@ export function getMemberAuthProviderLabel(user: AuthProviderLike) {
     default:
       return "Acceso basico";
   }
+}
+
+export function isPasswordAuthProvider(user: AuthProviderLike) {
+  const provider =
+    normalizeProvider(user.app_metadata?.provider) ??
+    normalizeProvider(user.identities?.[0]?.provider);
+
+  return provider === "email" || provider === "password" || provider === null;
+}
+
+function getDisplayNameFromEmail(email: string | null | undefined) {
+  const normalized = email?.trim().toLowerCase() ?? "";
+  const localPart = normalized.split("@")[0] ?? "usuario";
+
+  return localPart
+    .split(/[._+\-]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+export function getMemberDisplayName(user: AuthProviderLike) {
+  const appMetadataName =
+    typeof user.app_metadata?.full_name === "string" ? user.app_metadata.full_name.trim() : "";
+  const userMetadataName =
+    typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name.trim() : "";
+
+  return appMetadataName || userMetadataName || getDisplayNameFromEmail(user.email);
 }
 
 export function getMemberAccountQuickLinks(input: {

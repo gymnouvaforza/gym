@@ -41,7 +41,6 @@ const publicEnvSchema = z.object({
 });
 
 const serverEnvSchema = publicEnvSchema.extend({
-  ADMIN_ALLOWED_EMAILS: optionalString(z.string()),
   ADMIN_PASSWORD: optionalString(z.string().min(1)),
   ADMIN_USER: optionalString(z.string().min(1)),
   COMMERCE_CURRENCY_CODE: optionalString(z.string().length(3)),
@@ -101,7 +100,6 @@ const serverEnv = serverEnvSchema.parse({
   SUPABASE_URL: process.env.SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_MEDUSA_REGION_ID: process.env.NEXT_PUBLIC_MEDUSA_REGION_ID,
-  ADMIN_ALLOWED_EMAILS: process.env.ADMIN_ALLOWED_EMAILS,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   ADMIN_USER: process.env.ADMIN_USER,
   COMMERCE_CURRENCY_CODE: process.env.COMMERCE_CURRENCY_CODE,
@@ -388,13 +386,6 @@ export function getPaymentTestProfileEnv() {
       serverEnv.PAYMENT_TEST_CARD_EXPIRY ?? defaultPeruPaymentTestProfile.cardExpiry,
     cardCvv: serverEnv.PAYMENT_TEST_CARD_CVV ?? defaultPeruPaymentTestProfile.cardCvv,
   };
-}
-
-export function getAdminAllowedEmails() {
-  return (serverEnv.ADMIN_ALLOWED_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
 }
 
 export function hasLocalAdminEnv() {

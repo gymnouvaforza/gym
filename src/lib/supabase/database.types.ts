@@ -6,12 +6,28 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type DBCmsDocument = Database["public"]["Tables"]["cms_documents"]["Row"];
+export type DBMarketingPlan = Database["public"]["Tables"]["marketing_plans"]["Row"];
+export type DBMarketingScheduleRow = Database["public"]["Tables"]["marketing_schedule_rows"]["Row"];
+export type Lead = Database["public"]["Tables"]["leads"]["Row"];
+export type LeadStatus = Database["public"]["Enums"]["lead_status"];
+export type SiteSettings = Database["public"]["Tables"]["site_settings"]["Row"];
+
+export type DBMemberPlanSnapshot = Database["public"]["Tables"]["member_plan_snapshots"]["Row"];
+export type DBMemberProfile = Database["public"]["Tables"]["member_profiles"]["Row"];
+export type DBMemberRoutineExerciseFeedback =
+  Database["public"]["Tables"]["member_routine_exercise_feedback"]["Row"];
+export type DBMemberRoutineFeedback = Database["public"]["Tables"]["member_routine_feedback"]["Row"];
+export type DBRoutineAssignment = Database["public"]["Tables"]["routine_assignments"]["Row"];
+export type DBRoutineTemplate = Database["public"]["Tables"]["routine_templates"]["Row"];
+export type DBRoutineTemplateBlock = Database["public"]["Tables"]["routine_template_blocks"]["Row"];
+export type DBRoutineTemplateExercise = Database["public"]["Tables"]["routine_template_exercises"]["Row"];
+export type DBTrainerProfile = Database["public"]["Tables"]["trainer_profiles"]["Row"];
+export type DBMemberCommerceCustomer = Database["public"]["Tables"]["member_commerce_customers"]["Row"];
+export type DBProduct = Database["public"]["Tables"]["product"]["Row"];
+export type DBStoreCategory = Database["public"]["Tables"]["product_category"]["Row"];
+
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.4"
-  }
   public: {
     Tables: {
       account_holder: {
@@ -1789,6 +1805,109 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_plans: {
+        Row: {
+          badge: string | null
+          billing_label: string
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          order: number
+          price_label: string
+          site_settings_id: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge?: string | null
+          billing_label: string
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          order?: number
+          price_label: string
+          site_settings_id?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          badge?: string | null
+          billing_label?: string
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          order?: number
+          price_label?: string
+          site_settings_id?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_plans_site_settings_id_fkey"
+            columns: ["site_settings_id"]
+            isOneToOne: false
+            referencedRelation: "site_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_schedule_rows: {
+        Row: {
+          closes_at: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          label: string
+          opens_at: string
+          order: number
+          site_settings_id: number
+          updated_at: string
+        }
+        Insert: {
+          closes_at: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          opens_at: string
+          order?: number
+          site_settings_id?: number
+          updated_at?: string
+        }
+        Update: {
+          closes_at?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          opens_at?: string
+          order?: number
+          site_settings_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_schedule_rows_site_settings_id_fkey"
+            columns: ["site_settings_id"]
+            isOneToOne: false
+            referencedRelation: "site_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_commerce_customers: {
         Row: {
           created_at: string
@@ -1809,6 +1928,101 @@ export type Database = {
           email?: string
           medusa_customer_id?: string
           supabase_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      member_plan_snapshots: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          is_current: boolean
+          label: string
+          member_id: string
+          notes: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          is_current?: boolean
+          label: string
+          member_id: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          is_current?: boolean
+          label?: string
+          member_id?: string
+          notes?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_plan_snapshots_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_profiles: {
+        Row: {
+          branch_name: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          join_date: string
+          member_number: string
+          notes: string | null
+          phone: string | null
+          status: string
+          supabase_user_id: string | null
+          trainer_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          branch_name?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          join_date?: string
+          member_number: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          supabase_user_id?: string | null
+          trainer_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          branch_name?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          join_date?: string
+          member_number?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          supabase_user_id?: string | null
+          trainer_user_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -5417,6 +5631,294 @@ export type Database = {
           },
         ]
       }
+      member_routine_exercise_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          liked: boolean
+          member_id: string
+          note: string | null
+          routine_assignment_id: string
+          routine_template_exercise_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          liked?: boolean
+          member_id: string
+          note?: string | null
+          routine_assignment_id: string
+          routine_template_exercise_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          liked?: boolean
+          member_id?: string
+          note?: string | null
+          routine_assignment_id?: string
+          routine_template_exercise_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_routine_exercise_feedback_assignment_member_fkey"
+            columns: ["routine_assignment_id", "member_id"]
+            isOneToOne: false
+            referencedRelation: "routine_assignments"
+            referencedColumns: ["id", "member_id"]
+          },
+          {
+            foreignKeyName: "member_routine_exercise_feedback_routine_template_exercise_id_fkey"
+            columns: ["routine_template_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "routine_template_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_routine_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          liked: boolean
+          member_id: string
+          note: string | null
+          routine_assignment_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          liked?: boolean
+          member_id: string
+          note?: string | null
+          routine_assignment_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          liked?: boolean
+          member_id?: string
+          note?: string | null
+          routine_assignment_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_routine_feedback_assignment_member_fkey"
+            columns: ["routine_assignment_id", "member_id"]
+            isOneToOne: false
+            referencedRelation: "routine_assignments"
+            referencedColumns: ["id", "member_id"]
+          },
+        ]
+      }
+      routine_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by_user_id: string | null
+          created_at: string
+          ends_on: string | null
+          id: string
+          member_id: string
+          notes: string | null
+          recommended_schedule_label: string | null
+          routine_template_id: string
+          starts_on: string | null
+          status: string
+          trainer_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by_user_id?: string | null
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          member_id: string
+          notes?: string | null
+          recommended_schedule_label?: string | null
+          routine_template_id: string
+          starts_on?: string | null
+          status?: string
+          trainer_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by_user_id?: string | null
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          member_id?: string
+          notes?: string | null
+          recommended_schedule_label?: string | null
+          routine_template_id?: string
+          starts_on?: string | null
+          status?: string
+          trainer_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_assignments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routine_assignments_routine_template_id_fkey"
+            columns: ["routine_template_id"]
+            isOneToOne: false
+            referencedRelation: "routine_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routine_template_blocks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          routine_template_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          routine_template_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          routine_template_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_template_blocks_routine_template_id_fkey"
+            columns: ["routine_template_id"]
+            isOneToOne: false
+            referencedRelation: "routine_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routine_template_exercises: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          reps_label: string
+          rest_seconds: number
+          routine_block_id: string
+          sets_label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          reps_label: string
+          rest_seconds?: number
+          routine_block_id: string
+          sets_label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          reps_label?: string
+          rest_seconds?: number
+          routine_block_id?: string
+          sets_label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_template_exercises_routine_block_id_fkey"
+            columns: ["routine_block_id"]
+            isOneToOne: false
+            referencedRelation: "routine_template_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routine_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          difficulty_label: string
+          duration_label: string
+          goal: string
+          id: string
+          intensity_label: string
+          is_active: boolean
+          notes: string | null
+          slug: string
+          status_label: string
+          summary: string
+          title: string
+          trainer_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          difficulty_label: string
+          duration_label: string
+          goal: string
+          id?: string
+          intensity_label: string
+          is_active?: boolean
+          notes?: string | null
+          slug: string
+          status_label?: string
+          summary: string
+          title: string
+          trainer_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          difficulty_label?: string
+          duration_label?: string
+          goal?: string
+          id?: string
+          intensity_label?: string
+          is_active?: boolean
+          notes?: string | null
+          slug?: string
+          status_label?: string
+          summary?: string
+          title?: string
+          trainer_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sales_channel: {
         Row: {
           created_at: string
@@ -5737,109 +6239,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      marketing_plans: {
-        Row: {
-          badge: string | null
-          billing_label: string
-          created_at: string
-          description: string | null
-          features: Json
-          id: string
-          is_active: boolean
-          is_featured: boolean
-          order: number
-          price_label: string
-          site_settings_id: number
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          badge?: string | null
-          billing_label: string
-          created_at?: string
-          description?: string | null
-          features?: Json
-          id?: string
-          is_active?: boolean
-          is_featured?: boolean
-          order?: number
-          price_label: string
-          site_settings_id?: number
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          badge?: string | null
-          billing_label?: string
-          created_at?: string
-          description?: string | null
-          features?: Json
-          id?: string
-          is_active?: boolean
-          is_featured?: boolean
-          order?: number
-          price_label?: string
-          site_settings_id?: number
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "marketing_plans_site_settings_id_fkey"
-            columns: ["site_settings_id"]
-            isOneToOne: false
-            referencedRelation: "site_settings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      marketing_schedule_rows: {
-        Row: {
-          closes_at: string
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          label: string
-          opens_at: string
-          order: number
-          site_settings_id: number
-          updated_at: string
-        }
-        Insert: {
-          closes_at: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          label: string
-          opens_at: string
-          order?: number
-          site_settings_id?: number
-          updated_at?: string
-        }
-        Update: {
-          closes_at?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          label?: string
-          opens_at?: string
-          order?: number
-          site_settings_id?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "marketing_schedule_rows_site_settings_id_fkey"
-            columns: ["site_settings_id"]
-            isOneToOne: false
-            referencedRelation: "site_settings"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       site_settings: {
         Row: {
@@ -6363,6 +6762,36 @@ export type Database = {
           },
         ]
       }
+      trainer_profiles: {
+        Row: {
+          bio: string | null
+          branch_name: string | null
+          created_at: string
+          display_name: string | null
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          branch_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          branch_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user: {
         Row: {
           avatar_url: string | null
@@ -6451,6 +6880,39 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           rbac_role_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          created_at: string
+          is_irreversible: boolean
+          note: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          is_irreversible?: boolean
+          note?: string | null
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          is_irreversible?: boolean
+          note?: string | null
+          role?: string
           updated_at?: string
           user_id?: string
         }
@@ -6728,18 +7190,3 @@ export const Constants = {
     },
   },
 } as const
-
-export type Lead = Database["public"]["Tables"]["leads"]["Row"]
-export type LeadStatus = Database["public"]["Enums"]["lead_status"]
-export type DBCmsDocument = Database["public"]["Tables"]["cms_documents"]["Row"]
-export type DBMemberCommerceCustomer =
-  Database["public"]["Tables"]["member_commerce_customers"]["Row"]
-export type DBMarketingPlan = Database["public"]["Tables"]["marketing_plans"]["Row"]
-export type DBMarketingScheduleRow =
-  Database["public"]["Tables"]["marketing_schedule_rows"]["Row"]
-export type SiteSettings = Database["public"]["Tables"]["site_settings"]["Row"]
-export type DBProduct = Database["public"]["Tables"]["products"]["Row"]
-export type DBStoreCategory = Database["public"]["Tables"]["store_categories"]["Row"]
-export type DBProductCategory = Database["public"]["Enums"]["store_category_type"]
-export type DBProductStockStatus =
-  Database["public"]["Enums"]["product_stock_status"]

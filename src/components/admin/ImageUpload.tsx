@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Loader2, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 
-import { normalizeCommerceImageUrl } from "@/lib/commerce/image-urls";
+import { normalizeCommerceImageUrl, PRODUCT_IMAGES_BUCKET } from "@/lib/commerce/image-urls";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +35,7 @@ export default function ImageUpload({
         const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
         const filePath = `${fileName}`;
 
-        const { error } = await supabase.storage.from("medusa-media").upload(filePath, file);
+        const { error } = await supabase.storage.from(PRODUCT_IMAGES_BUCKET).upload(filePath, file);
 
         if (error) {
           console.error("Upload error:", error);
@@ -44,7 +44,7 @@ export default function ImageUpload({
 
         const {
           data: { publicUrl },
-        } = supabase.storage.from("medusa-media").getPublicUrl(filePath);
+        } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(filePath);
 
         newUrls.push(publicUrl);
       }

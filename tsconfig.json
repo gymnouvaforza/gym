@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,14 +17,24 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "types": ["vitest/globals"],
+    "types": [
+      "vitest/globals"
+    ],
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@mobile-contracts": [
+        "./packages/mobile-contracts/src/index.ts"
+      ],
+      "@mobile-contracts/*": [
+        "./packages/mobile-contracts/src/*"
+      ]
     }
   },
   "include": [
@@ -29,7 +43,15 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "nativewind-env.d.ts"
   ],
-  "exclude": ["apps/medusa/**/*", "node_modules", "supabase/functions/**/*", "debug/**/*", "tmp/**/*"]
+  "exclude": [
+    "apps/medusa/**/*",
+    "apps/mobile/**/*",
+    "node_modules",
+    "supabase/functions/**/*",
+    "debug/**/*",
+    "tmp/**/*"
+  ]
 }

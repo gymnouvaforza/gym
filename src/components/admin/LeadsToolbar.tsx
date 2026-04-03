@@ -1,14 +1,13 @@
 "use client";
 
-import { Download, Search, X } from "lucide-react";
+import { Download, Search, X, ChevronDown } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DEFAULT_LEAD_FILTERS, LeadFilters, LeadSort } from "@/lib/data/leads";
-
-import AdminSurface from "./AdminSurface";
+import { cn } from "@/lib/utils";
 
 interface LeadsToolbarProps {
   filters: LeadFilters;
@@ -74,114 +73,121 @@ export default function LeadsToolbar({
     : "/api/dashboard/leads/export";
 
   return (
-    <AdminSurface inset className="flex flex-col gap-4 p-4 md:flex-row md:items-end">
-      <div className="flex-1 space-y-1.5">
-        <label htmlFor="q" className="text-xs font-medium text-[#5f6368]">
-          Buscar
+    <div className="space-y-6">
+      {/* SEARCH BOX */}
+      <div className="space-y-2">
+        <label htmlFor="q" className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
+          Buscador Rapido
         </label>
-        <p className="text-xs leading-5 text-[#7a7f87]">
-          Filtra por nombre, email o teléfono sin salir de la bandeja.
-        </p>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7a7f87]" />
-          <Input
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#111111]/20" />
+          <input
             id="q"
-            placeholder="Nombre, email o teléfono..."
+            placeholder="Nombre, email..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="h-11 pl-10"
+            className="flex h-10 w-full border border-black/10 bg-[#fbfbf8] pl-9 pr-4 text-xs font-bold text-[#111111] outline-none focus:bg-white focus:ring-1 focus:ring-[#d71920]/20 transition-all"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:flex md:items-end">
-        <div className="min-w-[140px] space-y-1.5">
-          <label htmlFor="status" className="text-xs font-medium text-[#5f6368]">
-            Estado
+      {/* FILTERS STACK */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="status" className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
+            Estado Operativo
           </label>
-          <select
-            id="status"
-            value={filters.status}
-            onChange={(event) => updateParams({ status: event.target.value })}
-            className="h-11 w-full rounded-none border border-black/10 bg-white px-3 text-sm text-[#111111] outline-none transition-colors focus:border-[#d71920]/30 focus-visible:ring-2 focus-visible:ring-[#d71920]/20"
-          >
-            <option value="all">Todos</option>
-            <option value="new">Nuevo</option>
-            <option value="contacted">Contactado</option>
-            <option value="closed">Cerrado</option>
-          </select>
+          <div className="relative">
+            <select
+              id="status"
+              value={filters.status}
+              onChange={(event) => updateParams({ status: event.target.value })}
+              className="h-10 w-full appearance-none border border-black/10 bg-white px-3 text-xs font-black uppercase text-[#111111] outline-none focus:ring-1 focus:ring-[#d71920]/20 transition-all"
+            >
+              <option value="all">Todos los estados</option>
+              <option value="new">Nuevos</option>
+              <option value="contacted">Contactados</option>
+              <option value="closed">Cerrados</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 h-3 w-3 -translate-y-1/2 text-black/20 pointer-events-none" />
+          </div>
         </div>
 
-        <div className="min-w-[140px] space-y-1.5">
-          <label htmlFor="source" className="text-xs font-medium text-[#5f6368]">
-            Origen
+        <div className="space-y-2">
+          <label htmlFor="source" className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
+            Canal de Entrada
           </label>
-          <select
-            id="source"
-            value={filters.source}
-            onChange={(event) => updateParams({ source: event.target.value })}
-            className="h-11 w-full rounded-none border border-black/10 bg-white px-3 text-sm text-[#111111] outline-none transition-colors focus:border-[#d71920]/30 focus-visible:ring-2 focus-visible:ring-[#d71920]/20"
-          >
-            <option value="all">Todos</option>
-            {availableSources.map((source) => (
-              <option key={source} value={source}>
-                {source}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="source"
+              value={filters.source}
+              onChange={(event) => updateParams({ source: event.target.value })}
+              className="h-10 w-full appearance-none border border-black/10 bg-white px-3 text-xs font-black uppercase text-[#111111] outline-none focus:ring-1 focus:ring-[#d71920]/20 transition-all"
+            >
+              <option value="all">Cualquier origen</option>
+              {availableSources.map((source) => (
+                <option key={source} value={source}>
+                  {source.toUpperCase()}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 h-3 w-3 -translate-y-1/2 text-black/20 pointer-events-none" />
+          </div>
         </div>
 
-        <div className="min-w-[140px] space-y-1.5">
-          <label htmlFor="sort" className="text-xs font-medium text-[#5f6368]">
-            Orden
+        <div className="space-y-2">
+          <label htmlFor="sort" className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
+            Prioridad de Lista
           </label>
-          <select
-            id="sort"
-            value={filters.sort}
-            onChange={(event) => updateParams({ sort: event.target.value as LeadSort })}
-            className="h-11 w-full rounded-none border border-black/10 bg-white px-3 text-sm text-[#111111] outline-none transition-colors focus:border-[#d71920]/30 focus-visible:ring-2 focus-visible:ring-[#d71920]/20"
-          >
-            <option value="created_desc">Más recientes primero</option>
-            <option value="created_asc">Más antiguos primero</option>
-            <option value="name_asc">Nombre A-Z</option>
-          </select>
+          <div className="relative">
+            <select
+              id="sort"
+              value={filters.sort}
+              onChange={(event) => updateParams({ sort: event.target.value as LeadSort })}
+              className="h-10 w-full appearance-none border border-black/10 bg-white px-3 text-xs font-black uppercase text-[#111111] outline-none focus:ring-1 focus:ring-[#d71920]/20 transition-all"
+            >
+              <option value="created_desc">Recientes primero</option>
+              <option value="created_asc">Antiguos primero</option>
+              <option value="name_asc">Orden alfabetico</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 h-3 w-3 -translate-y-1/2 text-black/20 pointer-events-none" />
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 md:ml-auto">
+      {/* ACTIONS */}
+      <div className="pt-4 space-y-2">
         <Button
           type="button"
           variant="outline"
           asChild={!disabledReason}
           disabled={Boolean(disabledReason)}
           title={disabledReason ?? "Exporta la vista actual en CSV."}
-          className="h-11 font-medium tracking-normal"
+          className="w-full h-10 bg-white border-black/10 text-[9px] font-black uppercase tracking-[0.2em] text-[#111111] hover:bg-[#111111] hover:text-white transition-all rounded-none"
         >
           {disabledReason ? (
-            <span>
-              <Download className="h-4 w-4" />
-              Exportar CSV
+            <span className="flex items-center justify-center gap-2">
+              <Download className="h-3 w-3" />
+              Exportar Datos
             </span>
           ) : (
-            <a href={exportHref}>
-              <Download className="h-4 w-4" />
-              Exportar CSV
+            <a href={exportHref} className="flex items-center justify-center gap-2">
+              <Download className="h-3 w-3" />
+              Exportar Datos
             </a>
           )}
         </Button>
 
         {hasFilters ? (
-          <Button
-            type="button"
-            variant="outline"
+          <button
             onClick={handleClear}
-            className="h-11 border-dashed border-[#7a7f87]/30 font-medium tracking-normal text-[#5f6368] hover:text-[#d71920]"
+            className="w-full py-2 text-[9px] font-black uppercase tracking-[0.2em] text-[#d71920] hover:bg-[#d71920]/5 transition-all flex items-center justify-center gap-2"
           >
-            <X className="h-4 w-4" />
-            Limpiar
-          </Button>
+            <X className="h-3 w-3" />
+            Limpiar Filtros
+          </button>
         ) : null}
       </div>
-    </AdminSurface>
+    </div>
   );
 }

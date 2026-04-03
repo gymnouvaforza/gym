@@ -1,13 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import ProductCard from "@/components/marketing/ProductCard";
 import { getCommerceCatalog } from "@/lib/commerce/catalog";
 import {
-  formatProductPrice,
-  formatUsdPrice,
   getFeaturedProducts,
-  productCategoryLabels,
 } from "@/lib/data/products";
 
 export default async function ProductsSection() {
@@ -16,107 +13,61 @@ export default async function ProductsSection() {
   const featuredProducts = getFeaturedProducts(products, 4);
 
   return (
-    <section id="tienda" className="section-anchor bg-[#f5f5f0] py-24 md:py-32">
+    <section id="tienda" className="section-anchor bg-[#fbfbf8] py-24 md:py-32">
       <div className="section-shell">
-        <div className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="section-kicker">Tienda del club</p>
-            <h2 className="section-title italic">
-              Producto <span className="text-accent">bien elegido</span>, sin ruido
+        <div className="mb-16 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+               <div className="h-1.5 w-1.5 bg-[#d71920]" />
+               <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">
+                 Equipamiento Oficial
+               </p>
+            </div>
+            <h2 className="font-display text-5xl font-black uppercase leading-none text-[#111111] sm:text-7xl italic">
+              Tienda <span className="text-black/10">Pro</span>
             </h2>
-            <p className="section-copy mt-6">
-              Suplementos, accesorios y merchandising seleccionados para una operacion local
-              clara, simple y coherente con la recogida en el club.
+            <p className="max-w-2xl text-lg font-medium leading-relaxed text-[#5f6368] border-l border-black/5 pl-8">
+              Suplementos de élite, accesorios de fuerza y merchandising oficial. 
+              Seleccionados por nuestros preparadores para maximizar tu rendimiento.
             </p>
           </div>
 
-          <Button asChild variant="outline" className="w-fit">
-            <Link href="/tienda">Ver catalogo completo</Link>
-          </Button>
+          <Link 
+            href="/tienda" 
+            className="h-16 px-12 bg-[#111111] text-white flex items-center justify-center font-black uppercase text-[11px] tracking-[0.2em] hover:bg-[#d71920] transition-all shadow-2xl"
+          >
+            Ver Catálogo Completo
+          </Link>
         </div>
 
         {catalog.status === "unavailable" ? (
-          <div className="bg-white p-8 text-center shadow-[0_28px_80px_-52px_rgba(17,17,17,0.34)] sm:p-10">
-            <p className="text-lg font-semibold text-[#111111]">
-              El catalogo de la tienda no esta disponible ahora mismo.
+          <div className="bg-white border border-dashed border-black/10 p-12 text-center shadow-xl">
+            <p className="text-xl font-black uppercase tracking-tight text-[#111111]">
+              Catálogo temporalmente fuera de línea
             </p>
-            <p className="mt-2 text-sm text-[#5f6368]">
-              La web ya no usa datos locales de respaldo. Cuando Medusa vuelva a responder,
-              reapareceran aqui los productos destacados.
+            <p className="mt-4 text-sm font-medium text-[#5f6368] max-w-lg mx-auto leading-relaxed">
+              Estamos sincronizando el stock con el club. El catálogo profesional volverá a estar disponible en unos minutos.
             </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Button asChild variant="outline">
-                <Link href="/tienda">Abrir tienda</Link>
+            <div className="mt-10 flex flex-wrap justify-center gap-4">
+              <Button asChild variant="outline" className="h-14 px-8 rounded-none font-black uppercase text-[10px] tracking-widest border-black/10">
+                <Link href="/tienda">Reintentar Acceso</Link>
               </Button>
-              <Button asChild className="btn-athletic btn-primary">
-                <Link href="/#contacto">Hablar con un asesor</Link>
+              <Button asChild className="h-14 px-8 rounded-none bg-[#111111] font-black uppercase text-[10px] tracking-widest">
+                <Link href="/#contacto">Consultar Disponibilidad</Link>
               </Button>
             </div>
           </div>
         ) : featuredProducts.length ? (
-          <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             {featuredProducts.map((product) => (
-              <article
-                key={product.id}
-                className="group relative flex flex-col overflow-hidden rounded-none bg-white shadow-[0_28px_80px_-52px_rgba(17,17,17,0.34)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_36px_95px_-52px_rgba(17,17,17,0.4)]"
-              >
-                <Link
-                  href={`/tienda/${product.slug}`}
-                  className="relative aspect-square overflow-hidden bg-[#f1ece4]"
-                >
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(215,25,32,0.12),transparent_55%)]" />
-                  <Image
-                    src={product.images[0] ?? "/images/products/product-1.png"}
-                    alt={product.name}
-                    fill
-                    className="object-contain p-8 transition-transform duration-700 group-hover:scale-105"
-                  />
-                </Link>
-
-                <div className="flex flex-1 flex-col p-7">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent/70">
-                    {productCategoryLabels[product.category]}
-                  </p>
-                  <h3 className="mt-4 min-h-[56px] font-display text-2xl font-bold uppercase tracking-tight text-foreground">
-                    <Link href={`/tienda/${product.slug}`} className="transition hover:text-accent">
-                      {product.name}
-                    </Link>
-                  </h3>
-                  <p className="mt-3 text-sm leading-6 text-[#4b5563]">
-                    {product.short_description}
-                  </p>
-                  <div className="mt-6 flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-lg font-semibold text-[#111111]">
-                        {formatProductPrice(product)}
-                      </p>
-                      {product.paypal_price_usd !== null ? (
-                        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5f6368]">
-                          PayPal: {formatUsdPrice(product.paypal_price_usd)}
-                        </p>
-                      ) : null}
-                    </div>
-                    <Button asChild className="btn-athletic btn-primary !h-12 !px-6 !text-xs">
-                      <Link href={`/tienda/${product.slug}`}>Ver ficha</Link>
-                    </Button>
-                  </div>
-                </div>
-              </article>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="bg-white p-8 text-center shadow-[0_28px_80px_-52px_rgba(17,17,17,0.34)] sm:p-10">
-            <p className="text-lg font-semibold text-[#111111]">No hay productos destacados por ahora.</p>
-            <p className="mt-2 text-sm text-[#5f6368]">
-              Puedes explorar el catalogo completo o pedir recomendacion en contacto.
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Button asChild variant="outline">
-                <Link href="/tienda">Abrir catalogo</Link>
-              </Button>
-              <Button asChild className="btn-athletic btn-primary">
-                <Link href="/#contacto">Hablar con un asesor</Link>
-              </Button>
+          <div className="bg-[#fbfbf8] border-2 border-dashed border-black/5 p-20 text-center">
+            <p className="text-sm font-bold text-black/20 uppercase tracking-[0.4em]">Sin productos destacados en esta sesión.</p>
+            <div className="mt-10">
+               <Link href="/tienda" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d71920] hover:underline underline-offset-8">Abrir Tienda General</Link>
             </div>
           </div>
         )}

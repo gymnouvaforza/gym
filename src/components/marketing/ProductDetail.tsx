@@ -8,6 +8,8 @@ import {
   TimerReset,
 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import ProductPurchasePanel from "@/components/cart/ProductPurchasePanel";
 import ProductGallery from "@/components/marketing/ProductGallery";
 import type { Product } from "@/data/types";
@@ -57,179 +59,187 @@ export default function ProductDetail({
   const benefitItems = product.benefits?.length ? product.benefits : product.highlights;
   const usageItems = product.usage_steps?.length
     ? product.usage_steps
-    : ["Consulta al equipo del club para encajar este producto en tu rutina."];
+    : ["Consulta al equipo del club para integrar este producto en tu plan de entrenamiento."];
   const specificationItems =
     product.specifications?.length
       ? product.specifications
       : [
-          { label: "Categoria", value: productCategoryLabels[product.category] },
-          { label: "Estado", value: stockMeta.label },
-          { label: "Recogida", value: product.pickup_only ? "En local" : "Segun disponibilidad" },
+          { label: "Categoría", value: productCategoryLabels[product.category] },
+          { label: "Disponibilidad", value: stockMeta.label },
+          { label: "Recogida", value: product.pickup_only ? "Sede Central" : "En Sala" },
         ];
 
   return (
-    <section className={previewMode ? "py-0" : "section-shell py-6 md:py-8"}>
+    <section className={previewMode ? "py-0" : "section-shell py-12 md:py-20"}>
       {!previewMode ? (
         <nav
           aria-label="Breadcrumb"
-          className="mb-5 flex flex-wrap items-center gap-2 text-[10px] font-medium text-[#8a867f]"
+          className="mb-12 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]"
         >
           <Link href="/" className="transition hover:text-[#d71920]">
-            Inicio
+            INICIO
           </Link>
-          <span>&gt;</span>
+          <span className="text-black/10">/</span>
           <Link href="/tienda" className="transition hover:text-[#d71920]">
-            Tienda
+            TIENDA PRO
           </Link>
-          <span>&gt;</span>
+          <span className="text-black/10">/</span>
           <Link
             href={`/tienda?categoria=${product.category}`}
             className="transition hover:text-[#d71920]"
           >
-            {productCategoryLabels[product.category]}
+            {productCategoryLabels[product.category].toUpperCase()}
           </Link>
-          <span>&gt;</span>
-          <span className="font-semibold text-[#111111]">{product.name}</span>
+          <span className="text-black/10">/</span>
+          <span className="text-[#111111]">{product.name.toUpperCase()}</span>
         </nav>
       ) : (
-        <div className="mb-5 inline-flex items-center border border-[#ddd5ca] bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#6b7280]">
-          Preview ficha PDP
+        <div className="mb-8 inline-flex items-center bg-[#111111] px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] text-white">
+          PREVIEW: FICHA TÉCNICA PDP
         </div>
       )}
 
       <div
         className={
           previewMode
-            ? "grid gap-6"
-            : "grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.98fr)] xl:items-start"
+            ? "grid gap-12"
+            : "grid gap-16 xl:grid-cols-[1fr_500px] xl:items-start"
         }
       >
         <ProductGallery name={product.name} images={product.images} />
 
-        <div className={previewMode ? "space-y-5" : "space-y-6"}>
-          <div className="space-y-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#d71920]">
-              {product.eyebrow ?? "Suplemento de elite"}
-            </p>
-            <div className="max-w-xl space-y-4">
-              <h1
-                className={
-                  previewMode
-                    ? "font-display text-3xl font-extrabold uppercase leading-[0.95] tracking-[0.01em] text-[#0f2341] sm:text-4xl"
-                    : "font-display text-4xl font-extrabold uppercase leading-[0.92] tracking-[0.01em] text-[#0f2341] sm:text-5xl"
-                }
-              >
-                {product.name}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="font-display text-3xl font-bold tracking-tight text-[#111111] sm:text-4xl">
-                  {formatProductPrice(product)}
-                </p>
-                {showComparePrice ? (
-                  <p className="text-sm font-semibold text-[#9ca3af] line-through">
-                    {formatProductPrice({
-                      price: comparePrice,
-                      currency: product.currency,
-                    })}
+        <div className="space-y-12">
+          <div className="space-y-8">
+            <div className="space-y-2">
+               <div className="flex items-center gap-3">
+                  <div className="h-1.5 w-1.5 bg-[#d71920]" />
+                  <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">
+                    {product.eyebrow ?? "Equipamiento de Rendimiento"}
                   </p>
-                ) : null}
-                {product.discount_label ? (
-                  <span className="bg-[#f9d7d9] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#d71920]">
-                    {product.discount_label}
-                  </span>
-                ) : null}
-              </div>
-              {product.paypal_price_usd !== null ? (
-                <p className="text-sm font-medium leading-6 text-[#5b6472]">
-                  PayPal cobra aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong>.
-                  Si tu cuenta usa otra moneda, la conversion final la resuelve PayPal.
-                </p>
-              ) : null}
-
-              <p className="max-w-2xl text-[15px] leading-7 text-[#4b5563]">
-                {product.description}
-              </p>
+               </div>
+               <h1 className="font-display text-5xl font-black uppercase leading-none tracking-tighter text-[#111111] sm:text-7xl italic">
+                 {product.name}
+               </h1>
             </div>
+
+            <div className="flex flex-col gap-4">
+               <div className="flex items-baseline gap-4">
+                  <p className="font-display text-5xl font-black text-[#111111] tracking-tighter">
+                    {formatProductPrice(product)}
+                  </p>
+                  {showComparePrice ? (
+                    <p className="text-lg font-bold text-[#9ca3af] line-through decoration-[#d71920]/40">
+                      {formatProductPrice({
+                        price: comparePrice,
+                        currency: product.currency,
+                      })}
+                    </p>
+                  ) : null}
+                  {product.discount_label ? (
+                    <Badge className="bg-[#d71920] text-white rounded-none border-none font-black text-[10px] uppercase tracking-widest px-3 h-7 shadow-lg">
+                      {product.discount_label}
+                    </Badge>
+                  ) : null}
+               </div>
+               {product.paypal_price_usd !== null ? (
+                 <p className="text-[11px] font-bold uppercase tracking-widest text-[#7a7f87] bg-black/5 px-4 py-2 border-l-2 border-[#d71920]">
+                   Referencia PayPal: <strong>{formatUsdPrice(product.paypal_price_usd)}</strong>
+                 </p>
+               ) : null}
+            </div>
+
+            <p className="text-lg leading-8 text-[#5f6368] font-medium border-l border-black/10 pl-8">
+              {product.description}
+            </p>
           </div>
 
-          <ProductPurchasePanel product={product} previewMode={previewMode} />
-
-          <div className="border border-black/8 bg-[#F7F4EF] p-5">
-            <div className="flex items-start gap-4">
-              <div className="mt-0.5 bg-white p-2.5 text-[#d71920] shadow-sm">
-                <Store className="h-5 w-5" />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-sm font-bold uppercase tracking-wide text-[#111111]">{getPickupHeading(product)}</p>
-                <p className="max-w-md text-[13px] leading-relaxed text-[#5b6472]">{getPickupCopy(product)}</p>
-              </div>
-            </div>
+          <div className="bg-white border border-black/10 p-10 shadow-2xl">
+             <ProductPurchasePanel product={product} previewMode={previewMode} />
           </div>
 
-          <div className="grid gap-6 border-t border-[#ddd5ca] pt-6 md:grid-cols-3">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-[#d71920]" />
-                <h2 className="font-display text-2xl uppercase text-[#111111]">Beneficios</h2>
+          <div className="bg-[#111111] p-10 text-white relative overflow-hidden group shadow-2xl">
+            <div className="relative z-10 flex items-start gap-6">
+              <div className="shrink-0 bg-white p-3 text-[#111111]">
+                <Store className="h-6 w-6" />
               </div>
-              <ul className="space-y-3 border-t border-[#ddd5ca] pt-4 text-sm leading-6 text-[#5b6472]">
-                {benefitItems.map((item) => (
-                  <li key={item} className="flex gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[#d71920]" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <TimerReset className="h-4 w-4 text-[#d71920]" />
-                <h2 className="font-display text-2xl uppercase text-[#111111]">Como usar</h2>
-              </div>
-              <div className="border-t border-[#ddd5ca] pt-4 text-sm leading-6 text-[#5b6472]">
-                {usageItems.map((item) => (
-                  <p key={item}>{item}</p>
-                ))}
+              <div className="space-y-2">
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-[#d71920]">{getPickupHeading(product).toUpperCase()}</p>
+                <p className="text-sm leading-relaxed text-white/60 italic">"{getPickupCopy(product)}"</p>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-[#d71920]" />
-                <h2 className="font-display text-2xl uppercase text-[#111111]">
-                  Especificaciones
-                </h2>
-              </div>
-              <dl className="space-y-3 border-t border-[#ddd5ca] pt-4 text-sm">
-                {specificationItems.map((item) => (
-                  <div
-                    key={`${item.label}-${item.value}`}
-                    className="flex items-start justify-between gap-4"
-                  >
-                    <dt className="text-[#98a1af]">{item.label}:</dt>
-                    <dd className="text-right font-medium text-[#111111]">{item.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            <div className="absolute top-0 right-0 h-full w-1/3 bg-white/5 -skew-x-12 translate-x-20" />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 border-t border-[#ddd5ca] pt-4">
-            <span className="border border-[#ddd5ca] bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#111111]">
+          <div className="flex flex-wrap gap-2 pt-4">
+            <Badge variant="outline" className="rounded-none border-black/10 bg-white text-[#111111] font-black uppercase text-[9px] tracking-widest px-4 h-8 shadow-sm">
               {stockMeta.label}
-            </span>
+            </Badge>
             {product.tags.map((tag) => (
-              <span
-                key={tag}
-                className="border border-[#ddd5ca] bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#6b7280]"
-              >
+              <Badge key={tag} variant="outline" className="rounded-none border-black/5 bg-[#fbfbf8] text-[#7a7f87] font-bold uppercase text-[9px] tracking-widest px-4 h-8">
                 {tag}
-              </span>
+              </Badge>
             ))}
           </div>
         </div>
+      </div>
+
+      {/* SECCIONES TÉCNICAS INFERIORES */}
+      <div className="mt-20 grid grid-cols-1 gap-8 md:grid-cols-3 border-t border-black/10 pt-16">
+         
+         {/* BENEFICIOS */}
+         <div className="bg-white border border-black/10 p-10 shadow-lg space-y-8 group hover:border-[#111111] transition-colors">
+            <div className="flex items-center gap-4">
+               <div className="h-10 w-10 bg-[#111111] flex items-center justify-center group-hover:bg-[#d71920] transition-colors">
+                  <CheckCircle2 className="h-5 w-5 text-white" />
+               </div>
+               <h2 className="text-xl font-display font-black uppercase tracking-tight italic">Beneficios</h2>
+            </div>
+            <ul className="space-y-4">
+               {benefitItems.map((item) => (
+                 <li key={item} className="flex gap-4 items-start">
+                    <div className="h-1 w-1 bg-[#d71920] mt-2 shrink-0" />
+                    <span className="text-sm font-medium text-[#5f6368] leading-relaxed">{item}</span>
+                 </li>
+               ))}
+            </ul>
+         </div>
+
+         {/* USO RECOMENDADO */}
+         <div className="bg-white border border-black/10 p-10 shadow-lg space-y-8 group hover:border-[#111111] transition-colors">
+            <div className="flex items-center gap-4">
+               <div className="h-10 w-10 bg-[#111111] flex items-center justify-center group-hover:bg-[#d71920] transition-colors">
+                  <TimerReset className="h-5 w-5 text-white" />
+               </div>
+               <h2 className="text-xl font-display font-black uppercase tracking-tight italic">Uso en Sala</h2>
+            </div>
+            <div className="space-y-4 text-sm font-medium text-[#5f6368] leading-relaxed italic">
+               {usageItems.map((item) => (
+                 <p key={item} className="border-l-2 border-black/5 pl-6">"{item}"</p>
+               ))}
+            </div>
+         </div>
+
+         {/* ESPECIFICACIONES */}
+         <div className="bg-white border border-black/10 p-10 shadow-lg space-y-8 group hover:border-[#111111] transition-colors">
+            <div className="flex items-center gap-4">
+               <div className="h-10 w-10 bg-[#111111] flex items-center justify-center group-hover:bg-[#d71920] transition-colors">
+                  <FileText className="h-5 w-5 text-white" />
+               </div>
+               <h2 className="text-xl font-display font-black uppercase tracking-tight italic">Ficha Técnica</h2>
+            </div>
+            <dl className="space-y-4">
+               {specificationItems.map((item) => (
+                 <div
+                   key={`${item.label}-${item.value}`}
+                   className="flex items-center justify-between gap-4 border-b border-black/5 pb-4 last:border-0"
+                 >
+                   <dt className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">{item.label}</dt>
+                   <dd className="text-xs font-bold text-[#111111] uppercase">{item.value}</dd>
+                 </div>
+               ))}
+            </dl>
+         </div>
+
       </div>
     </section>
   );

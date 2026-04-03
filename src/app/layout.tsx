@@ -37,7 +37,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${inter.variable} ${oswald.variable} bg-background text-foreground antialiased`}>
+      <body 
+        className={`${inter.variable} ${oswald.variable} bg-background text-foreground antialiased`}
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

@@ -34,13 +34,13 @@ export interface StoreDashboardProduct extends Product {
   medusa_product_id?: string | null;
 }
 
-export function mapSpecifications(value: DBProduct["specifications"]): Product["specifications"] {
+export function mapSpecifications(value: unknown): Product["specifications"] {
   if (!Array.isArray(value)) {
     return undefined;
   }
 
   const specifications = value
-    .map((entry) => {
+    .map((entry: any) => {
       if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
         return null;
       }
@@ -60,7 +60,7 @@ export function mapListField(value: string[] | null | undefined): string[] {
   return value.map((v) => v.trim()).filter(Boolean);
 }
 
-export function mapStoreCategory(row: DBStoreCategory): StoreCategory {
+export function mapStoreCategory(row: Record<string, any>): StoreCategory {
   return {
     id: row.id,
     slug: row.slug,
@@ -440,7 +440,7 @@ export function buildStoreProductPreview(
 }
 
 export function mapDashboardProduct(
-  product: DBProduct,
+  product: Record<string, any>,
   categories: StoreCategory[],
   mappedProduct: Product,
 ): StoreDashboardProduct {

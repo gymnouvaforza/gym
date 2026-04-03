@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { normalizeStoreProductPayload, type StoreCategory } from "@/lib/data/store";
 import { __medusaStoreAdminTestables } from "@/lib/data/store-admin/medusa-repository";
+
+const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 function createBridgeClientMock(responses: Array<{ data: { id: string } | null; error: { message: string } | null }>) {
   const operations: Array<Record<string, unknown>> = [];
@@ -55,6 +57,14 @@ function createBridgeClientMock(responses: Array<{ data: { id: string } | null; 
 }
 
 describe("medusa store admin repository mappers", () => {
+  beforeAll(() => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://nbjkfyjeewprnxxibhwz.supabase.co";
+  });
+
+  afterAll(() => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
+  });
+
   it("maps admin products to dashboard DTO preserving metadata fields", () => {
     const categories: StoreCategory[] = [
       {
@@ -185,12 +195,16 @@ describe("medusa store admin repository mappers", () => {
     );
 
     expect(payload.images).toEqual([
-      { url: "/images/products/straps.png" },
-      { url: "/images/products/nova-guantes.png" },
+      {
+        url: "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/product-images/straps.png",
+      },
+      {
+        url: "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/product-images/nova-guantes.png",
+      },
     ]);
     expect(payload.metadata.storefront_images).toEqual([
-      "/images/products/straps.png",
-      "/images/products/nova-guantes.png",
+      "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/product-images/straps.png",
+      "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/product-images/nova-guantes.png",
     ]);
     expect(payload.metadata.paypal_price_usd).toBe(4.75);
   });

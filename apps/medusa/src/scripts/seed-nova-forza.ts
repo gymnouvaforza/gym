@@ -389,39 +389,24 @@ async function uploadProductImages(container: ExecArgs["container"], products: N
   const fileModuleService = container.resolve(Modules.FILE);
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
   
-  const s3Url = process.env.S3_URL?.replace("/s3", "") || "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1";
-  const s3Bucket = process.env.S3_BUCKET || "medusa-media";
-  const s3AccessKey = process.env.S3_ACCESS_KEY_ID;
-  
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const BUCKET_NAME = "medusa-media";
+
   // Use absolute path to Next.js public/images/products
   const imagesDir = path.resolve(process.cwd(), "../../public/images/products");
-  
   const imageMap = new Map<string, string>();
-  const isS3Configured = s3AccessKey && s3AccessKey !== "tu_access_key";
-  
-  if (!isS3Configured) {
-    logger.warn("S3 Credentials not found or placeholder. Skipping actual upload but generating fallback URLs.");
-  }
 
   for (const product of products) {
-    for (const localPath of product.metadata.storefront_images) {
-      const fileName = localPath.split("/").pop();
+    for (const imagePath of product.metadata.storefront_images) {
+      const fileName = imagePath.split("/").pop();
       if (!fileName || imageMap.has(fileName)) continue;
-      
-      const fallbackUrl = `/images/products/${fileName}`;
-      
-      if (!isS3Configured) {
-        imageMap.set(fileName, fallbackUrl);
-        continue;
-      }
 
       const filePath = path.join(imagesDir, fileName);
       if (!fs.existsSync(filePath)) {
-        logger.warn(`Image file not found: ${filePath}. Using fallback.`);
-        imageMap.set(fileName, fallbackUrl);
+        logger.warn(`Image file not found for Medusa seed: ${filePath}`);
         continue;
       }
-      
+
       try {
         const fileContent = fs.readFileSync(filePath);
         const file = await fileModuleService.createFiles({
@@ -434,14 +419,24 @@ async function uploadProductImages(container: ExecArgs["container"], products: N
         imageMap.set(fileName, file.url);
         logger.info(`Uploaded image: ${fileName} -> ${file.url}`);
       } catch (error) {
-        logger.error(`Failed to upload image ${fileName}: ${error.message}. Using fallback.`);
-        imageMap.set(fileName, fallbackUrl);
+        // Fallback: If Medusa upload fails, we use the Supabase public URL directly 
+        // if we have the Supabase URL. This harmonizes with the manual upload/sync scripts.
+        if (SUPABASE_URL) {
+            const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${fileName}`;
+            imageMap.set(fileName, publicUrl);
+            logger.info(`Fallback triggered: Using existing Supabase URL for ${fileName} -> ${publicUrl}`);
+        } else {
+            throw new Error(
+                `Failed to upload image ${fileName} and no NEXT_PUBLIC_SUPABASE_URL for fallback: ${error instanceof Error ? error.message : String(error)}`,
+            );
+        }
       }
     }
   }
-  
+
   return imageMap;
 }
+
 
 export default async function seedNovaForzaData({ container }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
@@ -573,10 +568,10 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
     createdCategories.map((category) => [category.handle ?? category.name.toLowerCase(), category.id]),
   );
 
-  console.log("Categories mapped:", Array.from(categoryByHandle.entries()));
-  console.log("Shipping Profile:", shippingProfile?.id);
-  console.log("Region ID:", region?.id);
-  console.log("Sales Channel ID:", salesChannel?.id);
+  logger.info(`Categories mapped: ${Array.from(categoryByHandle.entries()).map(([handle, id]) => `${handle}:${id}`).join(", ")}`);
+  logger.info(`Shipping profile ready: ${shippingProfile?.id ?? "missing"}`);
+  logger.info(`Region ready: ${region?.id ?? "missing"}`);
+  logger.info(`Sales channel ready: ${salesChannel?.id ?? "missing"}`);
 
   logger.info("Uploading product images to storage provider...");
   const uploadedImageMap = await uploadProductImages(container, novaForzaProducts);
@@ -593,48 +588,64 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
   if (productsToCreate.length > 0) {
     await createProductsWorkflow(container).run({
       input: {
-        products: productsToCreate.map((product) => ({
-          title: product.title,
-          subtitle: product.subtitle,
-          description: product.description,
-          handle: product.handle,
-          status: ProductStatus.PUBLISHED,
-          shipping_profile_id: shippingProfile.id,
-          category_ids: [categoryByHandle.get(product.category)!],
-          options: [
-            {
-              title: "Talla",
-              values: ["Unica"],
-            },
-          ],
-          variants: [
-            {
-              title: "Default",
-              sku: product.sku,
-              manage_inventory: true,
-              options: {
-                Talla: "Unica",
+        products: productsToCreate.map((product) => {
+          const storefrontImages = product.metadata.storefront_images.map((imagePath) => {
+            const fileName = imagePath.split("/").pop();
+
+            if (!fileName) {
+              throw new Error(`Invalid product image reference for ${product.handle}: ${imagePath}`);
+            }
+
+            const uploadedUrl = uploadedImageMap.get(fileName);
+
+            if (!uploadedUrl) {
+              throw new Error(`Missing uploaded image URL for ${product.handle}: ${fileName}`);
+            }
+
+            return uploadedUrl;
+          });
+
+          return {
+            title: product.title,
+            subtitle: product.subtitle,
+            description: product.description,
+            handle: product.handle,
+            status: ProductStatus.PUBLISHED,
+            shipping_profile_id: shippingProfile.id,
+            category_ids: [categoryByHandle.get(product.category)!],
+            options: [
+              {
+                title: "Talla",
+                values: ["Unica"],
               },
-              prices: [
-                {
-                  amount: product.amount,
-                  currency_code: DEFAULT_CURRENCY_CODE,
+            ],
+            variants: [
+              {
+                title: "Default",
+                sku: product.sku,
+                manage_inventory: true,
+                options: {
+                  Talla: "Unica",
                 },
-              ],
+                prices: [
+                  {
+                    amount: product.amount,
+                    currency_code: DEFAULT_CURRENCY_CODE,
+                  },
+                ],
+              },
+            ],
+            sales_channels: [{ id: salesChannel.id }],
+            images: storefrontImages.map((url) => ({ url })),
+            metadata: {
+              ...product.metadata,
+              category: product.category,
+              compare_price: product.compareAmount ? product.compareAmount / 100 : null,
+              region_id: region.id,
+              storefront_images: storefrontImages,
             },
-          ],
-          sales_channels: [{ id: salesChannel.id }],
-          images: product.metadata.storefront_images.map(img => {
-              const fileName = img.split("/").pop()!;
-              return { url: uploadedImageMap.get(fileName) || img };
-          }),
-          metadata: {
-            ...product.metadata,
-            category: product.category,
-            compare_price: product.compareAmount ? product.compareAmount / 100 : null,
-            region_id: region.id,
-          },
-        })),
+          };
+        }),
       },
     });
   }
@@ -671,7 +682,7 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
 
   const publishableKeyId = await ensurePublishableApiKey(container, salesChannel.id);
 
-  console.log("Nova Forza Medusa seed completed.");
-  console.log(`Region ready for storefront price lookup: ${region.id}`);
-  console.log(`Publishable API key linked to storefront sales channel: ${publishableKeyId}`);
+  logger.info("Nova Forza Medusa seed completed.");
+  logger.info(`Region ready for storefront price lookup: ${region.id}`);
+  logger.info(`Publishable API key linked to storefront sales channel: ${publishableKeyId}`);
 }

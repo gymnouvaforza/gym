@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import AdminSurface from "./AdminSurface";
 
 interface DashboardPageHeaderProps {
@@ -7,6 +8,7 @@ interface DashboardPageHeaderProps {
   description: string;
   eyebrow?: string;
   icon?: LucideIcon;
+  className?: string;
 }
 
 export default function DashboardPageHeader({
@@ -14,9 +16,10 @@ export default function DashboardPageHeader({
   description,
   eyebrow = "Backoffice",
   icon: Icon,
+  className,
 }: DashboardPageHeaderProps) {
   return (
-    <AdminSurface className="px-5 py-5 sm:px-6">
+    <AdminSurface className={cn("px-5 py-5 sm:px-6", className)}>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
           {Icon ? (
