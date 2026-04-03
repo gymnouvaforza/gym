@@ -16,33 +16,47 @@ import {
   ChevronRight,
   Database,
   Users,
-  LayoutGrid
+  LayoutGrid,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-type NavItem = {
+type NavLinkChild = {
   href: string;
   label: string;
-  icon: any;
-  children?: NavItem[];
-  tag?: string;
-  isHeader?: boolean;
+  icon: LucideIcon;
 };
+
+type NavLinkItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  children?: NavLinkChild[];
+  tag?: string;
+  isHeader?: false;
+};
+
+type NavHeaderItem = {
+  href: "#";
+  isHeader: true;
+  label: string;
+};
+
+type NavItem = NavLinkItem | NavHeaderItem;
 
 const links: NavItem[] = [
   { href: "/dashboard", label: "COMMAND CENTER", icon: Activity },
-  { isHeader: true, label: "Growth & Revenue", href: "#" } as any,
+  { isHeader: true, label: "Growth & Revenue", href: "#" },
   { href: "/dashboard/leads", label: "LEADS ENGINE", icon: Zap, tag: "Hot" },
   { href: "/dashboard/miembros", label: "MEMBER SCOUTING", icon: ClipboardList },
   { href: "/dashboard/tienda", label: "RETAIL CONSOLE", icon: ShoppingBag },
   
-  { isHeader: true, label: "Core Technology", href: "#" } as any,
+  { isHeader: true, label: "Core Technology", href: "#" },
   {
     href: "/dashboard/mobile",
     label: "MOBILE HUB",
@@ -55,12 +69,12 @@ const links: NavItem[] = [
     ],
   },
   
-  { isHeader: true, label: "Digital Presence", href: "#" } as any,
+  { isHeader: true, label: "Digital Presence", href: "#" },
   { href: "/dashboard/web", label: "IDENTITY STUDIO", icon: Globe },
   { href: "/dashboard/marketing", label: "CAMPAIGNS", icon: CalendarClock },
   { href: "/dashboard/cms", label: "MEDIA & LEGAL", icon: FileText },
   
-  { isHeader: true, label: "System", href: "#" } as any,
+  { isHeader: true, label: "System", href: "#" },
   { href: "/dashboard/info", label: "GYM PROFILE", icon: Users },
   { href: "/dashboard/advanced", label: "KERNEL ARGS", icon: Settings2 },
 ];
@@ -71,17 +85,17 @@ function isItemActive(pathname: string, href: string) {
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [mounted, setMounted] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return window.localStorage.getItem("titan-theme") === "dark";
+  });
 
   useEffect(() => {
-    setMounted(true);
-    const savedTheme = localStorage.getItem("titan-theme");
-    if (savedTheme === "dark") {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    window.localStorage.setItem("titan-theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
 
   const toggleTheme = () => {
     const newMode = !isDarkMode;
@@ -94,15 +108,6 @@ export default function DashboardSidebar() {
       localStorage.setItem("titan-theme", "light");
     }
   };
-
-  // UI DE CARGA / HIDRATACION
-  if (!mounted) return (
-    <div className="flex h-full w-full flex-col bg-[#111111] items-center justify-center p-8">
-       <div className="relative h-12 w-12 opacity-20 grayscale grayscale-100">
-          <Image src="/images/logo/logo-trans.webp" alt="Loading..." fill className="object-contain" />
-       </div>
-    </div>
-  );
 
   return (
     <div className="flex h-full flex-col bg-[#111111] text-white">

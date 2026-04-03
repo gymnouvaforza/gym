@@ -207,7 +207,7 @@ export async function getMobileAdminSnapshot(): Promise<MobileAdminSnapshot> {
       return {
         createdAt: user.created_at ?? null,
         email: user.email ?? null,
-        hasAppAccess: !roles.includes(APP_BLOCKED_ROLE as any),
+        hasAppAccess: !roles.includes(APP_BLOCKED_ROLE),
         hasDashboardAccess: roles.includes(DASHBOARD_ADMIN_ROLE) || roles.includes(TRAINER_ROLE),
         hasMemberBridge: Boolean(memberBridge),
         hasMemberProfile: Boolean(memberProfile),

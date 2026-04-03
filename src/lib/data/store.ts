@@ -1,6 +1,5 @@
 import { productCategories, type Product, type ProductCategory } from "@/data/types";
 import { getDefaultCommerceCurrencyCode } from "@/lib/commerce/currency";
-import type { DBProduct, DBStoreCategory } from "@/lib/supabase/database.types";
 import { slugify, trimToNull } from "@/lib/utils";
 import type {
   StoreCategoryInput,
@@ -8,6 +7,27 @@ import type {
   StoreProductInput,
   StoreProductValues,
 } from "@/lib/validators/store";
+
+type StoreSpecificationRecord = {
+  label?: unknown;
+  value?: unknown;
+};
+
+type StoreCategoryRecord = {
+  active: boolean;
+  description?: string | null;
+  id: string;
+  medusa_category_id?: string | null;
+  name: string;
+  order: number;
+  parent_id?: string | null;
+  slug: string;
+};
+
+type StoreProductRecord = {
+  category_id?: string | null;
+  medusa_product_id?: string | null;
+};
 
 export interface StoreCategory {
   id: string;
@@ -40,13 +60,15 @@ export function mapSpecifications(value: unknown): Product["specifications"] {
   }
 
   const specifications = value
-    .map((entry: any) => {
+    .map((entry) => {
       if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
         return null;
       }
 
-      const label = typeof entry.label === "string" ? entry.label.trim() : "";
-      const specValue = typeof entry.value === "string" ? entry.value.trim() : "";
+      const specification = entry as StoreSpecificationRecord;
+
+      const label = typeof specification.label === "string" ? specification.label.trim() : "";
+      const specValue = typeof specification.value === "string" ? specification.value.trim() : "";
 
       return label && specValue ? { label, value: specValue } : null;
     })
@@ -60,7 +82,7 @@ export function mapListField(value: string[] | null | undefined): string[] {
   return value.map((v) => v.trim()).filter(Boolean);
 }
 
-export function mapStoreCategory(row: Record<string, any>): StoreCategory {
+export function mapStoreCategory(row: StoreCategoryRecord): StoreCategory {
   return {
     id: row.id,
     slug: row.slug,
@@ -440,7 +462,7 @@ export function buildStoreProductPreview(
 }
 
 export function mapDashboardProduct(
-  product: Record<string, any>,
+  product: StoreProductRecord,
   categories: StoreCategory[],
   mappedProduct: Product,
 ): StoreDashboardProduct {

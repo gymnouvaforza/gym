@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ShieldAlert, ShieldCheck, UserRound } from "lucide-react";
+import { Loader2, Lock, ShieldAlert, ShieldCheck, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { MemberSignOutButtonWithRedirect } from "@/components/auth/MemberSignOutButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,

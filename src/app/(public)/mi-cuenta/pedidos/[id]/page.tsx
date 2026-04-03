@@ -232,7 +232,7 @@ export default async function MemberPickupRequestDetailPage({
                  {pickupRequest.notes && (
                     <div className="pt-8 border-t border-white/10 space-y-3">
                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Nota del Socio</p>
-                       <p className="text-xs text-white/60 leading-relaxed italic">"{pickupRequest.notes}"</p>
+                       <p className="text-xs text-white/60 leading-relaxed italic">&ldquo;{pickupRequest.notes}&rdquo;</p>
                     </div>
                  )}
               </div>

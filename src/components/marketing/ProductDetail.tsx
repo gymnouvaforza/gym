@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import ProductPurchasePanel from "@/components/cart/ProductPurchasePanel";
 import ProductGallery from "@/components/marketing/ProductGallery";
 import type { Product } from "@/data/types";
@@ -164,18 +163,18 @@ export default function ProductDetail({
               </div>
               <div className="space-y-2">
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-[#d71920]">{getPickupHeading(product).toUpperCase()}</p>
-                <p className="text-sm leading-relaxed text-white/60 italic">"{getPickupCopy(product)}"</p>
+                <p className="text-sm leading-relaxed text-white/60 italic">&ldquo;{getPickupCopy(product)}&rdquo;</p>
               </div>
             </div>
             <div className="absolute top-0 right-0 h-full w-1/3 bg-white/5 -skew-x-12 translate-x-20" />
           </div>
 
           <div className="flex flex-wrap gap-2 pt-4">
-            <Badge variant="outline" className="rounded-none border-black/10 bg-white text-[#111111] font-black uppercase text-[9px] tracking-widest px-4 h-8 shadow-sm">
+            <Badge className="rounded-none border-black/10 bg-white text-[#111111] font-black uppercase text-[9px] tracking-widest px-4 h-8 shadow-sm">
               {stockMeta.label}
             </Badge>
             {product.tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="rounded-none border-black/5 bg-[#fbfbf8] text-[#7a7f87] font-bold uppercase text-[9px] tracking-widest px-4 h-8">
+              <Badge key={tag} className="rounded-none border-black/5 bg-[#fbfbf8] text-[#7a7f87] font-bold uppercase text-[9px] tracking-widest px-4 h-8">
                 {tag}
               </Badge>
             ))}
@@ -214,7 +213,7 @@ export default function ProductDetail({
             </div>
             <div className="space-y-4 text-sm font-medium text-[#5f6368] leading-relaxed italic">
                {usageItems.map((item) => (
-                 <p key={item} className="border-l-2 border-black/5 pl-6">"{item}"</p>
+                 <p key={item} className="border-l-2 border-black/5 pl-6">&ldquo;{item}&rdquo;</p>
                ))}
             </div>
          </div>

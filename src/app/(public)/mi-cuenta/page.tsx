@@ -1,5 +1,4 @@
-import { 
-  Clock3, 
+import {
   ShieldCheck, 
   ShoppingBag, 
   User, 
@@ -35,7 +34,7 @@ import {
 import DashboardNotice from "@/components/admin/DashboardNotice";
 import { cn } from "@/lib/utils";
 import type { MemberAccountViewModel } from "@/lib/data/member-account";
-import type { PickupRequestDetail } from "@/lib/cart/types";
+import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +50,7 @@ export default async function MemberAccountPage() {
     canManagePassword: false,
     phone: null
   };
-  let activeCart: any = null; // Snapshot de carrito (medusa-adapter output)
+  let activeCart: Cart | null = null;
   let pickupHistory = { pickupRequests: [] as PickupRequestDetail[], warning: null as string | null };
   let loadError: string | null = null;
 
@@ -347,7 +346,7 @@ export default async function MemberAccountPage() {
                              <span className="text-[10px] font-bold text-white/20 uppercase">{previousPickupRequests.length} Entradas</span>
                           </div>
                           <div className="divide-y divide-black/5">
-                             {previousPickupRequests.map((req: any) => (
+                             {previousPickupRequests.map((req) => (
                                 <div key={req.id} className="px-10 py-8 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-[#fbfbf8] transition-all gap-6">
                                    <div className="space-y-2">
                                       <div className="flex items-center gap-3">
