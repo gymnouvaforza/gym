@@ -38,6 +38,21 @@ import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
 
 export const dynamic = "force-dynamic";
 
+function getSafeErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message && error.message !== "An unknown error occurred.") {
+    return error.message;
+  }
+
+  if (error && typeof error === "object" && "message" in error) {
+    const candidate = error as { message?: unknown };
+    if (typeof candidate.message === "string" && candidate.message.trim()) {
+      return candidate.message;
+    }
+  }
+
+  return fallback;
+}
+
 export default async function MemberAccountPage() {
   // 1. Autenticación
   const user = await requireMemberUser("/acceso?next=/mi-cuenta");
@@ -59,7 +74,7 @@ export default async function MemberAccountPage() {
     try {
       await ensureMemberProfileForUser(user);
     } catch (e) {
-      console.warn("Soft error in ensureMemberProfileForUser:", e);
+      loadError = getSafeErrorMessage(e, "No se pudo sincronizar la ficha base del socio.");
     }
 
     const [accResult, cartResult, historyResult] = await Promise.allSettled([
@@ -76,12 +91,22 @@ export default async function MemberAccountPage() {
     if (historyResult.status === "fulfilled") pickupHistory = historyResult.value;
     
     if (accResult.status === "rejected" || historyResult.status === "rejected") {
-       console.error("Partial load failure:", { accResult, historyResult });
-       loadError = "Sincronización parcial. Los datos comerciales podrían no estar actualizados.";
+       const rejectedReason =
+         accResult.status === "rejected"
+           ? accResult.reason
+           : historyResult.status === "rejected"
+             ? historyResult.reason
+             : null;
+       loadError = getSafeErrorMessage(
+         rejectedReason,
+         "Sincronizacion parcial. Los datos comerciales podrian no estar actualizados.",
+       );
     }
   } catch (globalError) {
-    console.error("Critical render error in MemberAccountPage:", globalError);
-    loadError = "Error de conexión con el servidor. Reintentando en breve.";
+    loadError = getSafeErrorMessage(
+      globalError,
+      "Error de conexion con el servidor. Reintentando en breve.",
+    );
   }
 
   // 4. Lógica de Vista

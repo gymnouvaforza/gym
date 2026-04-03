@@ -223,7 +223,7 @@ export default async function MemberPickupRequestDetailPage({
                     </div>
                     <div>
                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30 mb-2">Estado del Aviso</p>
-                       <Badge variant="outline" className="text-white/60 border-white/20 font-black uppercase text-[8px] h-6 px-3">
+                       <Badge className="border-white/20 bg-transparent text-white/60 font-black uppercase text-[8px] h-6 px-3">
                           {pickupRequestEmailStatusLabels[pickupRequest.emailStatus]}
                        </Badge>
                     </div>

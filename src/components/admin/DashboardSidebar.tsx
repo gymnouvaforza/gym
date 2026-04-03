@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
@@ -83,30 +83,62 @@ function isItemActive(pathname: string, href: string) {
   return href === "/dashboard" ? pathname === href : pathname.startsWith(href);
 }
 
+const THEME_STORAGE_KEY = "titan-theme";
+const themeListeners = new Set<() => void>();
+
+function getThemeSnapshot() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem(THEME_STORAGE_KEY) === "dark";
+}
+
+function getThemeServerSnapshot() {
+  return false;
+}
+
+function notifyThemeListeners() {
+  themeListeners.forEach((listener) => listener());
+}
+
+function subscribeToThemePreference(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
+
+  themeListeners.add(onStoreChange);
+
+  const handleChange = (event: StorageEvent) => {
+    if (event.key === null || event.key === THEME_STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+
+  window.addEventListener("storage", handleChange);
+
+  return () => {
+    themeListeners.delete(onStoreChange);
+    window.removeEventListener("storage", handleChange);
+  };
+}
+
 export default function DashboardSidebar() {
   const pathname = usePathname();
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-    return window.localStorage.getItem("titan-theme") === "dark";
-  });
+  const isDarkMode = useSyncExternalStore(
+    subscribeToThemePreference,
+    getThemeSnapshot,
+    getThemeServerSnapshot,
+  );
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
-    window.localStorage.setItem("titan-theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
   const toggleTheme = () => {
     const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("titan-theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("titan-theme", "light");
-    }
+    window.localStorage.setItem(THEME_STORAGE_KEY, newMode ? "dark" : "light");
+    notifyThemeListeners();
   };
 
   return (

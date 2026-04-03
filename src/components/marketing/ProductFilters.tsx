@@ -111,7 +111,7 @@ function ActiveFilterChips({ filters }: Readonly<{ filters: ProductCatalogueFilt
       <div className="flex flex-wrap gap-2">
         {chips.map((chip) => (
           <Link key={chip.label} href={chip.href} className="group">
-            <Badge variant="outline" className="rounded-none border-black/10 bg-white hover:bg-[#111111] hover:text-white transition-all py-1 px-3 flex items-center gap-2">
+            <Badge className="rounded-none border-black/10 bg-white text-[#111111] hover:bg-[#111111] hover:text-white transition-all py-1 px-3 flex items-center gap-2">
               <span className="text-[9px] font-bold uppercase tracking-widest">{chip.label}</span>
               <X className="h-2.5 w-2.5 text-black/20 group-hover:text-white/40" />
             </Badge>
