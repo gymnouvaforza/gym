@@ -125,17 +125,17 @@ function buildPickupRequest(): PickupRequestDetail {
 }
 
 function CartPickupProbe() {
-  const { cart, lastSubmittedPickupRequest, completePayPalCheckout } = useCart();
+  const { cart, lastSubmittedPickupRequest, submitPickupRequest } = useCart();
 
   return (
     <div>
       <button
         type="button"
         onClick={() => {
-          void completePayPalCheckout({ notes: "Pasaré por la tarde." });
+          void submitPickupRequest({ notes: "Pasaré por la tarde." });
         }}
       >
-        Completar checkout
+        Enviar reserva
       </button>
       <span>{cart?.id ?? "no-cart"}</span>
       <span>{lastSubmittedPickupRequest?.requestNumber ?? "no-request"}</span>
@@ -348,7 +348,7 @@ describe("CartProvider", () => {
     expect(document.cookie).not.toContain("gym_cart_id=");
   });
 
-  it("clears the active cart and stores the submitted pickup request after checkout", async () => {
+  it("clears the active cart and stores the submitted pickup request after sending the reservation", async () => {
     const user = userEvent.setup();
     document.cookie = "gym_cart_id=cart_cookie; path=/";
     cartMedusaMocks.retrieveCart.mockResolvedValue(buildCart());
@@ -372,13 +372,13 @@ describe("CartProvider", () => {
       expect(screen.getByText("cart_cookie")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole("button", { name: "Completar checkout" }));
+    await user.click(screen.getByRole("button", { name: "Enviar reserva" }));
 
     await waitFor(() => {
       expect(screen.getByText("no-cart")).toBeInTheDocument();
       expect(screen.getByText("NF-20260322-ABC123")).toBeInTheDocument();
     });
-    expect(fetch).toHaveBeenCalledWith("/api/cart/checkout/paypal/complete", {
+    expect(fetch).toHaveBeenCalledWith("/api/cart/pickup-request", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

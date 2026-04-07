@@ -146,7 +146,7 @@ export default function MemberTestimonialForm({
               </h3>
             </div>
             <p className="max-w-2xl text-sm leading-6 text-[#5f6368]">
-              Comparte tu experiencia real en Titan Gym. Solo puedes tener una resena activa, pero
+              Comparte tu experiencia real en Nuova Forza. Solo puedes tener una resena activa, pero
               puedes actualizarla cuando quieras y volvera a revision.
             </p>
           </div>

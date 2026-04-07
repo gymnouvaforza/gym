@@ -1,20 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import CartLineItems from "@/components/cart/CartLineItems";
-import PayPalCheckoutButton from "@/components/cart/PayPalCheckoutButton";
 import { useCart } from "@/components/cart/CartProvider";
+import PublicInlineAlert from "@/components/public/PublicInlineAlert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCartAmount } from "@/lib/cart/format";
@@ -22,14 +15,12 @@ import {
   getPickupRequestPaymentTone,
   pickupRequestPaymentStatusLabels,
 } from "@/lib/cart/pickup-request";
-import { Badge } from "@/components/ui/badge";
-import { isPayPalPaymentProviderId } from "@/lib/medusa/paypal-provider";
 
 export default function CartPageClient() {
-  const router = useRouter();
   const {
     cart,
     lastSubmittedPickupRequest,
+    lastSubmittedWhatsAppUrl,
     pickupEmailWarning,
     notice,
     error,
@@ -40,27 +31,16 @@ export default function CartPageClient() {
     updateItemQuantity,
     removeItem,
     saveEmail,
-    preparePayPalCheckout,
-    completePayPalCheckout,
+    submitPickupRequest,
   } = useCart();
   const [guestEmail, setGuestEmail] = useState(cart?.email ?? "");
   const [notes, setNotes] = useState("");
-  const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
-  const [isPayPalDialogOpen, setIsPayPalDialogOpen] = useState(false);
-  const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? "";
-  const paypalSession =
-    cart?.paymentSession && isPayPalPaymentProviderId(cart.paymentSession.providerId)
-      ? cart.paymentSession
-      : null;
-  const hasPayPalChargeAmount =
-    paypalSession !== null &&
-    Boolean(paypalSession.currencyCode) &&
-    paypalSession.amount > 0;
+  const [reservationMessage, setReservationMessage] = useState<string | null>(null);
 
-  async function handlePreparePayPal() {
+  async function handleSubmitReservation() {
     const normalizedEmail = guestEmail.trim().toLowerCase();
 
-    setCheckoutMessage(null);
+    setReservationMessage(null);
 
     if (!memberEmail && !normalizedEmail) {
       return;
@@ -70,47 +50,17 @@ export default function CartPageClient() {
       await saveEmail(normalizedEmail);
     }
 
-    const preparedCart = await preparePayPalCheckout({
+    const pickupRequest = await submitPickupRequest({
       email: memberEmail ? undefined : normalizedEmail || undefined,
       notes: notes.trim() || undefined,
     });
 
-    if (preparedCart?.paymentSession?.paypalOrderId) {
-      setCheckoutMessage("PayPal ya está listo. Aprueba el pago para completar tu pedido.");
-      setIsPayPalDialogOpen(true);
+    if (pickupRequest?.id) {
+      setReservationMessage(
+        "Reserva registrada. Comparte el identificador por WhatsApp para que el equipo cierre la venta contigo.",
+      );
     }
   }
-
-  async function handleApprovePayPal() {
-    const normalizedEmail = guestEmail.trim().toLowerCase();
-    const activeCartId = cart?.id ?? null;
-    const pickupRequest = await completePayPalCheckout({
-      email: memberEmail ? undefined : normalizedEmail || undefined,
-      notes: notes.trim() || undefined,
-    });
-
-    if (pickupRequest && typeof pickupRequest === "object" && "kind" in pickupRequest) {
-      const processingCartId = pickupRequest.cartId ?? activeCartId;
-
-      if (!processingCartId) {
-        throw new Error("checkout-processing-missing-cart");
-      }
-
-      setCheckoutMessage("Pago recibido por PayPal. Estamos terminando de confirmar tu pedido.");
-      setIsPayPalDialogOpen(false);
-      router.replace(`/carrito/procesando/${processingCartId}`);
-      return;
-    }
-
-    if (!pickupRequest?.id) {
-      // Re-throw so PayPalCheckoutButton's onApprove catch resets isPending.
-      // The error message is already surfaced via setError in CartProvider.
-      throw new Error("checkout-failed");
-    }
-
-    router.push(`/carrito/confirmacion/${pickupRequest.id}`);
-  }
-
 
   if (!isReady) {
     return (
@@ -127,27 +77,55 @@ export default function CartPageClient() {
       <section className="section-shell py-16">
         <div className="border border-emerald-200 bg-white px-6 py-12 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
-            Pedido enviado
+            Reserva enviada
           </p>
           <h1 className="mt-4 font-display text-4xl uppercase text-[#111111]">
-            Hemos registrado tu solicitud pickup
+            Tu pedido asistido ya esta en gestion
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#4b5563]">
-            Tu número de referencia es <strong>{lastSubmittedPickupRequest.requestNumber}</strong>.
-            Usaremos <strong>{lastSubmittedPickupRequest.email}</strong> para confirmarte la
-            preparación y la recogida en el club.
+            Referencia <strong>{lastSubmittedPickupRequest.requestNumber}</strong>. Usaremos{" "}
+            <strong>{lastSubmittedPickupRequest.email}</strong> para seguir la conversacion desde el
+            dashboard y coordinar contigo el cierre manual de la venta.
           </p>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Badge variant={getPickupRequestPaymentTone(lastSubmittedPickupRequest.paymentStatus)}>
+              {pickupRequestPaymentStatusLabels[lastSubmittedPickupRequest.paymentStatus]}
+            </Badge>
+            <p className="text-xs uppercase tracking-[0.16em] text-[#7a7f87]">
+              Cart ID: {lastSubmittedPickupRequest.cartId}
+            </p>
+            {lastSubmittedPickupRequest.orderId ? (
+              <p className="text-xs uppercase tracking-[0.16em] text-[#7a7f87]">
+                Order ID: {lastSubmittedPickupRequest.orderId}
+              </p>
+            ) : null}
+          </div>
+
           {pickupEmailWarning ? (
-            <div className="mt-6 border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
-              La solicitud se guardó correctamente, pero el email de confirmación no se pudo enviar.
-              El equipo puede reenviarlo desde el dashboard. Detalle: {pickupEmailWarning}
-            </div>
-          ) : (
-            <div className="mt-6 border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-              Te acabamos de enviar un resumen tipo pedido con el detalle de la recogida.
-            </div>
-          )}
+            <PublicInlineAlert
+              tone="warning"
+              title="Reserva guardada con seguimiento pendiente"
+              message={`La confirmacion por email no se pudo enviar. El equipo puede retomarlo desde el dashboard. Detalle: ${pickupEmailWarning}`}
+              compact
+            />
+          ) : null}
+
+          <PublicInlineAlert
+            tone="success"
+            title="Siguiente paso"
+            message="Abre WhatsApp con el mensaje corto que ya incluye tu referencia para que una persona termine la venta contigo."
+            compact
+          />
+
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            {lastSubmittedWhatsAppUrl ? (
+              <Button asChild>
+                <Link href={lastSubmittedWhatsAppUrl} target="_blank" rel="noreferrer">
+                  Abrir WhatsApp con mi reserva
+                </Link>
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"
@@ -157,8 +135,8 @@ export default function CartPageClient() {
             >
               Cerrar aviso
             </Button>
-            <Button asChild>
-              <Link href="/tienda">Crear un pedido nuevo</Link>
+            <Button asChild variant="outline">
+              <Link href="/tienda">Crear otra reserva</Link>
             </Button>
           </div>
         </div>
@@ -174,11 +152,11 @@ export default function CartPageClient() {
             Carrito vacio
           </p>
           <h1 className="mt-4 font-display text-4xl uppercase text-[#111111]">
-            Todavía no has reservado nada
+            Todavia no has reservado nada
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#4b5563]">
-            Explora suplementos, accesorios y merchandising del club para crear tu solicitud de
-            recogida.
+            Explora suplementos, accesorios y merchandising del club para preparar una reserva
+            asistida y cerrarla con el equipo por WhatsApp.
           </p>
           <div className="mt-8">
             <Button asChild>
@@ -194,29 +172,40 @@ export default function CartPageClient() {
     <section className="section-shell py-12 md:py-16">
       <div className="mb-8 max-w-3xl">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6b7280]">
-          Carrito pickup-first
+          Reserva asistida
         </p>
         <h1 className="mt-3 font-display text-5xl uppercase leading-none text-[#111111]">
-          Tu seleccion para recoger en el club
+          Tu seleccion para cerrar con el club
         </h1>
         <p className="mt-4 text-sm leading-7 text-[#4b5563]">
-          Revisa cantidades, deja un email de contacto y paga online con PayPal. La tienda muestra
-          el total real en PEN y PayPal cobra el importe estimado en USD configurado para tu
-          pedido. Si tu cuenta usa otra moneda, la conversión final la resuelve PayPal.
+          Revisa cantidades, deja un email de contacto y envia la reserva. La venta no se cobra
+          online: una persona del gym la terminara contigo por WhatsApp usando solo el identificador
+          operativo del carrito o pedido.
         </p>
       </div>
 
       {error ? (
-        <div className="mb-6 border border-red-200 bg-red-100 flex items-center gap-3 px-5 py-4 text-sm text-red-700">
-          <div className="h-2 w-2 rounded-full bg-red-600 animate-pulse shrink-0" />
-          {error}
-        </div>
+        <PublicInlineAlert
+          tone="error"
+          title="No pudimos actualizar tu reserva"
+          message={error}
+        />
       ) : null}
 
       {notice ? (
-        <div className="mb-6 border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-          {notice}
-        </div>
+        <PublicInlineAlert
+          tone="success"
+          title="Carrito actualizado"
+          message={notice}
+        />
+      ) : null}
+
+      {reservationMessage ? (
+        <PublicInlineAlert
+          tone="success"
+          title="Reserva registrada"
+          message={reservationMessage}
+        />
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.75fr)] lg:items-start">
@@ -251,9 +240,13 @@ export default function CartPageClient() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-none border border-black/8 bg-[#fbfbf8] p-4 text-sm leading-7 text-[#5f6368]">
-            Recogida local en Nova Forza Gym. El pago se confirma online con PayPal y no se
-            solicitan dirección ni métodos de envío.
+          <div className="mt-6">
+            <PublicInlineAlert
+              tone="info"
+              title="Recogida local en Nuova Forza Gym"
+              message="Esta reserva solo bloquea la gestion operativa: el cobro y la confirmacion final se cierran manualmente con el equipo."
+              compact
+            />
           </div>
 
           {!memberEmail ? (
@@ -271,204 +264,41 @@ export default function CartPageClient() {
             </div>
           ) : (
             <div className="mt-6 border border-black/8 bg-[#fbfbf8] p-4 text-sm leading-7 text-[#5f6368]">
-              La solicitud se vinculará a tu cuenta de socio: <strong>{memberEmail}</strong>
+              La reserva se vinculara a tu cuenta de socio: <strong>{memberEmail}</strong>
             </div>
           )}
 
           <div className="mt-6 space-y-3">
             <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#111111]">
-              Nota para recogida
+              Nota para el equipo
             </label>
             <Textarea
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
-              placeholder="Ejemplo: pasaré por recepción a última hora de la tarde."
+              placeholder="Ejemplo: pasare por recepcion a ultima hora de la tarde."
               disabled={isBusy}
             />
           </div>
 
-          {paypalSession ? (
-            <div className="mt-6 border border-emerald-200 bg-emerald-50/50 p-5 text-sm leading-relaxed text-[#5f6368]">
-              <div className="flex items-center justify-between border-b border-emerald-200 pb-3 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
-                  <span className="font-display text-sm uppercase text-[#111111]">PayPal Preparado</span>
-                </div>
-                <Badge variant={getPickupRequestPaymentTone(paypalSession.status)}>
-                  {pickupRequestPaymentStatusLabels[paypalSession.status]}
-                </Badge>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#111111]">
-                    ID Transacción
-                  </span>
-                  <span className="font-mono text-xs">{paypalSession.paypalOrderId ?? "pendiente"}</span>
-                </div>
-
-                {paypalSession.displayAmount !== null && paypalSession.displayCurrencyCode ? (
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#111111]">
-                      Equivalente Tienda
-                    </span>
-                    <span className="font-medium text-[#111111]">
-                      {formatCartAmount(
-                        paypalSession.displayAmount,
-                        paypalSession.displayCurrencyCode,
-                      )}
-                    </span>
-                  </div>
-                ) : null}
-
-                {hasPayPalChargeAmount ? (
-                  <div className="flex justify-between items-baseline bg-white/50 -mx-5 px-5 py-3 border-y border-emerald-100">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-                      Importe a Pagar (USD)
-                    </span>
-                    <span className="font-display text-lg text-emerald-900">
-                      {formatCartAmount(paypalSession.amount, paypalSession.currencyCode)}
-                    </span>
-                  </div>
-                ) : null}
-
-                {paypalSession.exchangeRate ? (
-                  <p className="mt-2 text-[11px] leading-5 text-[#7a7f87] italic">
-                    Tipo de cambio informativo: S/ {paypalSession.exchangeRate.toFixed(3)} por USD.
-                  </p>
-                ) : (
-                  <p className="mt-2 text-[11px] leading-5 text-emerald-700/70 font-medium">
-                    PayPal procesará el cobro en USD siguiendo el importe estimado por producto.
-                  </p>
-                )}
-              </div>
-            </div>
-          ) : null}
+          <div className="mt-6">
+            <PublicInlineAlert
+              tone="info"
+              title="WhatsApp con referencia corta"
+              message="Al enviar la reserva te devolveremos una referencia y un acceso directo a WhatsApp con solo el identificador del pedido."
+              compact
+            />
+          </div>
 
           <div className="mt-6 flex flex-col gap-3">
-            {!paypalSession?.paypalOrderId ? (
-              <>
-                <div className="border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
-                  Los precios de tienda se mantienen en {cart?.summary.currencyCode ?? "PEN"}.
-                  Al preparar PayPal usaremos el importe estimado en USD configurado por producto.
-                  Si tu cuenta usa otra moneda, la conversión final la hará PayPal.
-                </div>
-                <Button
-                  type="button"
-                  disabled={isBusy || (!memberEmail && !guestEmail.trim())}
-                  onClick={() => {
-                    void handlePreparePayPal();
-                  }}
-                >
-                  Preparar pago con PayPal
-                </Button>
-              </>
-            ) : paypalClientId ? (
-              <div className="space-y-4">
-                <div className="border border-black/8 bg-[#fbfbf8] px-4 py-4 text-sm leading-6 text-[#4b5563]">
-                  Abriremos PayPal en un panel dedicado para que el formulario de tarjeta no
-                  rompa el layout del carrito.
-                </div>
-                <Button
-                  type="button"
-                  disabled={isBusy}
-                  onClick={() => {
-                    setIsPayPalDialogOpen(true);
-                  }}
-                >
-                  Abrir checkout seguro de PayPal
-                </Button>
-                {checkoutMessage && (
-                  <div className="text-xs text-center font-medium text-emerald-800 animate-in fade-in slide-in-from-top-1">
-                    {checkoutMessage}
-                  </div>
-                )}
-                <Dialog open={isPayPalDialogOpen} onOpenChange={setIsPayPalDialogOpen}>
-                  <DialogContent className="max-h-[min(92vh,960px)] max-w-3xl overflow-y-auto rounded-[24px] p-0">
-                    <div className="border-b border-black/8 bg-[#f7f4ef] px-6 py-5 sm:px-8">
-                      <DialogHeader className="pr-10">
-                        <DialogTitle className="font-display text-3xl uppercase tracking-[0.06em]">
-                          Confirma tu pago con PayPal
-                        </DialogTitle>
-                        <DialogDescription className="max-w-2xl">
-                          Te abrimos el checkout en un panel amplio para que la experiencia de
-                          PayPal no invada el header ni el contenido de la tienda.
-                        </DialogDescription>
-                      </DialogHeader>
-                    </div>
-
-                    <div className="grid gap-6 px-6 py-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px]">
-                      <div className="space-y-4">
-                        <div className="rounded-[20px] border border-black/8 bg-white p-4 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.2)]">
-                          <PayPalCheckoutButton
-                            clientId={paypalClientId}
-                            currencyCode={paypalSession.currencyCode}
-                            orderId={paypalSession.paypalOrderId}
-                            disabled={isBusy}
-                            onApproveCheckout={handleApprovePayPal}
-                            onCancel={() => {
-                              setCheckoutMessage("Has cancelado el pago. Tu seleccion sigue guardada.");
-                              setIsPayPalDialogOpen(false);
-                            }}
-                            onError={(message) => {
-                              setCheckoutMessage(message);
-                            }}
-                          />
-                        </div>
-
-                        <div className="rounded-[20px] border border-sky-200 bg-sky-50 px-4 py-4 text-sm leading-6 text-sky-950">
-                          Si PayPal te muestra los campos de tarjeta, este panel tiene su propio
-                          espacio y scroll para que el carrito siga estable visualmente.
-                        </div>
-                      </div>
-
-                      <div className="space-y-4 rounded-[20px] border border-black/8 bg-[#111111] p-5 text-white">
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/65">
-                            Resumen del cobro
-                          </p>
-                          <p className="mt-3 font-display text-2xl uppercase">
-                            {hasPayPalChargeAmount
-                              ? formatCartAmount(paypalSession.amount, paypalSession.currencyCode)
-                              : "Pendiente"}
-                          </p>
-                        </div>
-
-                        <div className="space-y-3 text-sm text-white/80">
-                          <div className="flex items-center justify-between gap-4">
-                            <span>Pedido tienda</span>
-                            <span>{formatCartAmount(cart.summary.total, cart.summary.currencyCode)}</span>
-                          </div>
-                          {paypalSession.displayAmount !== null && paypalSession.displayCurrencyCode ? (
-                            <div className="flex items-center justify-between gap-4">
-                              <span>Equivalente mostrado</span>
-                              <span>
-                                {formatCartAmount(
-                                  paypalSession.displayAmount,
-                                  paypalSession.displayCurrencyCode,
-                                )}
-                              </span>
-                            </div>
-                          ) : null}
-                          <div className="flex items-center justify-between gap-4">
-                            <span>Order ID</span>
-                            <span className="font-mono text-xs">{paypalSession.paypalOrderId}</span>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-white/10 pt-4 text-xs leading-5 text-white/65">
-                          Si cierras este panel, tu carrito y tu sesión PayPal seguirán guardados.
-                        </div>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            ) : (
-              <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Falta NEXT_PUBLIC_PAYPAL_CLIENT_ID, asi que no podemos cargar el boton sandbox.
-              </div>
-            )}
+            <Button
+              type="button"
+              disabled={isBusy || (!memberEmail && !guestEmail.trim())}
+              onClick={() => {
+                void handleSubmitReservation();
+              }}
+            >
+              {isBusy ? "Enviando reserva..." : "Enviar reserva por WhatsApp"}
+            </Button>
             <Button asChild variant="outline">
               <Link href="/tienda">Seguir comprando</Link>
             </Button>

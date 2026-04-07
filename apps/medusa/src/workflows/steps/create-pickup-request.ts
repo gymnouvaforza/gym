@@ -73,7 +73,19 @@ function asString(value: unknown) {
 }
 
 function asNumber(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? value : 0
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value)
+
+    if (Number.isFinite(parsed)) {
+      return parsed
+    }
+  }
+
+  return 0
 }
 
 function normalizeMoneyAmount(value: unknown) {
@@ -328,3 +340,9 @@ export const createPickupRequestStep = createStep(
     await pickupRequestService.deletePickupRequests(pickupRequestId)
   }
 )
+
+export const __createPickupRequestStepTestables = {
+  asNumber,
+  normalizeMoneyAmount,
+  mapLineItemSnapshot,
+}

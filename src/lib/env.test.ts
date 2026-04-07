@@ -267,7 +267,7 @@ describe("env provider constraints", () => {
       SMTP_SECURE: "false",
       SMTP_USER: "club@gmail.com",
       SMTP_PASSWORD: "app-password",
-      SMTP_FROM_EMAIL: "Nova Forza <pedidos@novaforza.pe>",
+      SMTP_FROM_EMAIL: "Nuova Forza <pedidos@novaforza.pe>",
     });
 
     expect(env.hasSmtpEnv()).toBe(true);
@@ -277,7 +277,7 @@ describe("env provider constraints", () => {
       secure: false,
       user: "club@gmail.com",
       password: "app-password",
-      fromEmail: "Nova Forza <pedidos@novaforza.pe>",
+      fromEmail: "Nuova Forza <pedidos@novaforza.pe>",
     });
   });
 

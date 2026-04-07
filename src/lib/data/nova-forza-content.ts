@@ -33,6 +33,8 @@ export interface FeaturedProduct {
   imageUrl: string;
 }
 
+const fallbackContactPhone = process.env.NEXT_PUBLIC_GYM_CONTACT_PHONE ?? "+34 654 19 47 88";
+
 export const novaForzaHomeContent = {
   navItems: [
     { href: "/#inicio", label: "Inicio" },
@@ -113,7 +115,7 @@ export const novaForzaHomeContent = {
   contact: {
     address: "San Jose #371, segundo piso, Chiclayo",
     whatsappLabel: "WhatsApp de atencion",
-    whatsappDisplay: "+51 901 900 300",
+    whatsappDisplay: fallbackContactPhone,
     emailLabel: "Consultas generales",
     email: "soporte@nuovaforzagym.com",
     mapLabel: "Chiclayo",

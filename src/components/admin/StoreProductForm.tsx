@@ -200,7 +200,7 @@ export default function StoreProductForm({
             name="paypal_price_usd"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Precio estimado PayPal (USD)</FormLabel>
+                <FormLabel>Referencia cobro manual (USD, opcional)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"

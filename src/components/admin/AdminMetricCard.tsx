@@ -29,28 +29,32 @@ export default function AdminMetricCard({
   className,
 }: Readonly<AdminMetricCardProps>) {
   return (
-    <AdminSurface className={cn("p-5 sm:p-6", className)}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-4">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#7a7f87]">
+    <AdminSurface className={cn("group overflow-hidden p-0", className)}>
+      <div className="flex items-start justify-between p-6 pb-4">
+        <div className="space-y-3">
+          <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a7f87]">
+            <span className={cn("h-1 w-1 rounded-full", toneClasses[tone].split(" ")[1].replace("text-", "bg-"))} />
             {label}
           </p>
-          <p className="text-4xl font-extrabold tracking-tighter text-[#111111] sm:text-[2.25rem]">
+          <p className="font-display text-4xl font-black italic tracking-tighter text-[#111111] sm:text-5xl">
             {value}
           </p>
         </div>
         <div
           className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-none border border-black/6 shadow-[0_14px_36px_-24px_rgba(17,17,17,0.45)]",
+            "flex h-12 w-12 shrink-0 items-center justify-center border border-black/5 transition-transform duration-300 group-hover:scale-110",
             toneClasses[tone],
           )}
         >
           <Icon className="h-5 w-5" />
         </div>
       </div>
-      <div className="mt-4 border-t border-black/8 pt-4">
-        <p className="text-sm leading-6 text-[#4f5359]">{hint}</p>
+      <div className="bg-[#fbfbf8] p-5 pt-4">
+        <p className="text-[13px] leading-relaxed text-[#5f6368] font-medium">
+          {hint}
+        </p>
       </div>
+      <div className={cn("h-1 w-full", toneClasses[tone].split(" ")[0])} />
     </AdminSurface>
   );
 }

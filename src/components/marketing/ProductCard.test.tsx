@@ -52,7 +52,7 @@ describe("ProductCard", () => {
       "/tienda/creatina-monohidratada",
     );
     expect(screen.getByText(/24(?:[.,])90/)).toBeInTheDocument();
-    expect(screen.getByText(/PayPal cobra aprox\./i)).toBeInTheDocument();
+    expect(screen.queryByText(/PayPal cobra aprox\./i)).not.toBeInTheDocument();
     expect(screen.getAllByText("Premium").length).toBeGreaterThan(0);
     expect(screen.getByText("Ver mas")).toBeInTheDocument();
   });

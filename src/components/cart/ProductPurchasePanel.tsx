@@ -4,9 +4,9 @@ import { Minus, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
+import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/data/types";
-import { formatUsdPrice } from "@/lib/data/products";
 import { cn } from "@/lib/utils";
 
 interface ProductPurchasePanelProps {
@@ -20,18 +20,6 @@ function resolveInitialOptionValue(product: Product) {
   }
 
   return null;
-}
-
-function PayPalHelper({ product }: Readonly<Pick<ProductPurchasePanelProps, "product">>) {
-  if (product.paypal_price_usd === null) {
-    return null;
-  }
-
-  return (
-    <p className="border-l-2 border-[#d71920] bg-black/5 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[#7a7f87]">
-      PayPal cobra aprox. {formatUsdPrice(product.paypal_price_usd)} por unidad.
-    </p>
-  );
 }
 
 function PreviewProductPurchasePanel({
@@ -91,16 +79,14 @@ function PreviewProductPurchasePanel({
             className="h-14 flex-1 cursor-not-allowed rounded-none bg-[#d71920] px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white opacity-50 shadow-xl sm:flex-none"
             disabled
           >
-            Compra disponible en storefront
+            Reserva disponible en storefront
           </Button>
         </div>
       </div>
 
-      <PayPalHelper product={product} />
-
       <div className="space-y-4 border-t border-black/5 pt-6">
         <p className="text-[10px] font-bold uppercase tracking-wider text-[#7a7f87] italic leading-relaxed">
-          Esta ficha es solo una preview del dashboard. El proceso de compra real se activa en la
+          Esta ficha es solo una preview del dashboard. La reserva asistida real se activa en la
           version publicada.
         </p>
       </div>
@@ -230,19 +216,18 @@ function InteractiveProductPurchasePanel({
               void handleAddToCart();
             }}
           >
-            {isUnavailable ? "AGOTADO" : isBusy ? "PROCESANDO..." : "Anadir al carrito"}
+            {isUnavailable ? "AGOTADO" : isBusy ? "PROCESANDO..." : "Anadir a la reserva"}
           </Button>
         </div>
       </div>
 
-      <PayPalHelper product={product} />
-
       {(selectionError || error) && (
-        <div className="border-l-2 border-red-600 bg-red-50 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-red-700">
-            {selectionError || error}
-          </p>
-        </div>
+        <PublicInlineAlert
+          tone="error"
+          title="No pudimos anadir este producto"
+          message={selectionError || error || "Se produjo un error inesperado."}
+          compact
+        />
       )}
     </div>
   );

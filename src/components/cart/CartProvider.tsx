@@ -31,6 +31,7 @@ import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
 export interface CartContextValue {
   cart: Cart | null;
   lastSubmittedPickupRequest: PickupRequestDetail | null;
+  lastSubmittedWhatsAppUrl: string | null;
   pickupEmailWarning: string | null;
   notice: string | null;
   memberEmail: string | null;
@@ -45,21 +46,10 @@ export interface CartContextValue {
   updateItemQuantity: (lineItemId: string, quantity: number) => Promise<void>;
   removeItem: (lineItemId: string) => Promise<void>;
   saveEmail: (email: string) => Promise<void>;
-  preparePayPalCheckout: (input?: {
+  submitPickupRequest: (input?: {
     email?: string;
     notes?: string;
-  }) => Promise<Cart | null>;
-  completePayPalCheckout: (input?: {
-    email?: string;
-    notes?: string;
-  }) => Promise<
-    | PickupRequestDetail
-    | {
-        kind: "processing";
-        cartId: string;
-      }
-    | null
-  >;
+  }) => Promise<PickupRequestDetail | null>;
 }
 
 export const CartContext = createContext<CartContextValue | null>(null);
@@ -67,6 +57,7 @@ export const CartContext = createContext<CartContextValue | null>(null);
 type CartApiPayload = { cart?: Cart | null; error?: string };
 type PickupCheckoutPayload = {
   pickupRequest?: PickupRequestDetail;
+  whatsappUrl?: string | null;
   emailWarning?: string | null;
   error?: string;
   processing?: boolean;
@@ -83,6 +74,7 @@ export function CartProvider({
   const [cart, setCart] = useState<Cart | null>(null);
   const [lastSubmittedPickupRequest, setLastSubmittedPickupRequest] =
     useState<PickupRequestDetail | null>(null);
+  const [lastSubmittedWhatsAppUrl, setLastSubmittedWhatsAppUrl] = useState<string | null>(null);
   const [pickupEmailWarning, setPickupEmailWarning] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +83,6 @@ export function CartProvider({
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const lastSyncedSignature = useRef<string | null>(null);
   const abandonedCartIdsRef = useRef<Set<string>>(new Set());
-  const completeCheckoutInFlightRef = useRef(false);
 
   function isRecoverableCartFlowMessage(message: string | null | undefined) {
     if (!message) {
@@ -131,6 +122,7 @@ export function CartProvider({
 
     commitCart(null);
     setLastSubmittedPickupRequest(null);
+    setLastSubmittedWhatsAppUrl(null);
     setPickupEmailWarning(null);
     setNotice(null);
     lastSyncedSignature.current = null;
@@ -213,6 +205,7 @@ export function CartProvider({
     }
 
     setLastSubmittedPickupRequest(null);
+    setLastSubmittedWhatsAppUrl(null);
     setPickupEmailWarning(null);
 
     if (memberEmail) {
@@ -341,6 +334,7 @@ export function CartProvider({
   async function addItem(input: { variantId: string; quantity: number }) {
     await runBusyAction(async () => {
       setLastSubmittedPickupRequest(null);
+      setLastSubmittedWhatsAppUrl(null);
       setPickupEmailWarning(null);
 
       let cartId: string;
@@ -430,12 +424,14 @@ export function CartProvider({
     });
   }
 
-  async function preparePayPalCheckout(input?: {
+  async function submitPickupRequest(input?: {
     email?: string;
     notes?: string;
   }) {
-    if (!cart?.id) {
-      setError("No hay un carrito activo para preparar el pago.");
+    const activeCartId = cart?.id ?? null;
+
+    if (!activeCartId) {
+      setError("No hay un carrito activo para enviar la reserva.");
       return null;
     }
 
@@ -444,90 +440,23 @@ export function CartProvider({
     setNotice(null);
 
     try {
-      const { response, payload } = await postJson<CartApiPayload>(
-        "/api/cart/checkout/paypal/init",
-        {
-          cartId: cart.id,
-          email: input?.email,
-          notes: input?.notes,
-        },
-      );
-
-      if (!response.ok || !payload?.cart) {
-        throw new Error(payload?.error ?? "No se pudo preparar PayPal.");
-      }
-
-      commitCart(payload.cart);
-      return payload.cart;
-    } catch (actionError) {
-      const message = getErrorMessage(actionError, "No se pudo preparar PayPal.");
-
-      if (isMissingCartMessage(message)) {
-        invalidateBrokenCart(STALE_CART_MESSAGE);
-        return null;
-      }
-
-      setError(message);
-      return null;
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function completePayPalCheckout(input?: {
-    email?: string;
-    notes?: string;
-  }) {
-    const activeCartId = cart?.id ?? null;
-
-    if (!activeCartId) {
-      setError("No hay un carrito activo para completar el pago.");
-      return null;
-    }
-
-    if (completeCheckoutInFlightRef.current) {
-      return null;
-    }
-
-    completeCheckoutInFlightRef.current = true;
-    setIsBusy(true);
-    setError(null);
-
-    try {
       const { response, payload } = await postJson<PickupCheckoutPayload>(
-        "/api/cart/checkout/paypal/complete",
+        "/api/cart/pickup-request",
         {
           cartId: activeCartId,
           email: input?.email,
           notes: input?.notes,
         },
       );
-
-      if (response.status === 202 && payload?.processing) {
-        commitCart(null);
-        setLastSubmittedPickupRequest(null);
-        setPickupEmailWarning(null);
-        setNotice(
-          payload.message ??
-            payload.error ??
-            "PayPal ya ha confirmado tu pago. Estamos terminando de registrar tu pedido.",
-        );
-        startTransition(() => {
-          setDrawerOpen(false);
-        });
-        return {
-          kind: "processing" as const,
-          cartId: activeCartId,
-        };
-      }
 
       if (!response.ok || !payload?.pickupRequest) {
-        throw new Error(payload?.error ?? "No se pudo completar el pago con PayPal.");
+        throw new Error(payload?.error ?? "No se pudo enviar la reserva al equipo.");
       }
 
       commitCart(null);
       setNotice(null);
       setLastSubmittedPickupRequest(payload.pickupRequest);
+      setLastSubmittedWhatsAppUrl(payload.whatsappUrl ?? null);
       setPickupEmailWarning(payload.emailWarning ?? null);
       startTransition(() => {
         setDrawerOpen(false);
@@ -535,7 +464,7 @@ export function CartProvider({
 
       return payload.pickupRequest;
     } catch (actionError) {
-      const message = getErrorMessage(actionError, "No se pudo completar el pago con PayPal.");
+      const message = getErrorMessage(actionError, "No se pudo enviar la reserva al equipo.");
 
       if (isMissingCartMessage(message)) {
         invalidateBrokenCart(STALE_CART_MESSAGE);
@@ -545,7 +474,6 @@ export function CartProvider({
       setError(message);
       return null;
     } finally {
-      completeCheckoutInFlightRef.current = false;
       setIsBusy(false);
     }
   }
@@ -555,6 +483,7 @@ export function CartProvider({
       value={{
         cart,
         lastSubmittedPickupRequest,
+        lastSubmittedWhatsAppUrl,
         pickupEmailWarning,
         notice,
         memberEmail,
@@ -565,6 +494,7 @@ export function CartProvider({
         setDrawerOpen,
         clearSubmittedPickupRequest: () => {
           setLastSubmittedPickupRequest(null);
+          setLastSubmittedWhatsAppUrl(null);
           setPickupEmailWarning(null);
           setNotice(null);
         },
@@ -573,8 +503,7 @@ export function CartProvider({
         updateItemQuantity,
         removeItem,
         saveEmail,
-        preparePayPalCheckout,
-        completePayPalCheckout,
+        submitPickupRequest,
       }}
     >
       {children}

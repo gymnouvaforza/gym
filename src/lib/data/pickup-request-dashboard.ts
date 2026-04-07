@@ -21,6 +21,8 @@ export interface PickupRequestFilters {
   paymentStatus: PickupRequestPaymentStatus | "all";
   emailStatus: PickupRequestEmailStatus | "all";
   attention: PickupRequestAttentionFilter;
+  dateFrom: string;
+  dateTo: string;
   sort: PickupRequestSort;
 }
 
@@ -52,6 +54,8 @@ export const DEFAULT_PICKUP_REQUEST_FILTERS: PickupRequestFilters = {
   paymentStatus: "all",
   emailStatus: "all",
   attention: "all",
+  dateFrom: "",
+  dateTo: "",
   sort: "updated_desc",
 };
 
@@ -68,6 +72,29 @@ const emailStatusValues: PickupRequestEmailStatus[] = ["pending", "sent", "faile
 
 function includesValue(collection: readonly string[], value: string) {
   return collection.includes(value);
+}
+
+function parseFilterDate(value: string | string[] | undefined) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const normalized = value.trim();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    return "";
+  }
+
+  const parsed = new Date(`${normalized}T00:00:00.000Z`);
+
+  return Number.isNaN(parsed.getTime()) ? "" : normalized;
+}
+
+function resolveDayRange(date: string, boundary: "start" | "end") {
+  const suffix =
+    boundary === "start" ? "T00:00:00.000Z" : "T23:59:59.999Z";
+
+  return new Date(`${date}${suffix}`).getTime();
 }
 
 export function parsePickupRequestFilters(
@@ -115,12 +142,17 @@ export function parsePickupRequestFilters(
     sort = params.sort;
   }
 
+  const dateFrom = parseFilterDate(params.dateFrom);
+  const dateTo = parseFilterDate(params.dateTo);
+
   return {
     q,
     status,
     paymentStatus,
     emailStatus,
     attention,
+    dateFrom,
+    dateTo,
     sort,
   };
 }
@@ -195,6 +227,22 @@ export function filterAndSortPickupRequests(
     );
   }
 
+  if (filters.dateFrom) {
+    const fromTimestamp = resolveDayRange(filters.dateFrom, "start");
+    filtered = filtered.filter((pickupRequest) => {
+      const createdAt = new Date(pickupRequest.createdAt).getTime();
+      return !Number.isNaN(createdAt) && createdAt >= fromTimestamp;
+    });
+  }
+
+  if (filters.dateTo) {
+    const toTimestamp = resolveDayRange(filters.dateTo, "end");
+    filtered = filtered.filter((pickupRequest) => {
+      const createdAt = new Date(pickupRequest.createdAt).getTime();
+      return !Number.isNaN(createdAt) && createdAt <= toTimestamp;
+    });
+  }
+
   filtered.sort((left, right) => {
     switch (filters.sort) {
       case "created_asc":
@@ -217,6 +265,8 @@ export function hasActivePickupRequestFilters(filters: PickupRequestFilters) {
     filters.paymentStatus !== DEFAULT_PICKUP_REQUEST_FILTERS.paymentStatus ||
     filters.emailStatus !== DEFAULT_PICKUP_REQUEST_FILTERS.emailStatus ||
     filters.attention !== DEFAULT_PICKUP_REQUEST_FILTERS.attention ||
+    filters.dateFrom !== DEFAULT_PICKUP_REQUEST_FILTERS.dateFrom ||
+    filters.dateTo !== DEFAULT_PICKUP_REQUEST_FILTERS.dateTo ||
     filters.sort !== DEFAULT_PICKUP_REQUEST_FILTERS.sort
   );
 }

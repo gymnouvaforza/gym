@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import ProductCard from "@/components/marketing/ProductCard";
 import ProductDetail from "@/components/marketing/ProductDetail";
+import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { getCommerceCatalog, getCommerceProductBySlug } from "@/lib/commerce/catalog";
 import {
   getActiveProducts,
@@ -80,10 +81,13 @@ export default async function ProductDetailPage({
   if (productSnapshot.status === "unavailable") {
     return (
       <section className="section-shell py-16 md:py-24">
-        <div className="rounded-none border border-amber-300/70 bg-amber-50 px-6 py-10 text-center text-amber-900 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em]">
-            Medusa no disponible
-          </p>
+        <div className="space-y-6 rounded-none border border-amber-300/70 bg-amber-50 px-6 py-10 text-center text-amber-900 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
+          <PublicInlineAlert
+            tone="warning"
+            title="Medusa no disponible"
+            message="La ficha de producto no se puede cargar ahora mismo."
+            compact
+          />
           <h1 className="mt-4 font-display text-4xl uppercase text-[#111111]">
             La ficha de producto no se puede cargar ahora mismo
           </h1>
@@ -114,10 +118,11 @@ export default async function ProductDetailPage({
     <>
       {productSnapshot.warning ? (
         <div className="section-shell pt-8">
-          <div className="rounded-none border border-amber-300/70 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900">
-            <p className="font-semibold uppercase tracking-[0.18em]">Aviso de catalogo</p>
-            <p className="mt-2">{productSnapshot.warning}</p>
-          </div>
+          <PublicInlineAlert
+            tone="warning"
+            title="Aviso de catalogo"
+            message={productSnapshot.warning}
+          />
         </div>
       ) : null}
 

@@ -96,7 +96,7 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
               <div className="relative aspect-[9/16] overflow-hidden rounded-[2.5rem] border-[6px] border-[#1a1a1a] shadow-2xl shadow-accent/20">
                 <Image
                   src={FALLBACK_IMAGE}
-                  alt="Nova Forza Hero"
+                  alt="Nuova Forza Hero"
                   fill
                   className="object-cover opacity-20 blur-xl"
                   priority

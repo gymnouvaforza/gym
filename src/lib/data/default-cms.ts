@@ -25,7 +25,7 @@ export const defaultCmsDocuments: Record<CmsDocumentKey, DBCmsDocument> = {
     summary:
       "Como tratamos tus datos cuando nos escribes, compras o interactuas con el gimnasio.",
     body_markdown: `# Responsable del tratamiento
-Nova Forza Gym es responsable del tratamiento de los datos personales recogidos desde esta web.
+Nuova Forza Gym es responsable del tratamiento de los datos personales recogidos desde esta web.
 
 # Que datos tratamos
 - Datos de contacto que facilitas en formularios o procesos de compra.
@@ -41,12 +41,12 @@ Nova Forza Gym es responsable del tratamiento de los datos personales recogidos 
 Conservamos los datos el tiempo necesario para la relacion comercial o mientras exista una obligacion legal aplicable.
 
 # Derechos
-Puedes solicitar acceso, rectificacion, supresion, oposicion o limitacion escribiendo a hola@novaforza.pe.`,
+Puedes solicitar acceso, rectificacion, supresion, oposicion o limitacion escribiendo a soporte@nuovaforzagym.com.`,
     cta_label: "Contactar con el gimnasio",
-    cta_href: "mailto:hola@novaforza.pe",
-    seo_title: "Politica de privacidad | Nova Forza",
+    cta_href: "mailto:soporte@nuovaforzagym.com",
+    seo_title: "Politica de privacidad | Nuova Forza",
     seo_description:
-      "Consulta como Nova Forza trata los datos personales recogidos desde la web, la tienda y los formularios.",
+      "Consulta como Nuova Forza trata los datos personales recogidos desde la web, la tienda y los formularios.",
     is_published: true,
     updated_at: "2026-03-23T00:00:00.000Z",
   },
@@ -68,12 +68,12 @@ Las cookies son pequenos archivos que el navegador guarda para recordar informac
 Puedes aceptar o rechazar las cookies no esenciales desde el banner. Tambien puedes borrar cookies desde la configuracion de tu navegador.
 
 # Mas informacion
-Si tienes dudas sobre el uso de cookies en este sitio, escribe a hola@novaforza.pe.`,
+Si tienes dudas sobre el uso de cookies en este sitio, escribe a soporte@nuovaforzagym.com.`,
     cta_label: "Volver al inicio",
     cta_href: "/",
-    seo_title: "Politica de cookies | Nova Forza",
+    seo_title: "Politica de cookies | Nuova Forza",
     seo_description:
-      "Revisa que cookies utiliza Nova Forza para el funcionamiento del sitio y como puedes gestionarlas.",
+      "Revisa que cookies utiliza Nuova Forza para el funcionamiento del sitio y como puedes gestionarlas.",
     is_published: true,
     updated_at: "2026-03-23T00:00:00.000Z",
   },
@@ -93,18 +93,18 @@ Los precios visibles se muestran en la moneda configurada por la tienda. En el c
 # Pedidos pickup
 - Los productos se recogen en el club.
 - El usuario debe facilitar un email valido para recibir confirmaciones.
-- Nova Forza puede contactar al cliente si necesita validar stock o recogida.
+- Nuova Forza puede contactar al cliente si necesita validar stock o recogida.
 
 # Disponibilidad
 La disponibilidad puede cambiar entre la navegacion y la confirmacion final del pedido.
 
 # Responsabilidad
-Nova Forza no responde de interrupciones temporales del servicio ajenas a su control razonable.`,
+Nuova Forza no responde de interrupciones temporales del servicio ajenas a su control razonable.`,
     cta_label: "Ver tienda",
     cta_href: "/tienda",
-    seo_title: "Terminos y condiciones | Nova Forza",
+    seo_title: "Terminos y condiciones | Nuova Forza",
     seo_description:
-      "Condiciones generales de uso de la web y de la operativa pickup de Nova Forza.",
+      "Condiciones generales de uso de la web y de la operativa pickup de Nuova Forza.",
     is_published: true,
     updated_at: "2026-03-23T00:00:00.000Z",
   },
@@ -126,12 +126,12 @@ Cuando la normativa aplicable reconozca derecho de desistimiento, el cliente pod
 - Suplementos o alimentos manipulados no se aceptaran si su estado ya no garantiza seguridad.
 
 # Como solicitarlo
-Escribe a hola@novaforza.pe indicando pedido, motivo y estado del producto.`,
+Escribe a soporte@nuovaforzagym.com indicando pedido, motivo y estado del producto.`,
     cta_label: "Escribir al soporte",
-    cta_href: "mailto:hola@novaforza.pe",
-    seo_title: "Politica de desistimiento | Nova Forza",
+    cta_href: "mailto:soporte@nuovaforzagym.com",
+    seo_title: "Politica de desistimiento | Nuova Forza",
     seo_description:
-      "Consulta las condiciones de cancelacion y desistimiento aplicables a los pedidos pickup de Nova Forza.",
+      "Consulta las condiciones de cancelacion y desistimiento aplicables a los pedidos pickup de Nuova Forza.",
     is_published: true,
     updated_at: "2026-03-23T00:00:00.000Z",
   },
@@ -143,7 +143,7 @@ Escribe a hola@novaforza.pe indicando pedido, motivo y estado del producto.`,
     summary:
       "Identificacion del titular del sitio y reglas basicas de uso del contenido publicado.",
     body_markdown: `# Titular del sitio
-Nova Forza Gym es el titular de esta web y de los contenidos publicados en ella.
+Nuova Forza Gym es el titular de esta web y de los contenidos publicados en ella.
 
 # Propiedad intelectual
 Los textos, imagenes, marcas y elementos visuales del sitio no pueden reutilizarse sin autorizacion expresa.
@@ -152,12 +152,12 @@ Los textos, imagenes, marcas y elementos visuales del sitio no pueden reutilizar
 El usuario se compromete a utilizar el sitio de forma licita, sin alterar servicios, formularios o procesos de compra.
 
 # Contacto
-Para cuestiones legales o de contenido, escribe a hola@novaforza.pe.`,
+Para cuestiones legales o de contenido, escribe a soporte@nuovaforzagym.com.`,
     cta_label: "Contactar",
-    cta_href: "mailto:hola@novaforza.pe",
-    seo_title: "Aviso legal | Nova Forza",
+    cta_href: "mailto:soporte@nuovaforzagym.com",
+    seo_title: "Aviso legal | Nuova Forza",
     seo_description:
-      "Datos identificativos y condiciones legales basicas de uso del sitio de Nova Forza.",
+      "Datos identificativos y condiciones legales basicas de uso del sitio de Nuova Forza.",
     is_published: true,
     updated_at: "2026-03-23T00:00:00.000Z",
   },
@@ -172,8 +172,8 @@ Para cuestiones legales o de contenido, escribe a hola@novaforza.pe.`,
       "Puedes aceptar o rechazar las cookies no esenciales. Si continuas, seguiremos usando solo las necesarias para sesion, carrito y funcionamiento basico.",
     cta_label: "Ver politica de cookies",
     cta_href: "/cookies",
-    seo_title: "Banner de cookies | Nova Forza",
-    seo_description: "Texto operativo del banner de cookies del sitio de Nova Forza.",
+    seo_title: "Banner de cookies | Nuova Forza",
+    seo_description: "Texto operativo del banner de cookies del sitio de Nuova Forza.",
     is_published: true,
     updated_at: "2026-03-23T00:00:00.000Z",
   },
@@ -188,7 +188,7 @@ Para cuestiones legales o de contenido, escribe a hola@novaforza.pe.`,
       "Puedes reintentar en unos segundos o volver al inicio para seguir navegando sin perder el contexto principal.",
     cta_label: "Volver al inicio",
     cta_href: "/",
-    seo_title: "Error general del sitio | Nova Forza",
+    seo_title: "Error general del sitio | Nuova Forza",
     seo_description: "Copia generica para incidencias temporales del sitio publico.",
     is_published: true,
     updated_at: "2026-03-23T00:00:00.000Z",
@@ -203,7 +203,7 @@ Para cuestiones legales o de contenido, escribe a hola@novaforza.pe.`,
       "La tienda funciona con el catalogo operativo conectado. Reintenta en unos instantes o vuelve al inicio mientras el servicio se recupera.",
     cta_label: "Volver al inicio",
     cta_href: "/",
-    seo_title: "Error de catalogo | Nova Forza",
+    seo_title: "Error de catalogo | Nuova Forza",
     seo_description:
       "Copia generica para el estado de error de la tienda y del catalogo.",
     is_published: true,
@@ -219,7 +219,7 @@ Para cuestiones legales o de contenido, escribe a hola@novaforza.pe.`,
       "Vuelve al inicio, revisa la tienda o usa el menu principal para seguir navegando.",
     cta_label: "Ir al inicio",
     cta_href: "/",
-    seo_title: "Pagina no encontrada | Nova Forza",
+    seo_title: "Pagina no encontrada | Nuova Forza",
     seo_description: "Copia generica para estados 404 en la web publica.",
     is_published: true,
     updated_at: "2026-03-23T00:00:00.000Z",
@@ -235,7 +235,7 @@ Para cuestiones legales o de contenido, escribe a hola@novaforza.pe.`,
       "Si crees que esto es un error, vuelve a iniciar sesion o contacta con el gimnasio para recibir ayuda.",
     cta_label: "Ir a acceso",
     cta_href: "/acceso",
-    seo_title: "Acceso restringido | Nova Forza",
+    seo_title: "Acceso restringido | Nuova Forza",
     seo_description:
       "Copia generica para estados de acceso no autorizado o restringido.",
     is_published: true,

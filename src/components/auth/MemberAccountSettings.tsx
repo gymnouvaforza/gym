@@ -199,7 +199,7 @@ export default function MemberAccountSettings({
              <h3 className="text-2xl font-display font-black uppercase tracking-tight italic">Perfil del Socio</h3>
           </div>
           <p className="text-sm leading-6 text-[#5f6368] max-w-sm">
-            Edita tu email y tus datos básicos visibles. Este email será tu nuevo acceso principal al portal de Titan Gym.
+            Edita tu email y tus datos básicos visibles. Este email será tu nuevo acceso principal al portal de Nuova Forza.
           </p>
         </div>
         

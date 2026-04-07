@@ -70,4 +70,34 @@ describe("pickup request mapper", () => {
       }),
     ]);
   });
+
+  it("normalizes localhost thumbnails so admin and member views can render them safely", () => {
+    const pickupRequest = mapPickupRequest({
+      id: "pick_02",
+      request_number: "NF-20260407-RNSVVV",
+      cart_id: "cart_02",
+      email: "socio@gym.com",
+      currency_code: "pen",
+      item_count: 1,
+      subtotal: "99.9",
+      total: "99.9",
+      email_status: "pending",
+      source: "gym-storefront",
+      created_at: "2026-04-07T10:00:00.000Z",
+      updated_at: "2026-04-07T10:00:00.000Z",
+      line_items_snapshot: [
+        {
+          id: "line_02",
+          title: "Creatina",
+          quantity: 1,
+          thumbnail: "http://localhost:3000/images/products/nova-creatina.png",
+          unit_price: "99.9",
+          total: "99.9",
+          selected_options: [],
+        },
+      ],
+    } as unknown as Parameters<typeof mapPickupRequest>[0]);
+
+    expect(pickupRequest.lineItems[0]?.thumbnail).toBe("/images/products/nova-creatina.png");
+  });
 });

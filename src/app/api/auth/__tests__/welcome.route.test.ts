@@ -31,7 +31,7 @@ describe("POST /api/auth/welcome", () => {
   beforeEach(() => {
     welcomeRouteMocks.hasResendEnv.mockReturnValue(true);
     welcomeRouteMocks.getResendEnv.mockReturnValue({
-      fromEmail: "Nova Forza <onboarding@resend.dev>",
+      fromEmail: "Nuova Forza <onboarding@resend.dev>",
     });
     welcomeRouteMocks.createSupabaseAdminClient.mockReturnValue({
       auth: {
@@ -51,7 +51,7 @@ describe("POST /api/auth/welcome", () => {
     });
     welcomeRouteMocks.getMarketingData.mockResolvedValue({
       settings: {
-        site_name: "Nova Forza",
+        site_name: "Nuova Forza",
         transactional_from_email: "pedidos@gmail.com",
       },
     });
@@ -76,8 +76,8 @@ describe("POST /api/auth/welcome", () => {
     expect(response.status).toBe(200);
     expect(welcomeRouteMocks.sendMemberWelcomeEmail).toHaveBeenCalledWith(
       "member@gym.com",
-      "Nova Forza",
-      "Nova Forza <onboarding@resend.dev>",
+      "Nuova Forza",
+      "Nuova Forza <onboarding@resend.dev>",
       "pedidos@gmail.com",
     );
     expect(payload).toEqual({ queued: true });

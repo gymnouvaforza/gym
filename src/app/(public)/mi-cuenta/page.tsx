@@ -19,6 +19,7 @@ import AuthFeedbackDialog from "@/components/auth/AuthFeedbackDialog";
 import { MemberSignOutButtonWithRedirect } from "@/components/auth/MemberSignOutButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { requireMemberUser } from "@/lib/auth";
 import { formatCartAmount } from "@/lib/cart/format";
 import {
@@ -37,7 +38,6 @@ import {
   formatMemberAccountDate,
   getMemberAccountQuickLinks,
 } from "@/lib/member-account";
-import DashboardNotice from "@/components/admin/DashboardNotice";
 import { cn } from "@/lib/utils";
 import type {
   MemberAccountViewModel,
@@ -147,7 +147,7 @@ export default async function MemberAccountPage() {
             </div>
             <div className="hidden sm:block">
                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Portal del Socio</p>
-               <p className="text-xs font-bold text-white uppercase tracking-widest">TITAN GYM SYSTEM <span className="text-white/20">/</span> V2.0</p>
+               <p className="text-xs font-bold text-white uppercase tracking-widest">Nuova Forza SYSTEM <span className="text-white/20">/</span> V2.0</p>
             </div>
          </div>
          <div className="flex items-center gap-4">
@@ -165,7 +165,12 @@ export default async function MemberAccountPage() {
         
         {loadError && (
           <div className="mb-12">
-             <DashboardNotice message={loadError} tone="warning" />
+             <PublicInlineAlert
+               tone="warning"
+               title="Tu cuenta se esta mostrando con contexto parcial"
+               message={loadError}
+               compact
+             />
           </div>
         )}
 
@@ -329,7 +334,7 @@ export default async function MemberAccountPage() {
                             </div>
                             <div className="text-center space-y-2">
                                <p className="text-xl font-black uppercase text-[#111111] tracking-tight">Tu carrito está vacío</p>
-                               <p className="text-sm text-[#7a7f87] max-w-sm">Explora el catálogo de suplementación y equipamiento profesional de Titan Gym.</p>
+                               <p className="text-sm text-[#7a7f87] max-w-sm">Explora el catálogo de suplementación y equipamiento profesional de Nuova Forza.</p>
                             </div>
                             <Link href="/tienda" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d71920] hover:underline underline-offset-8">Ir a la Tienda Pro</Link>
                          </div>

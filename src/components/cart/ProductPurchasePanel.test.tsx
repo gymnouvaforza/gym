@@ -73,7 +73,7 @@ describe("ProductPurchasePanel", () => {
     render(<ProductPurchasePanel product={product} previewMode />);
 
     expect(useCartMock).not.toHaveBeenCalled();
-    expect(screen.getByText("Compra disponible en storefront")).toBeInTheDocument();
+    expect(screen.getByText("Reserva disponible en storefront")).toBeInTheDocument();
     expect(
       screen.getByText(/Esta ficha es solo una preview del dashboard/i),
     ).toBeInTheDocument();

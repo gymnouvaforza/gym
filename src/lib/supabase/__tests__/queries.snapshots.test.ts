@@ -80,7 +80,7 @@ describe("getDashboardSnapshot", () => {
     createSupabasePublicClientMock.mockReturnValue({
       from: (table: string) => {
         if (table === "site_settings") {
-          return createSiteSettingsQuery({ id: 1, site_name: "Nova Forza real" });
+          return createSiteSettingsQuery({ id: 1, site_name: "Nuova Forza real" });
         }
 
         if (table === "marketing_testimonials") {
@@ -96,7 +96,7 @@ describe("getDashboardSnapshot", () => {
 
     expect(snapshot.leads).toEqual([]);
     expect(snapshot.warning).toContain("SUPABASE_SERVICE_ROLE_KEY");
-    expect(snapshot.settings.site_name).toBe("Nova Forza real");
+    expect(snapshot.settings.site_name).toBe("Nuova Forza real");
   });
 
   it("loads plans and schedule rows from the shared marketing snapshot", async () => {
@@ -105,7 +105,7 @@ describe("getDashboardSnapshot", () => {
     createSupabasePublicClientMock.mockReturnValue({
       from: (table: string) => {
         if (table === "site_settings") {
-          return createSiteSettingsQuery({ id: 1, site_name: "Nova Forza real" });
+          return createSiteSettingsQuery({ id: 1, site_name: "Nuova Forza real" });
         }
 
         if (table === "marketing_plans") {
@@ -168,7 +168,7 @@ describe("getDashboardSnapshot", () => {
     const { getMarketingSnapshot } = await import("@/lib/supabase/queries");
     const snapshot = await getMarketingSnapshot();
 
-    expect(snapshot.settings.site_name).toBe("Nova Forza real");
+    expect(snapshot.settings.site_name).toBe("Nuova Forza real");
     expect(snapshot.plans[0]?.title).toBe("Plan real");
     expect(snapshot.scheduleRows[0]?.label).toBe("Lunes");
     expect(snapshot.testimonials[0]?.author_name).toBe("Titan Uno");

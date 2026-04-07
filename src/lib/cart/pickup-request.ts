@@ -7,6 +7,7 @@ import type {
   PickupRequestStatus,
   SelectedVariant,
 } from "@/lib/cart/types";
+import { normalizeCommerceImageUrl } from "@/lib/commerce/image-urls";
 
 export type MedusaPickupRequestLineItem = {
   id: string;
@@ -219,7 +220,7 @@ function mapLineItem(lineItem: MedusaPickupRequestLineItem): PickupRequestLineIt
     id: lineItem.id,
     title: asString(lineItem.title) ?? "Producto",
     quantity: asNumber(lineItem.quantity),
-    thumbnail: asString(lineItem.thumbnail),
+    thumbnail: normalizeCommerceImageUrl(asString(lineItem.thumbnail)),
     productId: asString(lineItem.product_id),
     productTitle: asString(lineItem.product_title),
     productHandle: asString(lineItem.product_handle),

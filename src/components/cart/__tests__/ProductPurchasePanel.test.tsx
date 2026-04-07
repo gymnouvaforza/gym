@@ -74,7 +74,7 @@ describe("ProductPurchasePanel", () => {
 
     render(<ProductPurchasePanel product={buildProduct()} />);
 
-    expect(screen.getByRole("button", { name: "Anadir al carrito" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Anadir a la reserva" })).toBeDisabled();
   });
 
   it("adds the selected variant and quantity to the cart", async () => {
@@ -91,7 +91,7 @@ describe("ProductPurchasePanel", () => {
 
     await user.click(screen.getByRole("button", { name: "Vanilla" }));
     await user.click(screen.getByRole("button", { name: "Aumentar cantidad" }));
-    await user.click(screen.getByRole("button", { name: "Anadir al carrito" }));
+    await user.click(screen.getByRole("button", { name: "Anadir a la reserva" }));
 
     expect(addItemMock).toHaveBeenCalledWith({
       variantId: "variant_vanilla",
@@ -99,7 +99,7 @@ describe("ProductPurchasePanel", () => {
     });
   });
 
-  it("shows the PayPal estimated amount per unit", () => {
+  it("does not show legacy PayPal helper copy anymore", () => {
     cartProviderMocks.useCart.mockReturnValue({
       addItem: vi.fn(),
       isBusy: false,
@@ -108,6 +108,6 @@ describe("ProductPurchasePanel", () => {
 
     render(<ProductPurchasePanel product={buildProduct()} />);
 
-    expect(screen.getByText(/PayPal cobra aprox\./i)).toBeInTheDocument();
+    expect(screen.queryByText(/PayPal cobra aprox\./i)).not.toBeInTheDocument();
   });
 });

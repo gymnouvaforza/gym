@@ -6,11 +6,11 @@ const validCmsDocument = {
   slug: "privacidad",
   title: "Politica de privacidad",
   summary: "Como tratamos los datos personales recogidos desde el sitio.",
-  body_markdown: "# Responsable\nNova Forza Gym trata los datos con fines operativos y legales.",
+  body_markdown: "# Responsable\nNuova Forza Gym trata los datos con fines operativos y legales.",
   cta_label: "Contactar",
   cta_href: "mailto:hola@novaforza.pe",
-  seo_title: "Politica de privacidad | Nova Forza",
-  seo_description: "Informacion sobre tratamiento de datos personales en Nova Forza.",
+  seo_title: "Politica de privacidad | Nuova Forza",
+  seo_description: "Informacion sobre tratamiento de datos personales en Nuova Forza.",
   is_published: true,
 } as const;
 

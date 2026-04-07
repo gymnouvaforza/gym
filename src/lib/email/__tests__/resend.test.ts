@@ -17,7 +17,7 @@ describe("sendResendEmail", () => {
     resendEnvMocks.getResendEnv.mockReset();
     resendEnvMocks.getResendEnv.mockReturnValue({
       apiKey: "re_test",
-      fromEmail: "Nova Forza <onboarding@resend.dev>",
+      fromEmail: "Nuova Forza <onboarding@resend.dev>",
     });
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
@@ -80,7 +80,7 @@ describe("sendResendEmail", () => {
 
     await sendResendEmail({
       to: "socio@gym.com",
-      from: "Nova Forza <onboarding@resend.dev>",
+      from: "Nuova Forza <onboarding@resend.dev>",
       replyTo: "pedidos@gmail.com",
       subject: "Test",
       html: "<p>Hola</p>",

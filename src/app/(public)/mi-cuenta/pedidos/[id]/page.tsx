@@ -5,11 +5,9 @@ import { notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireMemberUser } from "@/lib/auth";
 import { formatCartAmount } from "@/lib/cart/format";
 import {
-  getPickupRequestEmailTone,
   getPickupRequestPaymentTone,
   getPickupRequestStatusTone,
   pickupRequestEmailStatusLabels,
@@ -47,7 +45,7 @@ function getMemberPickupNextStep(input: {
     case "ready_for_pickup":
       return "¡Buenas noticias! Tu pedido ya está listo en el club. Pasa a recogerlo cuando quieras.";
     case "fulfilled":
-      return "Recogida completada con éxito. ¡Gracias por confiar en el equipamiento de Titan Gym!";
+      return "Recogida completada con éxito. ¡Gracias por confiar en el equipamiento de Nova Forza!";
     case "cancelled":
       return "Este pedido ha sido cancelado. Si tienes dudas, ponte en contacto con nosotros.";
     default:
@@ -255,7 +253,7 @@ export default async function MemberPickupRequestDetailPage({
                     {pickupRequest.chargedCurrencyCode && pickupRequest.chargedTotal !== null && (
                        <div className="bg-[#fbfbf8] p-4 mt-6 space-y-2">
                           <div className="flex justify-between items-center text-[10px] font-black uppercase text-[#7a7f87]">
-                             <span>Cargo Procesado (PayPal)</span>
+                             <span>Cobro Registrado</span>
                              <span className="text-[#111111]">{formatCartAmount(pickupRequest.chargedTotal, pickupRequest.chargedCurrencyCode)}</span>
                           </div>
                           {pickupRequest.exchangeRate && (

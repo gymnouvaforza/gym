@@ -23,7 +23,7 @@ const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 function buildStoreProduct(overrides: Partial<MedusaStoreProduct> = {}) {
   return {
     id: "prod_01",
-    title: "Nova Forza Isolate Whey Protein",
+    title: "Nuova Forza Isolate Whey Protein",
     handle: "whey-nova-forza",
     subtitle: "Proteina limpia para el dia a dia",
     description: "Descripcion larga de producto",
@@ -179,7 +179,7 @@ function buildStoreProduct(overrides: Partial<MedusaStoreProduct> = {}) {
       eyebrow: "Suplemento de elite",
       featured: true,
       pickup_only: true,
-      pickup_summary: "Recogida en Nova Forza Gym",
+      pickup_summary: "Recogida en Nuova Forza Gym",
       pickup_eta: "Tu producto estara listo en menos de 24 horas laborables.",
       short_description: "Cubre la proteina diaria sin pesadez.",
       highlights: ["24 g de proteina por toma"],
@@ -214,7 +214,7 @@ describe("medusa commerce", () => {
     expect(product?.paypal_price_usd).toBe(13.95);
     expect(product?.compare_price).toBe(58.99);
     expect(product?.discount_label).toBe("Ahorra 15%");
-    expect(product?.pickup_summary).toBe("Recogida en Nova Forza Gym");
+    expect(product?.pickup_summary).toBe("Recogida en Nuova Forza Gym");
     expect(product?.specifications?.[0]?.label).toBe("Peso neto");
     expect(product?.options?.[0]?.title).toBe("Sabor");
     expect(product?.variants?.[0]?.options[0]?.value).toBe("Chocolate");

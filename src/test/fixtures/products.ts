@@ -17,7 +17,7 @@ export const products: Product[] = [
     stock_status: "in_stock",
     pickup_only: true,
     pickup_note: "Recogida rápida en recepción durante el horario del club.",
-    pickup_summary: "Recogida en Nova Forza Gym",
+    pickup_summary: "Recogida en Nuova Forza Gym",
     pickup_eta: "Tu bote estará listo en recepción en menos de 24 horas laborables.",
     featured: true,
     images: ["/images/products/nova-creatina.png"],
@@ -48,7 +48,7 @@ export const products: Product[] = [
   {
     id: "prod-2",
     slug: "whey-protein-isolate-2kg",
-    name: "Nova Forza Isolate Whey Protein",
+    name: "Nuova Forza Isolate Whey Protein",
     eyebrow: "Suplemento de élite",
     category: "suplementos",
     short_description:
@@ -62,8 +62,8 @@ export const products: Product[] = [
     currency: "PEN",
     stock_status: "low_stock",
     pickup_only: true,
-    pickup_note: "Ultimas unidades disponibles esta semana en el mostrador de Nova Forza.",
-    pickup_summary: "Recogida en Nova Forza Gym",
+    pickup_note: "Ultimas unidades disponibles esta semana en el mostrador de Nuova Forza.",
+    pickup_summary: "Recogida en Nuova Forza Gym",
     pickup_eta:
       "Tu producto estará listo en recepción en menos de 24 horas laborables. Presenta tu email de confirmación.",
     featured: true,
@@ -102,12 +102,12 @@ export const products: Product[] = [
   {
     id: "prod-3",
     slug: "shaker-premium-nova-forza",
-    name: "Shaker Premium Nova Forza",
+    name: "Shaker Premium Nuova Forza",
     category: "accesorios",
     short_description:
       "Shaker robusto de 700 ml con cierre seguro y diseño limpio para el dia a dia.",
     description:
-      "Un basico bien resuelto para llevar proteína, creatina o bebida isotonica sin fugas ni piezas incomodas. Tiene cuerpo solido, tapa firme y una presencia alineada con la estetica de Nova Forza.",
+      "Un basico bien resuelto para llevar proteína, creatina o bebida isotonica sin fugas ni piezas incomodas. Tiene cuerpo solido, tapa firme y una presencia alineada con la estetica de Nuova Forza.",
     price: 14.9,
     paypal_price_usd: 4.2,
     currency: "PEN",
@@ -116,7 +116,7 @@ export const products: Product[] = [
     pickup_note: "Disponible para recogida inmediata en el club.",
     featured: false,
     images: ["/images/products/nova-shaker.png"],
-    tags: ["Hidratacion", "Entreno", "Nova Forza"],
+    tags: ["Hidratacion", "Entreno", "Nuova Forza"],
     highlights: [
       "Capacidad de 700 ml.",
       "Cierre seguro para mochila o taquilla.",
@@ -183,7 +183,7 @@ export const products: Product[] = [
   {
     id: "prod-6",
     slug: "polo-tecnico-nova-forza",
-    name: "Polo Tecnico Nova Forza",
+    name: "Polo Tecnico Nuova Forza",
     category: "merchandising",
     short_description:
       "Prenda ligera de corte deportivo con identidad limpia y presencia premium.",
@@ -198,7 +198,7 @@ export const products: Product[] = [
     pickup_eta: "Recogida inmediata según stock.",
     featured: true,
     images: ["/images/products/nova-polo.png"],
-    tags: ["Merch", "Nova Forza", "Performance"],
+    tags: ["Merch", "Nuova Forza", "Performance"],
     highlights: [
       "Tejido tecnico ligero.",
       "Corte limpio para entreno o uso casual.",

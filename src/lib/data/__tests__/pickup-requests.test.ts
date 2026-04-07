@@ -7,6 +7,7 @@ const dataPickupMocks = vi.hoisted(() => ({
   listPickupRequests: vi.fn(),
   reconcileRecentPickupRequests: vi.fn(),
   retrievePickupRequest: vi.fn(),
+  createSupabaseAdminClient: vi.fn(),
 }));
 
 vi.mock("@/lib/env", () => ({
@@ -17,6 +18,10 @@ vi.mock("@/lib/cart/member-bridge", () => ({
   listPickupRequests: dataPickupMocks.listPickupRequests,
   reconcileRecentPickupRequests: dataPickupMocks.reconcileRecentPickupRequests,
   retrievePickupRequest: dataPickupMocks.retrievePickupRequest,
+}));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createSupabaseAdminClient: dataPickupMocks.createSupabaseAdminClient,
 }));
 
 async function importPickupRequestsModule() {
@@ -318,5 +323,98 @@ describe("pickup requests dashboard data", () => {
       "pick_email",
       "pick_user",
     ]);
+  });
+
+  it("lists pickup request annotations ordered by creation date", async () => {
+    dataPickupMocks.hasMedusaAdminEnv.mockReturnValue(true);
+    const orderMock = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: "annotation_01",
+          pickup_request_id: "pick_01",
+          content: "Cliente confirma recogida para el viernes.",
+          created_at: "2026-04-07T10:00:00.000Z",
+          created_by_user_id: "admin_01",
+          created_by_email: "admin@gym.com",
+        },
+      ],
+      error: null,
+    });
+    const eqMock = vi.fn(() => ({
+      order: orderMock,
+    }));
+    const selectMock = vi.fn(() => ({
+      eq: eqMock,
+    }));
+    dataPickupMocks.createSupabaseAdminClient.mockReturnValue({
+      from: vi.fn(() => ({
+        select: selectMock,
+      })),
+    });
+
+    const { listPickupRequestAnnotations } = await importPickupRequestsModule();
+    const annotations = await listPickupRequestAnnotations("pick_01");
+
+    expect(annotations).toEqual([
+      {
+        id: "annotation_01",
+        pickupRequestId: "pick_01",
+        content: "Cliente confirma recogida para el viernes.",
+        createdAt: "2026-04-07T10:00:00.000Z",
+        createdByUserId: "admin_01",
+        createdByEmail: "admin@gym.com",
+      },
+    ]);
+    expect(eqMock).toHaveBeenCalledWith("pickup_request_id", "pick_01");
+    expect(orderMock).toHaveBeenCalledWith("created_at", { ascending: false });
+  });
+
+  it("creates a pickup request annotation with actor metadata", async () => {
+    dataPickupMocks.hasMedusaAdminEnv.mockReturnValue(true);
+    const singleMock = vi.fn().mockResolvedValue({
+      data: {
+        id: "annotation_02",
+        pickup_request_id: "pick_02",
+        content: "Pago parcial confirmado por WhatsApp.",
+        created_at: "2026-04-07T11:00:00.000Z",
+        created_by_user_id: "admin_02",
+        created_by_email: "ops@gym.com",
+      },
+      error: null,
+    });
+    const selectMock = vi.fn(() => ({
+      single: singleMock,
+    }));
+    const insertMock = vi.fn(() => ({
+      select: selectMock,
+    }));
+    dataPickupMocks.createSupabaseAdminClient.mockReturnValue({
+      from: vi.fn(() => ({
+        insert: insertMock,
+      })),
+    });
+
+    const { addPickupRequestAnnotation } = await importPickupRequestsModule();
+    const annotation = await addPickupRequestAnnotation({
+      pickupRequestId: "pick_02",
+      content: "Pago parcial confirmado por WhatsApp.",
+      createdByUserId: "admin_02",
+      createdByEmail: "ops@gym.com",
+    });
+
+    expect(insertMock).toHaveBeenCalledWith({
+      pickup_request_id: "pick_02",
+      content: "Pago parcial confirmado por WhatsApp.",
+      created_by_user_id: "admin_02",
+      created_by_email: "ops@gym.com",
+    });
+    expect(annotation).toEqual({
+      id: "annotation_02",
+      pickupRequestId: "pick_02",
+      content: "Pago parcial confirmado por WhatsApp.",
+      createdAt: "2026-04-07T11:00:00.000Z",
+      createdByUserId: "admin_02",
+      createdByEmail: "ops@gym.com",
+    });
   });
 });

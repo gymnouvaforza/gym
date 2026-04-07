@@ -136,9 +136,9 @@ export default async function DashboardMobilePage({
         </div>
       </div>
 
-      {accessWarning && <DashboardNotice message={accessWarning} tone={isBootstrap ? "muted" : "warning"} />}
+      {accessWarning && <DashboardNotice message={accessWarning} tone={isBootstrap ? "info" : "warning"} />}
       {snapshot.warnings.map((warning) => (
-        <DashboardNotice key={warning} message={warning} tone="muted" />
+        <DashboardNotice key={warning} message={warning} tone="info" />
       ))}
 
       <div className="grid grid-cols-1 gap-10 xl:grid-cols-[1fr_340px]">

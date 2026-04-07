@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -121,7 +122,14 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            {error ? (
+              <PublicInlineAlert
+                tone="error"
+                title="No se pudo iniciar sesion"
+                message={error}
+                compact
+              />
+            ) : null}
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Entrar

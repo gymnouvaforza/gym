@@ -5,6 +5,11 @@ import { revalidatePath } from "next/cache";
 import { requireAdminUser } from "@/lib/auth";
 import { mapPickupRequest } from "@/lib/cart/pickup-request";
 import type { PickupRequestStatus } from "@/lib/cart/types";
+import {
+  addPickupRequestAnnotation,
+  addPickupRequestPaymentEntry,
+  getPickupRequestManualPaymentSummary,
+} from "@/lib/data/pickup-requests";
 import { getStoreAdminRepository } from "@/lib/data/store-admin/repository";
 import { getStoreAdminWriteDisabledReason } from "@/lib/data/store-admin";
 import {
@@ -18,6 +23,12 @@ import { defaultSiteSettings } from "@/lib/data/default-content";
 import { getSmtpEnv, hasMedusaAdminEnv } from "@/lib/env";
 import { resolveTransactionalSender } from "@/lib/email/policy";
 import { sendPickupRequestEmails } from "@/lib/email/pickup-request";
+import {
+  pickupRequestAnnotationSchema,
+  pickupRequestPaymentEntrySchema,
+  type PickupRequestAnnotationInput,
+  type PickupRequestPaymentEntryInput,
+} from "@/lib/validators/pickup-request";
 import {
   storeCategorySchema,
   storeProductSchema,
@@ -53,6 +64,15 @@ async function assertPickupRequestsAdminReady() {
       "Configura MEDUSA_ADMIN_API_KEY y MEDUSA_BACKEND_URL (o NEXT_PUBLIC_MEDUSA_BACKEND_URL) para operar pedidos pickup.",
     );
   }
+}
+
+function resolvePickupRequestAnnotationActor(
+  user: Awaited<ReturnType<typeof requireAdminUser>>,
+) {
+  return {
+    createdByEmail: user.email ?? null,
+    createdByUserId: "isLocalAdmin" in user && user.isLocalAdmin ? null : user.id,
+  };
 }
 
 export async function saveStoreCategory(values: StoreCategoryInput, categoryId?: string) {
@@ -104,6 +124,52 @@ export async function updateDashboardPickupRequestStatus(
   revalidateStore();
   revalidatePath(`/dashboard/tienda/pedidos/${pickupRequestId}`);
   revalidatePath("/mi-cuenta");
+}
+
+export async function addPickupRequestAnnotationAction(
+  pickupRequestId: string,
+  values: PickupRequestAnnotationInput,
+) {
+  const user = await requireAdminUser();
+  const parsed = pickupRequestAnnotationSchema.parse(values);
+  const actor = resolvePickupRequestAnnotationActor(user);
+
+  await addPickupRequestAnnotation({
+    pickupRequestId,
+    content: parsed.content,
+    createdByEmail: actor.createdByEmail,
+    createdByUserId: actor.createdByUserId,
+  });
+
+  revalidatePath("/dashboard/tienda/pedidos");
+  revalidatePath(`/dashboard/tienda/pedidos/${pickupRequestId}`);
+}
+
+export async function addPickupRequestPaymentEntryAction(
+  pickupRequestId: string,
+  currencyCode: string,
+  values: PickupRequestPaymentEntryInput,
+) {
+  const user = await requireAdminUser();
+  const parsed = pickupRequestPaymentEntrySchema.parse(values);
+  const actor = resolvePickupRequestAnnotationActor(user);
+  const summary = await getPickupRequestManualPaymentSummary(pickupRequestId);
+
+  if (summary.status === "paid" && summary.balanceDue <= 0) {
+    throw new Error("Este pedido ya figura como cobrado manualmente al completo.");
+  }
+
+  await addPickupRequestPaymentEntry({
+    pickupRequestId,
+    amount: parsed.amount,
+    currencyCode,
+    note: parsed.note,
+    createdByEmail: actor.createdByEmail,
+    createdByUserId: actor.createdByUserId,
+  });
+
+  revalidatePath("/dashboard/tienda/pedidos");
+  revalidatePath(`/dashboard/tienda/pedidos/${pickupRequestId}`);
 }
 
 export async function resendDashboardPickupRequestEmail(pickupRequestId: string) {

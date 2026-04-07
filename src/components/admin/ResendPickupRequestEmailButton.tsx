@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 
 import { resendDashboardPickupRequestEmail } from "@/app/(admin)/dashboard/tienda/actions";
+import FeedbackCallout, { type FeedbackTone } from "@/components/ui/feedback-callout";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import type { PickupRequestEmailStatus } from "@/lib/cart/types";
 
@@ -26,6 +27,7 @@ export default function ResendPickupRequestEmailButton({
   className,
 }: Readonly<ResendPickupRequestEmailButtonProps>) {
   const [isPending, startTransition] = useTransition();
+  const [feedback, setFeedback] = useState<{ tone: FeedbackTone; message: string } | null>(null);
   const resolvedLabel =
     label ??
     (emailStatus === "failed"
@@ -35,25 +37,40 @@ export default function ResendPickupRequestEmailButton({
         : "Reenviar email");
 
   return (
-    <Button
-      type="button"
-      disabled={isPending}
-      variant={variant}
-      size={size}
-      title={title}
-      className={className}
-      onClick={() => {
-        startTransition(async () => {
-          try {
-            await resendDashboardPickupRequestEmail(pickupRequestId);
-            alert("Email reenviado correctamente.");
-          } catch (error) {
-            alert(error instanceof Error ? error.message : "No se pudo reenviar el email.");
-          }
-        });
-      }}
-    >
-      {isPending ? "Enviando..." : resolvedLabel}
-    </Button>
+    <div className="space-y-3">
+      <Button
+        type="button"
+        disabled={isPending}
+        variant={variant}
+        size={size}
+        title={title}
+        className={className}
+        onClick={() => {
+          setFeedback(null);
+
+          startTransition(async () => {
+            try {
+              await resendDashboardPickupRequestEmail(pickupRequestId);
+              setFeedback({
+                tone: "success",
+                message: "Email reenviado correctamente.",
+              });
+            } catch (error) {
+              setFeedback({
+                tone: "error",
+                message:
+                  error instanceof Error ? error.message : "No se pudo reenviar el email.",
+              });
+            }
+          });
+        }}
+      >
+        {isPending ? "Enviando..." : resolvedLabel}
+      </Button>
+
+      {feedback ? (
+        <FeedbackCallout chrome="admin" tone={feedback.tone} message={feedback.message} compact />
+      ) : null}
+    </div>
   );
 }

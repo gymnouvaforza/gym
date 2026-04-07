@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Edit3, ImageIcon } from "lucide-react";
 
 import type { StoreDashboardProduct } from "@/lib/data/store";
-import { formatProductPrice, formatUsdPrice, productStockStatusLabels } from "@/lib/data/products";
+import { formatProductPrice, productStockStatusLabels } from "@/lib/data/products";
 import { Badge } from "@/components/ui/badge";
 import { deleteStoreProduct } from "@/app/(admin)/dashboard/tienda/actions";
 import {
@@ -54,7 +54,7 @@ export default function StoreProductsTable({ products }: Readonly<StoreProductsT
             <TableHead className="font-black text-[10px] uppercase text-[#111111] w-[80px]">Ref.</TableHead>
             <TableHead className="font-black text-[10px] uppercase text-[#111111]">Producto</TableHead>
             <TableHead className="font-black text-[10px] uppercase text-[#111111]">Precio Local</TableHead>
-            <TableHead className="font-black text-[10px] uppercase text-[#111111]">PayPal USD</TableHead>
+            <TableHead className="font-black text-[10px] uppercase text-[#111111]">Referencia</TableHead>
             <TableHead className="font-black text-[10px] uppercase text-[#111111]">Stock</TableHead>
             <TableHead className="font-black text-[10px] uppercase text-[#111111] text-right">Gestion</TableHead>
           </TableRow>
@@ -123,11 +123,11 @@ export default function StoreProductsTable({ products }: Readonly<StoreProductsT
                       product.paypal_price_usd === null ? "text-amber-600" : "text-[#111111]"
                     )}>
                       {product.paypal_price_usd !== null
-                        ? formatUsdPrice(product.paypal_price_usd)
-                        : "No Habilitado"}
+                        ? `USD ${product.paypal_price_usd.toFixed(2)}`
+                        : "Sin referencia"}
                     </span>
                     {product.paypal_price_usd === null && (
-                      <span className="text-[8px] font-black text-amber-600/60 uppercase">Link PayPal</span>
+                      <span className="text-[8px] font-black text-amber-600/60 uppercase">Cobro manual</span>
                     )}
                   </div>
                 </TableCell>

@@ -82,7 +82,7 @@ export default async function DashboardLayout({
             {accessState.accessWarning ? (
               <DashboardNotice
                 message={accessState.accessWarning}
-                tone={accessState.accessMode === "bootstrap" ? "muted" : "warning"}
+                tone={accessState.accessMode === "bootstrap" ? "info" : "warning"}
               />
             ) : null}
             {children}

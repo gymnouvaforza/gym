@@ -73,7 +73,7 @@ export default async function DashboardPage() {
       {warning || storeSnapshot.warning ? (
         <div className="space-y-2">
            {warning && <DashboardNotice message={warning} tone="warning" />}
-           {storeSnapshot.warning && <DashboardNotice message={storeSnapshot.warning} tone="muted" />}
+           {storeSnapshot.warning && <DashboardNotice message={storeSnapshot.warning} tone="info" />}
         </div>
       ) : null}
 

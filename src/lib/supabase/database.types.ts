@@ -3767,6 +3767,11 @@ export type Database = {
           id: string
           item_count: number
           line_items_snapshot: Json
+          manual_balance_due: number
+          manual_paid_total: number
+          manual_payment_entry_count: number
+          manual_payment_status: string
+          manual_payment_updated_at: string | null
           notes: string | null
           order_id: string | null
           payment_authorized_at: string | null
@@ -3802,6 +3807,11 @@ export type Database = {
           id: string
           item_count: number
           line_items_snapshot: Json
+          manual_balance_due?: number
+          manual_paid_total?: number
+          manual_payment_entry_count?: number
+          manual_payment_status?: string
+          manual_payment_updated_at?: string | null
           notes?: string | null
           order_id?: string | null
           payment_authorized_at?: string | null
@@ -3837,6 +3847,11 @@ export type Database = {
           id?: string
           item_count?: number
           line_items_snapshot?: Json
+          manual_balance_due?: number
+          manual_paid_total?: number
+          manual_payment_entry_count?: number
+          manual_payment_status?: string
+          manual_payment_updated_at?: string | null
           notes?: string | null
           order_id?: string | null
           payment_authorized_at?: string | null
@@ -3855,6 +3870,85 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      pickup_request_annotations: {
+        Row: {
+          content: string
+          created_at: string
+          created_by_email: string | null
+          created_by_user_id: string | null
+          id: string
+          pickup_request_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by_email?: string | null
+          created_by_user_id?: string | null
+          id?: string
+          pickup_request_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by_email?: string | null
+          created_by_user_id?: string | null
+          id?: string
+          pickup_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pickup_request_annotations_pickup_request_id_fkey"
+            columns: ["pickup_request_id"]
+            isOneToOne: false
+            referencedRelation: "pickup_request"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pickup_request_payment_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by_email: string | null
+          created_by_user_id: string | null
+          currency_code: string
+          id: string
+          note: string | null
+          pickup_request_id: string
+          recorded_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by_email?: string | null
+          created_by_user_id?: string | null
+          currency_code: string
+          id?: string
+          note?: string | null
+          pickup_request_id: string
+          recorded_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by_email?: string | null
+          created_by_user_id?: string | null
+          currency_code?: string
+          id?: string
+          note?: string | null
+          pickup_request_id?: string
+          recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pickup_request_payment_entries_pickup_request_id_fkey"
+            columns: ["pickup_request_id"]
+            isOneToOne: false
+            referencedRelation: "pickup_request"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       price: {
         Row: {

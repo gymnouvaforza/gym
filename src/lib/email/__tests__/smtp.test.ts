@@ -31,7 +31,7 @@ describe("sendSmtpEmail", () => {
       secure: false,
       user: "club@gmail.com",
       password: "app-password",
-      fromEmail: "Nova Forza <club@gmail.com>",
+      fromEmail: "Nuova Forza <club@gmail.com>",
     });
     smtpMocks.createTransport.mockReturnValue({
       sendMail: smtpMocks.sendMail,
@@ -65,7 +65,7 @@ describe("sendSmtpEmail", () => {
       },
     });
     expect(smtpMocks.sendMail).toHaveBeenCalledWith({
-      from: "Nova Forza <club@gmail.com>",
+      from: "Nuova Forza <club@gmail.com>",
       to: ["member@gym.com"],
       replyTo: ["pedidos@novaforza.pe"],
       subject: "Pedido listo",
@@ -81,7 +81,7 @@ describe("sendSmtpEmail", () => {
 
     await sendSmtpEmail({
       to: ["member@gym.com", "club@novaforza.pe"],
-      from: "Nova Forza <pedidos@novaforza.pe>",
+      from: "Nuova Forza <pedidos@novaforza.pe>",
       subject: "Pedido listo",
       html: "<p>Hola</p>",
       text: "Hola",
@@ -89,7 +89,7 @@ describe("sendSmtpEmail", () => {
 
     expect(smtpMocks.sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
-        from: "Nova Forza <pedidos@novaforza.pe>",
+        from: "Nuova Forza <pedidos@novaforza.pe>",
         to: ["member@gym.com", "club@novaforza.pe"],
       }),
     );

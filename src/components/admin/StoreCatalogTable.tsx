@@ -1,7 +1,6 @@
 import type { Product } from "@/data/types";
 import {
   formatProductPrice,
-  formatUsdPrice,
   productCategoryLabels,
   productStockStatusLabels,
 } from "@/lib/data/products";
@@ -76,15 +75,15 @@ export default function StoreCatalogTable({ products }: Readonly<StoreCatalogTab
 
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7a7f87]">
-              PayPal USD
+              Referencia
             </p>
             <p className="mt-2 text-sm font-semibold text-[#111111]">
               {product.paypal_price_usd !== null
-                ? formatUsdPrice(product.paypal_price_usd)
-                : "Pendiente"}
+                ? `USD ${product.paypal_price_usd.toFixed(2)}`
+                : "Sin referencia"}
             </p>
             {product.paypal_price_usd === null ? (
-              <p className="mt-1 text-xs text-amber-700">Sin precio PayPal configurado</p>
+              <p className="mt-1 text-xs text-amber-700">Cobro manual sin referencia extra</p>
             ) : null}
           </div>
 

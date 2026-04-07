@@ -103,7 +103,7 @@ export const trainingZonesSectionCopy = {
   kicker: "Zonas de entrenamiento",
   title: "Espacios para rendir mejor en cada sesion",
   intro:
-    "Desde fuerza pura hasta trabajo metabolico, Nova Forza organiza sus zonas para que elijas rapido, entrenes mejor y entiendas lo que pasa en el piso desde el primer dia.",
+    "Desde fuerza pura hasta trabajo metabolico, Nuova Forza organiza sus zonas para que elijas rapido, entrenes mejor y entiendas lo que pasa en el piso desde el primer dia.",
 };
 
 export function getOrderedTrainingZones() {

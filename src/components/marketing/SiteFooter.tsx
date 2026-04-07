@@ -18,14 +18,14 @@ export default function SiteFooter({
   }>;
 }) {
   const whatsappHref = settings.whatsapp_url?.trim() ? settings.whatsapp_url : "#contacto";
-  const contactEmail = settings.contact_email ?? "info@novaforza.pe";
+  const contactEmail = settings.contact_email ?? "soporte@nuovaforzagym.com";
 
   return (
     <footer className="relative overflow-hidden bg-[#070708] pt-32 pb-12 text-white">
       {/* High-Impact Background Text */}
       <div className="pointer-events-none absolute -bottom-12 left-0 w-full overflow-hidden leading-none select-none">
         <span className="athletic-outline block text-[22vw] font-black uppercase tracking-tighter opacity-10">
-          NOVA FORZA
+          Nuova Forza
         </span>
       </div>
 
@@ -37,7 +37,7 @@ export default function SiteFooter({
               Únete al <span className="text-accent underline decoration-white/10 underline-offset-8">Club</span>
             </h3>
             <p className="mt-6 max-w-md text-lg text-zinc-400">
-              Recibe consejos de entrenamiento, preventas exclusivas y novedades de la comunidad Nova Forza.
+              Recibe consejos de entrenamiento, preventas exclusivas y novedades de la comunidad Nuova Forza.
             </p>
           </div>
           <div className="relative">
@@ -74,7 +74,7 @@ export default function SiteFooter({
               </div>
             </Link>
             <p className="mt-8 max-w-xs text-sm leading-relaxed text-zinc-500">
-              Nova Forza es resistencia física y mental en San Isidro. Un espacio diseñado para rendir mejor, sin ruidos, solo progreso.
+              Nuova Forza es resistencia física y mental en Chiclayo. 33 años enseñándote a entrenar con un espacio diseñado para el progreso real.
             </p>
             <div className="mt-10 flex gap-4">
               {novaForzaHomeContent.socials.map((item) => (
@@ -171,13 +171,18 @@ export default function SiteFooter({
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-32 border-t border-white/5 pt-10 text-center lg:flex lg:items-center lg:justify-between lg:text-left">
+        <div className="mt-32 border-t border-white/5 pt-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
           <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-700">
-            &copy; {new Date().getFullYear()} NOVA FORZA GYM. PRECISIÓN Y PODER.
+            &copy; {new Date().getFullYear()} Nuova Forza GYM. PRECISIÓN Y PODER.
           </p>
-          <div className="mt-6 flex justify-center gap-8 lg:mt-0 lg:justify-start">
+          
+          <div className="flex flex-wrap justify-center gap-8 lg:justify-start">
+             <div className="flex items-center gap-4 border-r border-white/5 pr-8">
+               <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-600">PAGOS:</span>
+               <span className="text-[10px] font-extrabold italic tracking-wider text-white opacity-40">PayPal</span>
+             </div>
              <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-800">DISEÑO PARA RENDIMIENTO</span>
-             <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-800 tracking-tighter sm:tracking-[0.4em]">LIMA • PERÚ</span>
+             <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-800 tracking-tighter sm:tracking-[0.4em]">CHICLAYO • PERÚ</span>
           </div>
         </div>
       </div>

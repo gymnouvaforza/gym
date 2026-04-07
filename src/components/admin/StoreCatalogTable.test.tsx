@@ -10,7 +10,7 @@ describe("StoreCatalogTable", () => {
     render(<StoreCatalogTable products={fixtureProducts.slice(0, 2)} />);
 
     expect(screen.getByText("Creatina Monohidratada 300 g")).toBeInTheDocument();
-    expect(screen.getByText("Nova Forza Isolate Whey Protein")).toBeInTheDocument();
+    expect(screen.getByText("Nuova Forza Isolate Whey Protein")).toBeInTheDocument();
     expect(screen.getAllByText("Assets").length).toBeGreaterThan(0);
     // Adjusting to 1 as we now have single premium assets per product
     expect(screen.getAllByText("1").length).toBeGreaterThan(0);

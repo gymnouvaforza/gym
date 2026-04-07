@@ -59,6 +59,8 @@ describe("pickup request dashboard helpers", () => {
         paymentStatus: "captured",
         emailStatus: "failed",
         attention: "action_required",
+        dateFrom: "2026-03-01",
+        dateTo: "2026-03-31",
         sort: "created_asc",
       }),
     ).toEqual({
@@ -67,6 +69,8 @@ describe("pickup request dashboard helpers", () => {
       paymentStatus: "captured",
       emailStatus: "failed",
       attention: "action_required",
+      dateFrom: "2026-03-01",
+      dateTo: "2026-03-31",
       sort: "created_asc",
     });
 
@@ -76,6 +80,8 @@ describe("pickup request dashboard helpers", () => {
         paymentStatus: "boom",
         emailStatus: "bad",
         attention: "later",
+        dateFrom: "bad-date",
+        dateTo: "2026-99-99",
         sort: "random",
       }),
     ).toEqual(DEFAULT_PICKUP_REQUEST_FILTERS);
@@ -128,6 +134,32 @@ describe("pickup request dashboard helpers", () => {
         sort: "created_desc",
       }).map((pickupRequest) => pickupRequest.id),
     ).toEqual(["pick_requested"]);
+
+    expect(
+      filterAndSortPickupRequests(pickupRequests, {
+        ...DEFAULT_PICKUP_REQUEST_FILTERS,
+        dateFrom: "2026-03-30",
+        dateTo: "2026-03-30",
+      }).map((pickupRequest) => pickupRequest.id),
+    ).toEqual(["pick_error", "pick_ready", "pick_requested"]);
+
+    expect(
+      filterAndSortPickupRequests(
+        [
+          ...pickupRequests,
+          buildPickupRequest({
+            id: "pick_old",
+            requestNumber: "NF-OLD",
+            createdAt: "2026-03-20T10:00:00.000Z",
+            updatedAt: "2026-03-20T10:00:00.000Z",
+          }),
+        ],
+        {
+          ...DEFAULT_PICKUP_REQUEST_FILTERS,
+          dateFrom: "2026-03-25",
+        },
+      ).map((pickupRequest) => pickupRequest.id),
+    ).not.toContain("pick_old");
   });
 
   it("builds summary, hints and timeline from operational state", () => {
@@ -167,6 +199,12 @@ describe("pickup request dashboard helpers", () => {
       hasActivePickupRequestFilters({
         ...DEFAULT_PICKUP_REQUEST_FILTERS,
         attention: "ready_now",
+      }),
+    ).toBe(true);
+    expect(
+      hasActivePickupRequestFilters({
+        ...DEFAULT_PICKUP_REQUEST_FILTERS,
+        dateFrom: "2026-03-01",
       }),
     ).toBe(true);
 

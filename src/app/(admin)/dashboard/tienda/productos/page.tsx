@@ -129,9 +129,9 @@ export default async function DashboardStoreProductsPage() {
             </div>
 
             <AdminSurface inset className="p-6 border-l-4 border-[#111111] bg-white">
-               <p className="text-[9px] font-black uppercase text-[#7a7f87] mb-2">Checkout Info</p>
+               <p className="text-[9px] font-black uppercase text-[#7a7f87] mb-2">Operacion asistida</p>
                <p className="text-xs font-bold text-[#111111] leading-relaxed">
-                 Asegurate de completar el precio de <span className="text-blue-600 font-black">PayPal USD</span> para que los socios puedan pagar con tarjeta desde la web.
+                 La tienda ya no cobra online. Usa este catalogo para preparar reservas y deja solo referencias utiles para que el equipo cierre la venta manualmente desde dashboard y WhatsApp.
                </p>
             </AdminSurface>
 

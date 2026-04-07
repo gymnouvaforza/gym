@@ -43,14 +43,15 @@ export default async function CartConfirmationPage({
     <section className="section-shell py-16">
       <div className="border border-emerald-200 bg-white px-6 py-12 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
-          Pago confirmado
+          Reserva confirmada
         </p>
         <h1 className="mt-4 font-display text-4xl uppercase text-[#111111]">
           Tu pedido para recogida ya está registrado
         </h1>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-[#4b5563]">
-          Referencia <strong>{pickupRequest.requestNumber}</strong>. Hemos confirmado el pago y
-          enviaremos todas las actualizaciones a <strong>{pickupRequest.email}</strong>.
+          Referencia <strong>{pickupRequest.requestNumber}</strong>. Ya puedes seguir la gestion
+          manual del pedido y enviaremos todas las actualizaciones a{" "}
+          <strong>{pickupRequest.email}</strong>.
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -63,7 +64,7 @@ export default async function CartConfirmationPage({
             </p>
             {pickupRequest.chargedCurrencyCode && pickupRequest.chargedTotal !== null ? (
               <p className="mt-2 text-sm leading-6 text-[#5f6368]">
-                Cargo PayPal:{" "}
+                Cobro registrado:{" "}
                 <strong>
                   {formatCartAmount(
                     pickupRequest.chargedTotal,
@@ -83,7 +84,7 @@ export default async function CartConfirmationPage({
               </Badge>
             </div>
             <p className="mt-2 text-sm leading-6 text-[#5f6368]">
-              {pickupRequest.paymentProvider ?? "paypal"}
+              {pickupRequest.paymentProvider ?? "gestion manual"}
             </p>
           </div>
           <div className="border border-black/8 bg-[#fbfbf8] p-4">

@@ -76,29 +76,29 @@ describe("pickup request emails", () => {
 
     await sendPickupRequestEmails({
       pickupRequest,
-      siteName: "Nova Forza",
+      siteName: "Nuova Forza",
       internalRecipient: "club@novaforza.pe",
-      fromEmail: "Nova Forza <onboarding@resend.dev>",
+      fromEmail: "Nuova Forza <onboarding@resend.dev>",
       replyTo: "pedidos@gmail.com",
     });
 
     expect(pickupEmailMocks.sendSmtpEmail).toHaveBeenCalledTimes(2);
     expect(pickupEmailMocks.sendSmtpEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        from: "Nova Forza <onboarding@resend.dev>",
+        from: "Nuova Forza <onboarding@resend.dev>",
         replyTo: "pedidos@gmail.com",
         to: "socio@gym.com",
-        subject: "Nova Forza | Pedido pagado NF-20260322-ABC123",
+        subject: "Nuova Forza | Pedido pagado NF-20260322-ABC123",
         html: expect.stringMatching(/Tu pedido pagado para recogida[\s\S]*Cargo PayPal/),
         text: expect.stringContaining("Recogida local, pago online confirmado."),
       }),
     );
     expect(pickupEmailMocks.sendSmtpEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        from: "Nova Forza <onboarding@resend.dev>",
+        from: "Nuova Forza <onboarding@resend.dev>",
         replyTo: "pedidos@gmail.com",
         to: "club@novaforza.pe",
-        subject: "Nova Forza | Nuevo pedido pagado NF-20260322-ABC123",
+        subject: "Nuova Forza | Nuevo pedido pagado NF-20260322-ABC123",
         html: expect.stringContaining("Pasare despues de las 19:00 &lt;gracias&gt;"),
         text: expect.stringContaining("Cargo PayPal:"),
       }),
@@ -110,9 +110,9 @@ describe("pickup request emails", () => {
 
     await sendPickupRequestEmails({
       pickupRequest: buildPickupRequest({ email: "club@novaforza.pe" }),
-      siteName: "Nova Forza",
+      siteName: "Nuova Forza",
       internalRecipient: "club@novaforza.pe",
-      fromEmail: "Nova Forza <onboarding@resend.dev>",
+      fromEmail: "Nuova Forza <onboarding@resend.dev>",
       replyTo: "pedidos@gmail.com",
     });
 
@@ -127,9 +127,9 @@ describe("pickup request emails", () => {
     await expect(
       sendPickupRequestEmails({
         pickupRequest: buildPickupRequest(),
-        siteName: "Nova Forza",
+        siteName: "Nuova Forza",
         internalRecipient: "club@novaforza.pe",
-        fromEmail: "Nova Forza <onboarding@resend.dev>",
+        fromEmail: "Nuova Forza <onboarding@resend.dev>",
         replyTo: "pedidos@gmail.com",
       }),
     ).resolves.toBeUndefined();
@@ -145,9 +145,9 @@ describe("pickup request emails", () => {
     await expect(
       sendPickupRequestEmails({
         pickupRequest: buildPickupRequest(),
-        siteName: "Nova Forza",
+        siteName: "Nuova Forza",
         internalRecipient: "club@novaforza.pe",
-        fromEmail: "Nova Forza <onboarding@resend.dev>",
+        fromEmail: "Nuova Forza <onboarding@resend.dev>",
         replyTo: "pedidos@gmail.com",
       }),
     ).rejects.toThrow("SMTP timeout");
@@ -159,9 +159,9 @@ describe("pickup request emails", () => {
     await expect(
       sendPickupRequestEmails({
         pickupRequest: buildPickupRequest({ email: "" }),
-        siteName: "Nova Forza",
+        siteName: "Nuova Forza",
         internalRecipient: "club@novaforza.pe",
-        fromEmail: "Nova Forza <onboarding@resend.dev>",
+        fromEmail: "Nuova Forza <onboarding@resend.dev>",
         replyTo: "pedidos@gmail.com",
       }),
     ).rejects.toThrow("La solicitud pickup no tiene email de cliente.");

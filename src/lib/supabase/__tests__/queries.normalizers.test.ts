@@ -37,7 +37,7 @@ describe("supabase queries normalizers", () => {
       footer_text: "Footer",
     });
 
-    expect(settings.site_name).toBe("Titan Gym");
+    expect(settings.site_name).toBe("Gimnasio Nuova Forza");
     expect(settings.hero_title).toBe("Construye fuerza real");
     expect(settings.hero_video_url).toBe("/video/custom-hero.mp4");
     expect(settings.topbar_text).toBe("Promo activa");
@@ -74,7 +74,7 @@ describe("supabase queries normalizers", () => {
 
   it("builds a site settings payload with parsed keywords", () => {
     const payload = buildSiteSettingsPayload({
-      site_name: "Nova Forza",
+      site_name: "Nuova Forza",
       site_tagline: "Fuerza, disciplina y progreso real.",
       hero_badge: "Gimnasio premium local",
       hero_title: "Construye fuerza real en un espacio hecho para progresar.",
@@ -94,19 +94,19 @@ describe("supabase queries normalizers", () => {
       contact_email: "hola@novaforza.pe",
       notification_email: "pedidos@novaforza.pe",
       transactional_from_email: "pedidos@novaforza.pe",
-      contact_phone: "+51 987 654 321",
+      contact_phone: "+51 901 900 300",
       whatsapp_url: "",
       address: "Av. Progreso 245, zona comercial local",
       opening_hours: "Lunes a viernes de 6:00 a 22:00.",
-      seo_title: "Nova Forza | Gimnasio premium",
-      seo_description: "Web comercial de Nova Forza con planes claros y contacto directo.",
-      seo_keywords: "nova forza, gimnasio premium, fuerza",
+      seo_title: "Nuova Forza | Gimnasio premium",
+      seo_description: "Web comercial de Nuova Forza con planes claros y contacto directo.",
+      seo_keywords: "Nuova Forza, gimnasio premium, fuerza",
       seo_og_image_url: "",
       seo_canonical_url: "https://novaforza.pe",
-      footer_text: "Nova Forza es un gimnasio local orientado a fuerza y progreso real.",
+      footer_text: "Nuova Forza es un gimnasio local orientado a fuerza y progreso real.",
     });
 
-    expect(payload.seo_keywords).toEqual(["nova forza", "gimnasio premium", "fuerza"]);
+    expect(payload.seo_keywords).toEqual(["Nuova Forza", "gimnasio premium", "fuerza"]);
     expect(payload.id).toBe(1);
     expect(payload.hero_video_url).toBe("/video/video.mp4");
     expect(payload.topbar_expires_at).toBe(new Date("2026-04-15T18:30").toISOString());

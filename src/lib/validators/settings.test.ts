@@ -1,7 +1,7 @@
 import { siteSettingsSchema } from "@/lib/validators/settings";
 
 const validSettings = {
-  site_name: "Nova Forza",
+  site_name: "Nuova Forza",
   site_tagline: "Fuerza, disciplina y progreso real.",
   hero_badge: "Gimnasio premium local",
   hero_title: "Construye fuerza real en un espacio hecho para progresar.",
@@ -21,16 +21,16 @@ const validSettings = {
   contact_email: "hola@novaforza.pe",
   notification_email: "pedidos@novaforza.pe",
   transactional_from_email: "pedidos@novaforza.pe",
-  contact_phone: "+51 987 654 321",
+  contact_phone: "+51 901 900 300",
   whatsapp_url: "https://wa.me/51987654321",
   address: "Av. Progreso 245, zona comercial local",
   opening_hours: "Lunes a viernes de 6:00 a 22:00.",
-  seo_title: "Nova Forza | Gimnasio premium",
-  seo_description: "Web comercial de Nova Forza con planes claros y contacto directo.",
-  seo_keywords: "nova forza, gimnasio premium, fuerza",
+  seo_title: "Nuova Forza | Gimnasio premium",
+  seo_description: "Web comercial de Nuova Forza con planes claros y contacto directo.",
+  seo_keywords: "Nuova Forza, gimnasio premium, fuerza",
   seo_og_image_url: "",
   seo_canonical_url: "https://novaforza.pe",
-  footer_text: "Nova Forza es un gimnasio local orientado a fuerza y progreso real.",
+  footer_text: "Nuova Forza es un gimnasio local orientado a fuerza y progreso real.",
 };
 
 describe("siteSettingsSchema", () => {

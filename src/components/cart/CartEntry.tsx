@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import CartLineItems from "@/components/cart/CartLineItems";
 import { useCart } from "@/components/cart/CartProvider";
+import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,8 +51,13 @@ export default function CartEntry() {
           </DialogHeader>
 
           {error ? (
-            <div className="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
+            <div className="mt-4">
+              <PublicInlineAlert
+                tone="error"
+                title="No pudimos actualizar el carrito"
+                message={error}
+                compact
+              />
             </div>
           ) : null}
 

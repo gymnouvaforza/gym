@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import ProductFilters from "@/components/marketing/ProductFilters";
 import ProductsGrid from "@/components/marketing/ProductsGrid";
 import ProductToolbar from "@/components/marketing/ProductToolbar";
@@ -14,7 +15,7 @@ import {
 export const metadata: Metadata = {
   title: "Tienda del gimnasio",
   description:
-    "Catalogo de suplementos, accesorios y merchandising de Nova Forza. Consulta productos destacados, disponibilidad y recogida en local.",
+    "Catalogo de suplementos, accesorios y merchandising de Nuova Forza. Consulta productos destacados, disponibilidad y recogida en local.",
 };
 
 export const revalidate = 60;
@@ -40,7 +41,7 @@ export default async function ShopPage({ searchParams }: Readonly<ShopPageProps>
 
           <div className="relative max-w-4xl">
             <p className="inline-block rounded-none bg-[#d71920] px-3 py-1 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-              Nova Forza Equipt.
+              Nuova Forza Equipt.
             </p>
             <h1 className="mt-8 font-display text-5xl font-extrabold uppercase leading-[0.9] tracking-[0.02em] sm:text-7xl lg:text-9xl italic">
               Potencia tu <br />
@@ -56,9 +57,12 @@ export default async function ShopPage({ searchParams }: Readonly<ShopPageProps>
 
       <section className="section-shell py-10 md:py-14">
         {catalog.warning ? (
-          <div className="mb-6 rounded-none border border-amber-300/70 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900">
-            <p className="font-semibold uppercase tracking-[0.18em]">Aviso de catalogo</p>
-            <p className="mt-2">{catalog.warning}</p>
+          <div className="mb-6">
+            <PublicInlineAlert
+              tone="warning"
+              title="Aviso de catalogo"
+              message={catalog.warning}
+            />
           </div>
         ) : null}
 

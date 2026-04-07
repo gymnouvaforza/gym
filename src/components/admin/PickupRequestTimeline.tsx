@@ -58,8 +58,8 @@ export default function PickupRequestTimeline({
   return (
     <div
       className={cn(
-        "grid gap-3",
-        compact ? "lg:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-4",
+        "grid gap-1.5",
+        compact ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4" : "grid-cols-2 md:grid-cols-4",
         className,
       )}
       {...props}
@@ -70,17 +70,31 @@ export default function PickupRequestTimeline({
         return (
           <article
             key={step.key}
-            className={cn("rounded-none border p-4", styles.border)}
+            className={cn(
+              "relative flex flex-col justify-between border p-5 transition-all duration-300",
+              styles.border,
+            )}
           >
-            <div className="flex items-start gap-3">
-              <span className={cn("mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full", styles.dot)} />
-              <div className="min-w-0 space-y-1.5">
-                <p className={cn("text-[11px] font-semibold uppercase tracking-[0.16em]", styles.label)}>
+            <div className="flex items-start gap-4">
+              <div className="relative flex-shrink-0 pt-1">
+                <span className={cn("block h-2.5 w-2.5 rounded-full ring-2 ring-offset-2 ring-white/10", styles.dot)} />
+                {step.state === "current" && (
+                   <span className="absolute left-0 top-1 h-2.5 w-2.5 animate-ping rounded-full bg-[#d71920]" />
+                )}
+              </div>
+              <div className="min-w-0 space-y-2">
+                <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] leading-none", styles.label)}>
                   {step.title}
                 </p>
-                <p className="text-sm font-semibold text-[#111111]">{step.description}</p>
-                <p className="text-xs leading-5 text-[#6b7280]">{formatDate(step.date)}</p>
+                <p className="line-clamp-2 text-[14px] font-bold leading-tight text-[#111111]">
+                  {step.description}
+                </p>
               </div>
+            </div>
+            <div className="mt-6 flex items-center justify-between border-t border-black/5 pt-3">
+               <p className="text-[11px] font-medium text-[#7a7f87] tabular-nums">
+                 {formatDate(step.date)}
+               </p>
             </div>
           </article>
         );

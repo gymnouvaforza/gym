@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/data/types";
 import {
   formatProductPrice,
-  formatUsdPrice,
   getProductStockMeta,
   productCategoryLabels,
 } from "@/lib/data/products";
@@ -25,7 +24,7 @@ function getPickupHeading(product: Product) {
   }
 
   if (product.pickup_only) {
-    return "Recogida en Nova Forza Gym";
+    return "Recogida en Nuova Forza Gym";
   }
 
   return "Consulta disponibilidad";
@@ -134,11 +133,9 @@ export default function ProductDetail({
                   </Badge>
                 ) : null}
               </div>
-              {product.paypal_price_usd !== null ? (
-                <p className="border-l-2 border-[#d71920] bg-black/5 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[#7a7f87]">
-                  PayPal cobra aprox. <strong>{formatUsdPrice(product.paypal_price_usd)}</strong>
-                </p>
-              ) : null}
+              <p className="border-l-2 border-[#d71920] bg-black/5 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[#7a7f87]">
+                Reserva asistida con cierre manual desde WhatsApp.
+              </p>
             </div>
 
             <p className="border-l border-black/10 pl-8 text-lg font-medium leading-8 text-[#5f6368]">

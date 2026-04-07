@@ -1,9 +1,13 @@
 import type { Lead, SiteSettings } from "@/lib/supabase/database.types";
 
+const fallbackContactPhone = process.env.NEXT_PUBLIC_GYM_CONTACT_PHONE ?? "+34 654 19 47 88";
+const fallbackWhatsAppUrl =
+  process.env.NEXT_PUBLIC_GYM_WHATSAPP_URL ?? "https://wa.me/34654194788";
+
 export const defaultSiteSettings: SiteSettings = {
   id: 1,
-  site_name: "Titan Gym",
-  site_tagline: "Fuerza, disciplina y progreso real para quienes entrenan en serio en Lima.",
+  site_name: "Gimnasio Nuova Forza",
+  site_tagline: "33 años enseñándote a entrenar.",
   hero_badge: "Entrenamiento premium local",
   hero_title: "El poder de tu progreso comienza aqui",
   hero_description:
@@ -19,27 +23,27 @@ export const defaultSiteSettings: SiteSettings = {
   topbar_expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
   hero_highlight_one: "Planes claros para empezar, progresar y sostener resultados.",
   hero_highlight_two: "Entrenadores que corrigen, acompanan y hacen seguimiento real.",
-  hero_highlight_three: "Titan Gym es el espacio local con horarios amplios y la mejor asesoria presencial de la zona.",
-  contact_email: "hola@titangym-peru.com",
-  notification_email: "pedidos@novaforza.pe",
-  transactional_from_email: "pedidos@novaforza.pe",
-  contact_phone: "+51 987 654 321",
-  whatsapp_url: "https://wa.me/51987654321",
-  address: "Av. Progreso 245, zona comercial local",
-  opening_hours: "Lunes a viernes de 6:00 a 22:00. Sabados de 8:00 a 14:00.",
-  seo_title: "Titan Gym | Gimnasio premium de fuerza y progreso real",
+  hero_highlight_three: "Nuova Forza es el espacio local con horarios amplios y la mejor asesoria presencial de la zona.",
+  contact_email: "soporte@nuovaforzagym.com",
+  notification_email: "soporte@nuovaforzagym.com",
+  transactional_from_email: "soporte@nuovaforzagym.com",
+  contact_phone: fallbackContactPhone,
+  whatsapp_url: fallbackWhatsAppUrl,
+  address: "San José #371, segundo piso, Chiclayo",
+  opening_hours: "Lunes a viernes 6am-10pm. Sabados 6am-12pm. Domingos cerrado.",
+  seo_title: "Nuova Forza | Gimnasio premium de fuerza y progreso real",
   seo_description:
-    "Web comercial de Titan Gym: planes claros, horarios amplios, asesoria cercana y una experiencia premium para entrenar con seriedad.",
+    "Web comercial de Nuova Forza: planes claros, horarios amplios, asesoria cercana y una experiencia premium para entrenar con seriedad.",
   seo_keywords: [
     "gimnasio premium",
     "fuerza",
     "planes de gimnasio",
     "entrenamiento personalizado",
-    "titan gym",
+    "Nuova Forza",
   ],
   seo_og_image_url: null,
-  seo_canonical_url: "https://titangym-peru.com",
-  footer_text: "Titan Gym es un gimnasio local orientado a fuerza, progreso real y una experiencia seria y cercana.",
+  seo_canonical_url: "https://nuovaforzagym.com",
+  footer_text: "Nuova Forza es un gimnasio local orientado a fuerza, progreso real y una experiencia seria y cercana.",
   updated_at: new Date().toISOString(),
 };
 

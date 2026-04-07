@@ -76,7 +76,7 @@ export default async function DashboardLeadsPage({
       </div>
 
       {warning && <DashboardNotice message={warning} tone="warning" />}
-      {disabledReason && <DashboardNotice message={disabledReason} tone="muted" />}
+      {disabledReason && <DashboardNotice message={disabledReason} tone="info" />}
 
       <div className="grid grid-cols-1 gap-10 xl:grid-cols-[320px_1fr]">
         

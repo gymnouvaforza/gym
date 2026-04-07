@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 
 import { updateLeadStatus } from "@/app/(admin)/dashboard/actions";
+import FeedbackCallout from "@/components/ui/feedback-callout";
 import type { LeadStatus } from "@/lib/supabase/database.types";
 
 import LeadStatusBadge from "./LeadStatusBadge";
@@ -78,7 +79,7 @@ export default function LeadStatusSelect({
       <p className="text-xs text-[#5f6368]" aria-live="polite">
         {feedback ?? (disabledReason ? "Solo lectura." : "")}
       </p>
-      {error ? <p className="text-xs text-red-700">{error}</p> : null}
+      {error ? <FeedbackCallout chrome="admin" tone="error" message={error} compact /> : null}
     </div>
   );
 }

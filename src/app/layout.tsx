@@ -16,10 +16,10 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://novaforza.pe"),
+  metadataBase: new URL("https://nuovaforzagym.com"),
   title: {
-    default: "Nova Forza | Lima",
-    template: "%s | Nova Forza",
+    default: "Nuova Forza | Chiclayo",
+    template: "%s | Nuova Forza",
   },
   description:
     "El gimnasio de fuerza de referencia en Lima. Resultados reales con asesoría personalizada.",

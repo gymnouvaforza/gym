@@ -92,7 +92,7 @@ export type PayPalCheckoutStatusResult =
     };
 
 export const CHECKOUT_PROCESSING_MESSAGE =
-  "PayPal ya ha confirmado tu pago. Estamos terminando de registrar tu pedido en Nova Forza. No vuelvas a pagar; en unos segundos aparecera en Mi cuenta.";
+  "PayPal ya ha confirmado tu pago. Estamos terminando de registrar tu pedido en Nuova Forza. No vuelvas a pagar; en unos segundos aparecera en Mi cuenta.";
 export const CHECKOUT_MANUAL_REVIEW_MESSAGE =
   "Hemos recibido tu pago y lo estamos revisando manualmente. No vuelvas a pagar. Si en un minuto no ves el pedido en Mi cuenta, contacta con el club.";
 export const CHECKOUT_STATUS_ERROR_MESSAGE =

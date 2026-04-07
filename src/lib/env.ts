@@ -286,7 +286,7 @@ export function getResendEnv() {
 
   return {
     apiKey: serverEnv.RESEND_API_KEY,
-    fromEmail: serverEnv.RESEND_FROM_EMAIL ?? "Nova Forza <onboarding@resend.dev>",
+    fromEmail: serverEnv.RESEND_FROM_EMAIL ?? "Nuova Forza <onboarding@resend.dev>",
   };
 }
 

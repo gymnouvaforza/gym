@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
+
+import FeedbackCallout from "@/components/ui/feedback-callout";
 import { cn } from "@/lib/utils";
 
 interface DeleteStoreItemButtonProps {
@@ -21,9 +23,11 @@ export default function DeleteStoreItemButton({
 }: DeleteStoreItemButtonProps) {
   const [isPending, startTransition] = useTransition();
   const [isConfirming, setIsConfirming] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const handleDelete = () => {
     if (!isConfirming) {
+      setFeedback(null);
       setIsConfirming(true);
       setTimeout(() => setIsConfirming(false), 3000); // Reset after 3s
       return;
@@ -33,29 +37,35 @@ export default function DeleteStoreItemButton({
       try {
         await onDelete(id);
       } catch (error) {
-        alert(error instanceof Error ? error.message : "Error al eliminar");
+        setFeedback(error instanceof Error ? error.message : "Error al eliminar");
         setIsConfirming(false);
       }
     });
   };
 
   return (
-    <button
-      onClick={handleDelete}
-      disabled={isPending}
-      className={cn(
-        "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all",
-        isConfirming
-          ? "bg-red-600 text-white hover:bg-red-700"
-          : "border border-black/8 text-[#111111] hover:border-red-600 hover:text-red-600",
-        isPending && "opacity-50 grayscale cursor-not-allowed",
-        className
-      )}
-      title={isConfirming ? confirmMessage : "Eliminar"}
-    >
-      <Trash2 className="h-4 w-4" />
-      {label && <span>{isConfirming ? "Confirmar" : label}</span>}
-      {!label && isConfirming && <span>Confirmar</span>}
-    </button>
+    <div className="space-y-2">
+      <button
+        onClick={handleDelete}
+        disabled={isPending}
+        className={cn(
+          "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all",
+          isConfirming
+            ? "bg-red-600 text-white hover:bg-red-700"
+            : "border border-black/8 text-[#111111] hover:border-red-600 hover:text-red-600",
+          isPending && "cursor-not-allowed grayscale opacity-50",
+          className,
+        )}
+        title={isConfirming ? confirmMessage : "Eliminar"}
+      >
+        <Trash2 className="h-4 w-4" />
+        {label && <span>{isConfirming ? "Confirmar" : label}</span>}
+        {!label && isConfirming && <span>Confirmar</span>}
+      </button>
+
+      {feedback ? (
+        <FeedbackCallout chrome="admin" tone="error" message={feedback} compact />
+      ) : null}
+    </div>
   );
 }

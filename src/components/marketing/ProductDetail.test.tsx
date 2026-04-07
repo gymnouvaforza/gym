@@ -23,14 +23,14 @@ vi.mock("next/image", () => ({
 
 vi.mock("@/components/cart/ProductPurchasePanel", () => ({
   default: ({ previewMode }: { previewMode?: boolean }) => (
-    <div>{previewMode ? "Compra disponible en storefront" : "Anadir al carrito"}</div>
+    <div>{previewMode ? "Reserva disponible en storefront" : "Anadir a la reserva"}</div>
   ),
 }));
 
 const product: Product = {
   id: "prod-medusa",
   slug: "whey-nova-forza",
-  name: "Nova Forza Isolate Whey Protein",
+  name: "Nuova Forza Isolate Whey Protein",
   eyebrow: "Suplemento de elite",
   category: "suplementos",
   short_description: "Proteina limpia para el dia a dia.",
@@ -43,7 +43,7 @@ const product: Product = {
   stock_status: "in_stock",
   pickup_only: true,
   pickup_note: "Disponible en recepcion.",
-  pickup_summary: "Recogida en Nova Forza Gym",
+  pickup_summary: "Recogida en Nuova Forza Gym",
   pickup_eta: "Tu producto estara listo en menos de 24 horas laborables.",
   featured: true,
   images: ["https://cdn.example.com/whey.png", "https://cdn.example.com/whey-side.png"],
@@ -86,22 +86,22 @@ describe("ProductDetail", () => {
     render(<ProductDetail product={product} />);
 
     expect(
-      screen.getByRole("heading", { name: "Nova Forza Isolate Whey Protein" }),
+      screen.getByRole("heading", { name: "Nuova Forza Isolate Whey Protein" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Ahorra 15%")).toBeInTheDocument();
-    expect(screen.getByText(/PayPal cobra aprox\./i)).toBeInTheDocument();
-    expect(screen.getByText(/Recogida en Nova Forza Gym/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reserva asistida con cierre manual desde WhatsApp/i)).toBeInTheDocument();
+    expect(screen.getByText(/Recogida en Nuova Forza Gym/i)).toBeInTheDocument();
     expect(screen.getByText("Beneficios")).toBeInTheDocument();
     expect(screen.getByText("Como usar")).toBeInTheDocument();
     expect(screen.getByText("Especificaciones")).toBeInTheDocument();
-    expect(screen.getByText("Anadir al carrito")).toBeInTheDocument();
+    expect(screen.getByText("Anadir a la reserva")).toBeInTheDocument();
   });
 
   it("switches to preview mode without rendering the live purchase CTA", () => {
     render(<ProductDetail product={product} previewMode />);
 
     expect(screen.getByText("Preview ficha PDP")).toBeInTheDocument();
-    expect(screen.getByText("Compra disponible en storefront")).toBeInTheDocument();
-    expect(screen.queryByText("Anadir al carrito")).not.toBeInTheDocument();
+    expect(screen.getByText("Reserva disponible en storefront")).toBeInTheDocument();
+    expect(screen.queryByText("Anadir a la reserva")).not.toBeInTheDocument();
   });
 });

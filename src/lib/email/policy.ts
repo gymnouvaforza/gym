@@ -8,7 +8,7 @@ function extractMailbox(value: string) {
 }
 
 export function formatTransactionalFromEmail(siteName: string, mailbox: string) {
-  return `${siteName.trim() || "Nova Forza"} <${normalizeEmailAddress(mailbox)}>`;
+  return `${siteName.trim() || "Nuova Forza"} <${normalizeEmailAddress(mailbox)}>`;
 }
 
 export function resolveTransactionalSender(
