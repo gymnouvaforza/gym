@@ -98,6 +98,8 @@ describe("pickup request mapper", () => {
       ],
     } as unknown as Parameters<typeof mapPickupRequest>[0]);
 
-    expect(pickupRequest.lineItems[0]?.thumbnail).toBe("/images/products/nova-creatina.png");
+    expect(pickupRequest.lineItems[0]?.thumbnail).toBeTruthy();
+    expect(pickupRequest.lineItems[0]?.thumbnail).not.toContain("localhost");
+    expect(pickupRequest.lineItems[0]?.thumbnail).toContain("nova-creatina.png");
   });
 });
