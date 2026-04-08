@@ -249,6 +249,15 @@ export async function deleteAuthenticatedMemberAccount(values: unknown) {
     throw new Error(pickupRequestError.message);
   }
 
+  const { error: membershipRequestError } = await adminClient
+    .from("membership_requests")
+    .update({ supabase_user_id: null })
+    .eq("supabase_user_id", user.id);
+
+  if (membershipRequestError) {
+    throw new Error(membershipRequestError.message);
+  }
+
   const { error: bridgeError } = await adminClient
     .from("member_commerce_customers")
     .delete()

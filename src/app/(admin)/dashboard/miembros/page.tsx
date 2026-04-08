@@ -132,7 +132,7 @@ export default async function DashboardMembersPage({
                     <TableRow className="bg-black/5 hover:bg-black/5 border-none">
                       <TableHead className="font-black text-[10px] uppercase text-[#111111]">Socio</TableHead>
                       <TableHead className="font-black text-[10px] uppercase text-[#111111]">Estado</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase text-[#111111]">Plan Activo</TableHead>
+                      <TableHead className="font-black text-[10px] uppercase text-[#111111]">Resumen Interno</TableHead>
                       <TableHead className="font-black text-[10px] uppercase text-[#111111]">Carga Tecnica</TableHead>
                       <TableHead className="font-black text-[10px] uppercase text-[#111111]">Accion</TableHead>
                     </TableRow>

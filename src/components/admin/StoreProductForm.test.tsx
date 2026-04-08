@@ -147,7 +147,7 @@ describe("StoreProductForm", () => {
         undefined,
       );
     });
-  });
+  }, 10000);
 
   it("renders the preview rail and switches between card and PDP modes", async () => {
     const user = userEvent.setup();

@@ -4,10 +4,8 @@ test.describe("public marketing routes smoke", () => {
   test("renders /planes from the public marketing surface", async ({ page }) => {
     await page.goto("/planes");
 
-    await expect(page.getByRole("heading", { name: /Planes/i }).first()).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: /Seleccionar Plan|Hablar con el gym/i }).first(),
-    ).toBeVisible();
+    await expect(page.locator("#planes")).toBeVisible();
+    await expect(page.getByText(/Duracion/i).first()).toBeVisible();
   });
 
   test("renders /horarios from the public marketing surface", async ({ page }) => {

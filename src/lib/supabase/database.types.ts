@@ -16,6 +16,12 @@ export type SiteSettings = Database["public"]["Tables"]["site_settings"]["Row"];
 
 export type DBMemberPlanSnapshot = Database["public"]["Tables"]["member_plan_snapshots"]["Row"];
 export type DBMemberProfile = Database["public"]["Tables"]["member_profiles"]["Row"];
+export type DBMembershipPaymentEntry =
+  Database["public"]["Tables"]["membership_payment_entries"]["Row"];
+export type DBMembershipPlan = Database["public"]["Tables"]["membership_plans"]["Row"];
+export type DBMembershipRequest = Database["public"]["Tables"]["membership_requests"]["Row"];
+export type DBMembershipRequestAnnotation =
+  Database["public"]["Tables"]["membership_request_annotations"]["Row"];
 export type DBMemberRoutineExerciseFeedback =
   Database["public"]["Tables"]["member_routine_exercise_feedback"]["Row"];
 export type DBMemberRoutineFeedback = Database["public"]["Tables"]["member_routine_feedback"]["Row"];
@@ -2052,10 +2058,13 @@ export type Database = {
           id: string
           join_date: string
           member_number: string
+          membership_plan_id: string | null
+          membership_qr_token: string
           notes: string | null
           phone: string | null
           status: string
           supabase_user_id: string | null
+          training_plan_label: string | null
           trainer_user_id: string | null
           updated_at: string
         }
@@ -2067,10 +2076,13 @@ export type Database = {
           id?: string
           join_date?: string
           member_number: string
+          membership_plan_id?: string | null
+          membership_qr_token?: string
           notes?: string | null
           phone?: string | null
           status?: string
           supabase_user_id?: string | null
+          training_plan_label?: string | null
           trainer_user_id?: string | null
           updated_at?: string
         }
@@ -2082,14 +2094,306 @@ export type Database = {
           id?: string
           join_date?: string
           member_number?: string
+          membership_plan_id?: string | null
+          membership_qr_token?: string
           notes?: string | null
           phone?: string | null
           status?: string
           supabase_user_id?: string | null
+          training_plan_label?: string | null
           trainer_user_id?: string | null
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "member_profiles_membership_plan_id_fkey"
+            columns: ["membership_plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      membership_payment_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by_email: string | null
+          created_by_user_id: string | null
+          currency_code: string
+          id: string
+          membership_request_id: string
+          note: string | null
+          recorded_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by_email?: string | null
+          created_by_user_id?: string | null
+          currency_code?: string
+          id?: string
+          membership_request_id: string
+          note?: string | null
+          recorded_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by_email?: string | null
+          created_by_user_id?: string | null
+          currency_code?: string
+          id?: string
+          membership_request_id?: string
+          note?: string | null
+          recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_payment_entries_membership_request_id_fkey"
+            columns: ["membership_request_id"]
+            isOneToOne: false
+            referencedRelation: "membership_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      membership_plans: {
+        Row: {
+          billing_label: string | null
+          created_at: string
+          currency_code: string
+          description: string | null
+          duration_days: number
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          medusa_product_id: string | null
+          medusa_sync_error: string | null
+          medusa_sync_status: string
+          medusa_synced_at: string | null
+          medusa_variant_id: string | null
+          notes: string | null
+          price_amount: number
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          billing_label?: string | null
+          created_at?: string
+          currency_code?: string
+          description?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          medusa_product_id?: string | null
+          medusa_sync_error?: string | null
+          medusa_sync_status?: string
+          medusa_synced_at?: string | null
+          medusa_variant_id?: string | null
+          notes?: string | null
+          price_amount: number
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          billing_label?: string | null
+          created_at?: string
+          currency_code?: string
+          description?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          medusa_product_id?: string | null
+          medusa_sync_error?: string | null
+          medusa_sync_status?: string
+          medusa_synced_at?: string | null
+          medusa_variant_id?: string | null
+          notes?: string | null
+          price_amount?: number
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
         Relationships: []
+      }
+      membership_request_annotations: {
+        Row: {
+          content: string
+          created_at: string
+          created_by_email: string | null
+          created_by_user_id: string | null
+          id: string
+          membership_request_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by_email?: string | null
+          created_by_user_id?: string | null
+          id?: string
+          membership_request_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by_email?: string | null
+          created_by_user_id?: string | null
+          id?: string
+          membership_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_request_annotations_membership_request_id_fkey"
+            columns: ["membership_request_id"]
+            isOneToOne: false
+            referencedRelation: "membership_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      membership_requests: {
+        Row: {
+          activated_at: string | null
+          billing_label: string | null
+          created_at: string
+          currency_code: string
+          cycle_ends_on: string | null
+          cycle_starts_on: string | null
+          duration_days: number
+          email: string
+          email_error: string | null
+          email_sent_at: string | null
+          email_status: string
+          id: string
+          medusa_cart_id: string | null
+          medusa_order_id: string | null
+          medusa_product_id: string | null
+          medusa_sync_error: string | null
+          medusa_sync_status: string
+          medusa_synced_at: string | null
+          medusa_variant_id: string | null
+          manual_balance_due: number
+          manual_paid_total: number
+          manual_payment_entry_count: number
+          manual_payment_status: string
+          manual_payment_updated_at: string | null
+          member_id: string
+          membership_plan_id: string
+          notes: string | null
+          plan_title_snapshot: string
+          price_amount: number
+          renews_from_request_id: string | null
+          request_number: string
+          source: string
+          status: string
+          supabase_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          billing_label?: string | null
+          created_at?: string
+          currency_code?: string
+          cycle_ends_on?: string | null
+          cycle_starts_on?: string | null
+          duration_days?: number
+          email: string
+          email_error?: string | null
+          email_sent_at?: string | null
+          email_status?: string
+          id?: string
+          medusa_cart_id?: string | null
+          medusa_order_id?: string | null
+          medusa_product_id?: string | null
+          medusa_sync_error?: string | null
+          medusa_sync_status?: string
+          medusa_synced_at?: string | null
+          medusa_variant_id?: string | null
+          manual_balance_due?: number
+          manual_paid_total?: number
+          manual_payment_entry_count?: number
+          manual_payment_status?: string
+          manual_payment_updated_at?: string | null
+          member_id: string
+          membership_plan_id: string
+          notes?: string | null
+          plan_title_snapshot: string
+          price_amount: number
+          renews_from_request_id?: string | null
+          request_number: string
+          source?: string
+          status?: string
+          supabase_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          billing_label?: string | null
+          created_at?: string
+          currency_code?: string
+          cycle_ends_on?: string | null
+          cycle_starts_on?: string | null
+          duration_days?: number
+          email?: string
+          email_error?: string | null
+          email_sent_at?: string | null
+          email_status?: string
+          id?: string
+          medusa_cart_id?: string | null
+          medusa_order_id?: string | null
+          medusa_product_id?: string | null
+          medusa_sync_error?: string | null
+          medusa_sync_status?: string
+          medusa_synced_at?: string | null
+          medusa_variant_id?: string | null
+          manual_balance_due?: number
+          manual_paid_total?: number
+          manual_payment_entry_count?: number
+          manual_payment_status?: string
+          manual_payment_updated_at?: string | null
+          member_id?: string
+          membership_plan_id?: string
+          notes?: string | null
+          plan_title_snapshot?: string
+          price_amount?: number
+          renews_from_request_id?: string | null
+          request_number?: string
+          source?: string
+          status?: string
+          supabase_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_requests_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_requests_membership_plan_id_fkey"
+            columns: ["membership_plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_requests_renews_from_request_id_fkey"
+            columns: ["renews_from_request_id"]
+            isOneToOne: false
+            referencedRelation: "membership_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mikro_orm_migrations: {
         Row: {

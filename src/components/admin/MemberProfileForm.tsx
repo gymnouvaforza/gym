@@ -172,11 +172,21 @@ export default function MemberProfileForm({
               </div>
             </div>
 
-            {/* SECCION 2: PLAN Y CONTRATO */}
+            {/* SECCION 2: RESUMEN INTERNO */}
             <div className="space-y-6">
               <div className="flex items-center gap-3 border-b border-black/5 pb-4">
                  <ClipboardList className="h-5 w-5 text-[#d71920]" />
-                 <h3 className="font-display text-xl font-black uppercase tracking-tighter text-[#111111]">Estructura de Plan</h3>
+                 <h3 className="font-display text-xl font-black uppercase tracking-tighter text-[#111111]">Resumen Interno</h3>
+              </div>
+
+              <div className="border border-black/10 bg-[#fbfbf8] p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#7a7f87]">
+                  Nota de operacion
+                </p>
+                <p className="mt-2 text-[12px] leading-relaxed text-[#5f6368]">
+                  La membresia y el cobro manual viven ahora en <span className="font-bold text-[#111111]">Membership Ops</span>.
+                  Este bloque se queda como apoyo interno para notas de seguimiento y contexto del socio.
+                </p>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -185,7 +195,7 @@ export default function MemberProfileForm({
                   name="planLabel"
                   render={({ field }) => (
                     <FormItem className="xl:col-span-2">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Denominacion del Plan</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Etiqueta interna</FormLabel>
                       <FormControl>
                         <Input {...field} className="h-11 font-black uppercase border-black/10 bg-[#fbfbf8]" />
                       </FormControl>
@@ -198,7 +208,7 @@ export default function MemberProfileForm({
                   name="planStatus"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Vigencia Contrato</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Estado interno</FormLabel>
                       <FormControl>
                         <select
                           value={typeof field.value === "string" ? field.value : "active"}
@@ -246,7 +256,7 @@ export default function MemberProfileForm({
                   name="planStartedAt"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Fecha Inicio Ciclo</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Inicio de referencia</FormLabel>
                       <FormControl>
                         <Input
                           type="date"

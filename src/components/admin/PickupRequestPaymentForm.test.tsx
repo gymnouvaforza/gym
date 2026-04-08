@@ -70,9 +70,11 @@ describe("PickupRequestPaymentForm", () => {
       });
     });
 
-    expect(refreshMock).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(refreshMock).toHaveBeenCalled();
+    });
     expect(
-      screen.getByText("Abono parcial registrado en la bitacora de pagos."),
+      await screen.findByText("Abono parcial registrado en la bitacora de pagos."),
     ).toBeInTheDocument();
   });
 

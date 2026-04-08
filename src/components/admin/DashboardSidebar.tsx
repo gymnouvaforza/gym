@@ -17,6 +17,7 @@ import {
   Database,
   Users,
   LayoutGrid,
+  QrCode,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -54,6 +55,16 @@ const links: NavItem[] = [
   { isHeader: true, label: "Growth & Revenue", href: "#" },
   { href: "/dashboard/leads", label: "LEADS ENGINE", icon: Zap, tag: "Hot" },
   { href: "/dashboard/miembros", label: "MEMBER SCOUTING", icon: ClipboardList },
+  {
+    href: "/dashboard/membresias",
+    label: "MEMBERSHIP OPS",
+    icon: QrCode,
+    tag: "New",
+    children: [
+      { href: "/dashboard/membresias/pedidos", label: "SOLICITUDES", icon: ClipboardList },
+      { href: "/dashboard/membresias/recepcion", label: "RECEPCION QR", icon: QrCode },
+    ],
+  },
   { href: "/dashboard/tienda", label: "RETAIL CONSOLE", icon: ShoppingBag },
   
   { isHeader: true, label: "Core Technology", href: "#" },

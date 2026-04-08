@@ -1,15 +1,12 @@
 import {
-  ShieldCheck, 
-  ShoppingBag, 
-  User, 
-  Package, 
-  Zap, 
-  ArrowRight,
   Activity,
-  History,
   ExternalLink,
-  Lock,
+  Package,
+  QrCode,
+  ShieldCheck,
+  ShoppingBag,
   Star,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -17,35 +14,77 @@ import MemberAccountSettings from "@/components/auth/MemberAccountSettings";
 import MemberTestimonialForm from "@/components/auth/MemberTestimonialForm";
 import AuthFeedbackDialog from "@/components/auth/AuthFeedbackDialog";
 import { MemberSignOutButtonWithRedirect } from "@/components/auth/MemberSignOutButton";
+import MembershipReserveButton from "@/components/public/MembershipReserveButton";
+import MembershipQrCard from "@/components/public/MembershipQrCard";
+import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import PublicInlineAlert from "@/components/public/PublicInlineAlert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireMemberUser } from "@/lib/auth";
 import { formatCartAmount } from "@/lib/cart/format";
 import {
   getPickupRequestStatusTone,
-  pickupRequestPaymentStatusLabels,
   pickupRequestStatusLabels,
 } from "@/lib/cart/pickup-request";
 import { getCurrentCartSnapshot } from "@/lib/cart/server";
+import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
 import {
   getAuthenticatedMemberTestimonial,
   getMemberAccountViewModel,
 } from "@/lib/data/member-account";
-import { ensureMemberProfileForUser } from "@/lib/data/gym-management";
-import { getMemberPickupRequestsHistory } from "@/lib/data/pickup-requests";
-import {
-  formatMemberAccountDate,
-  getMemberAccountQuickLinks,
-} from "@/lib/member-account";
-import { cn } from "@/lib/utils";
 import type {
   MemberAccountViewModel,
   MemberMarketingTestimonialViewModel,
 } from "@/lib/data/member-account";
-import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
+import { ensureMemberProfileForUser } from "@/lib/data/gym-management";
+import {
+  buildMembershipValidationUrl,
+  getLatestMembershipRequestForUser,
+  listMembershipPlans,
+} from "@/lib/data/memberships";
+import { getMemberPickupRequestsHistory } from "@/lib/data/pickup-requests";
+import { formatMemberAccountDate } from "@/lib/member-account";
+import {
+  membershipRequestStatusLabels,
+  membershipValidationStatusLabels,
+} from "@/lib/memberships";
+import type { DBMemberProfile } from "@/lib/supabase/database.types";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+type MemberAccountTab = "resumen" | "membresia" | "pedidos" | "cuenta";
+
+type MemberAccountPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const memberAccountTabs: Array<{
+  value: MemberAccountTab;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "resumen",
+    label: "Resumen",
+    description: "Lo importante de tu cuenta en una sola vista.",
+  },
+  {
+    value: "membresia",
+    label: "Membresia",
+    description: "QR, vigencia, saldo y renovacion sin mezclarlo con la tienda.",
+  },
+  {
+    value: "pedidos",
+    label: "Pedidos",
+    description: "Carrito activo y trazabilidad pickup desde el mismo portal.",
+  },
+  {
+    value: "cuenta",
+    label: "Cuenta",
+    description: "Perfil, seguridad y resena publica ordenados por separado.",
+  },
+];
 
 function getSafeErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message && error.message !== "An unknown error occurred.") {
@@ -62,32 +101,61 @@ function getSafeErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-export default async function MemberAccountPage() {
-  // 1. Autenticación
+function resolveMemberAccountTab(value: string | string[] | undefined): MemberAccountTab {
+  const candidate = Array.isArray(value) ? value[0] : value;
+
+  return memberAccountTabs.some((tab) => tab.value === candidate)
+    ? (candidate as MemberAccountTab)
+    : "resumen";
+}
+
+function buildMemberAccountTabHref(tab: MemberAccountTab) {
+  return tab === "resumen" ? "/mi-cuenta#account-tabs" : `/mi-cuenta?tab=${tab}#account-tabs`;
+}
+
+function buildMemberAccountTabSectionHref(tab: MemberAccountTab, sectionId: string) {
+  return `${buildMemberAccountTabHref(tab).replace("#account-tabs", "")}#${sectionId}`;
+}
+
+export default async function MemberAccountPage({
+  searchParams,
+}: Readonly<MemberAccountPageProps>) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const activeTab = resolveMemberAccountTab(resolvedSearchParams?.tab);
   const user = await requireMemberUser("/acceso?next=/mi-cuenta");
-  
-  // 2. Estados de Datos con Tipado Seguro
-  let account: MemberAccountViewModel = { 
-    fullName: "Socio Titan", 
-    email: user.email ?? "", 
-    providerLabel: "Autenticación Segura", 
+
+  let account: MemberAccountViewModel = {
+    fullName: "Socio Titan",
+    email: user.email ?? "",
+    providerLabel: "Autenticacion segura",
     canManagePassword: false,
-    phone: null
+    phone: null,
   };
   let activeCart: Cart | null = null;
   let testimonial: MemberMarketingTestimonialViewModel | null = null;
   let pickupHistory = { pickupRequests: [] as PickupRequestDetail[], warning: null as string | null };
+  let memberProfile: DBMemberProfile | null = null;
+  let latestMembershipRequest:
+    | Awaited<ReturnType<typeof getLatestMembershipRequestForUser>>
+    | null = null;
+  let membershipPlans = [] as Awaited<ReturnType<typeof listMembershipPlans>>;
   let loadError: string | null = null;
 
-  // 3. Carga de Datos Resiliente
   try {
     try {
-      await ensureMemberProfileForUser(user);
-    } catch (e) {
-      loadError = getSafeErrorMessage(e, "No se pudo sincronizar la ficha base del socio.");
+      memberProfile = await ensureMemberProfileForUser(user);
+    } catch (error) {
+      loadError = getSafeErrorMessage(error, "No se pudo sincronizar la ficha base del socio.");
     }
 
-    const [accResult, cartResult, historyResult, testimonialResult] = await Promise.allSettled([
+    const [
+      accResult,
+      cartResult,
+      historyResult,
+      testimonialResult,
+      membershipResult,
+      membershipPlansResult,
+    ] = await Promise.allSettled([
       getMemberAccountViewModel(user),
       getCurrentCartSnapshot(),
       getMemberPickupRequestsHistory({
@@ -95,345 +163,611 @@ export default async function MemberAccountPage() {
         supabaseUserId: user.id,
       }),
       getAuthenticatedMemberTestimonial(),
+      getLatestMembershipRequestForUser(user.id),
+      listMembershipPlans({ activeOnly: true }),
     ]);
 
-    if (accResult.status === "fulfilled") account = accResult.value;
-    if (cartResult.status === "fulfilled") activeCart = cartResult.value;
-    if (historyResult.status === "fulfilled") pickupHistory = historyResult.value;
-    if (testimonialResult.status === "fulfilled") testimonial = testimonialResult.value;
-    
+    if (accResult.status === "fulfilled") {
+      account = accResult.value;
+    }
+    if (cartResult.status === "fulfilled") {
+      activeCart = cartResult.value;
+    }
+    if (historyResult.status === "fulfilled") {
+      pickupHistory = historyResult.value;
+    }
+    if (testimonialResult.status === "fulfilled") {
+      testimonial = testimonialResult.value;
+    }
+    if (membershipResult.status === "fulfilled") {
+      latestMembershipRequest = membershipResult.value;
+    }
+    if (membershipPlansResult.status === "fulfilled") {
+      membershipPlans = membershipPlansResult.value;
+    }
+
     if (
       accResult.status === "rejected" ||
       historyResult.status === "rejected" ||
-      testimonialResult.status === "rejected"
+      testimonialResult.status === "rejected" ||
+      membershipResult.status === "rejected" ||
+      membershipPlansResult.status === "rejected"
     ) {
-       const rejectedReason =
-         accResult.status === "rejected"
-           ? accResult.reason
-           : historyResult.status === "rejected"
-             ? historyResult.reason
-             : testimonialResult.status === "rejected"
-               ? testimonialResult.reason
-             : null;
-       loadError = getSafeErrorMessage(
-         rejectedReason,
-         "Sincronizacion parcial. Los datos comerciales podrian no estar actualizados.",
-       );
+      const rejectedReason =
+        accResult.status === "rejected"
+          ? accResult.reason
+          : historyResult.status === "rejected"
+            ? historyResult.reason
+            : testimonialResult.status === "rejected"
+              ? testimonialResult.reason
+              : membershipResult.status === "rejected"
+                ? membershipResult.reason
+                : membershipPlansResult.status === "rejected"
+                  ? membershipPlansResult.reason
+                  : null;
+
+      loadError = getSafeErrorMessage(
+        rejectedReason,
+        "Sincronizacion parcial. Los datos comerciales podrian no estar actualizados.",
+      );
     }
-  } catch (globalError) {
+  } catch (error) {
     loadError = getSafeErrorMessage(
-      globalError,
+      error,
       "Error de conexion con el servidor. Reintentando en breve.",
     );
   }
 
-  // 4. Lógica de Vista
-  const latestPickupRequest = pickupHistory?.pickupRequests?.[0] ?? null;
-  const previousPickupRequests = pickupHistory?.pickupRequests?.slice(1) ?? [];
-  const quickLinks = getMemberAccountQuickLinks({
-    hasActiveCart: !!activeCart?.items?.length,
-    hasPickupHistory: pickupHistory?.pickupRequests?.length > 0,
-  });
+  const latestPickupRequest = pickupHistory.pickupRequests[0] ?? null;
+  const activeCartItemCount = activeCart?.summary.itemCount ?? 0;
+  const pickupCount = pickupHistory.pickupRequests.length;
+  const membershipDetailHref = latestMembershipRequest
+    ? `/mi-cuenta/membresias/${latestMembershipRequest.id}`
+    : buildMemberAccountTabHref("membresia");
+  const membershipQrHref =
+    latestMembershipRequest && memberProfile
+      ? buildMemberAccountTabSectionHref("membresia", "membership-qr")
+      : membershipDetailHref;
 
   return (
-    <main className="min-h-screen bg-[#fbfbf8]">
+    <main className="min-h-screen bg-[#fbfbf8] pb-12">
       <AuthFeedbackDialog variant="welcome" />
-      
-      {/* HEADER INDUSTRIAL SUPERIOR */}
-      <header className="bg-[#111111] py-5 px-6 lg:px-12 flex items-center justify-between border-b border-white/10 sticky top-0 z-30">
-         <div className="flex items-center gap-6">
-            <div className="h-8 w-8 bg-white flex items-center justify-center p-1.5">
-               <Activity className="h-full w-full text-[#d71920]" />
-            </div>
-            <div className="hidden sm:block">
-               <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Portal del Socio</p>
-               <p className="text-xs font-bold text-white uppercase tracking-widest">Nuova Forza SYSTEM <span className="text-white/20">/</span> V2.0</p>
-            </div>
-         </div>
-         <div className="flex items-center gap-4">
-            <Badge variant="success" className="bg-green-500/10 text-green-500 border-none font-black uppercase text-[8px] h-6 px-3">Sessión Activa</Badge>
-            <div className="h-6 w-px bg-white/10" />
-            <MemberSignOutButtonWithRedirect />
-            <div className="h-6 w-px bg-white/10" />
-            <Link href="/" className="text-[10px] font-black uppercase text-white/60 hover:text-white transition-colors flex items-center gap-2">
-               Sitio Público <ExternalLink className="h-3 w-3" />
-            </Link>
-         </div>
+
+      {/* Header Compacto - Mobile First */}
+      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/5 bg-[#111111] px-4 lg:h-20 lg:px-12">
+        <div className="flex items-center gap-3 lg:gap-6">
+          <div className="flex h-7 w-7 items-center justify-center bg-white lg:h-9 lg:w-9">
+            <Activity className="h-4 w-4 text-[#d71920] lg:h-5 lg:w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white lg:text-xs">
+              Portal <span className="text-[#d71920]">Socio</span>
+            </p>
+            <p className="hidden text-[8px] font-medium uppercase tracking-[0.1em] text-white/30 sm:block">
+              Nuova Forza System V2
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 lg:gap-4">
+          <div className="hidden h-6 w-px bg-white/10 sm:block" />
+          <MemberSignOutButtonWithRedirect />
+          <div className="h-6 w-px bg-white/10" />
+          <Link
+            href="/"
+            className="group flex items-center gap-2 text-[10px] font-black uppercase text-white/60 transition-colors hover:text-white"
+          >
+            <span className="hidden sm:inline">Salir al sitio</span>
+            <ExternalLink className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </Link>
+        </div>
       </header>
 
-      <div className="w-full px-6 py-12 lg:px-12 lg:py-20 max-w-[1600px] mx-auto">
-        
-        {loadError && (
-          <div className="mb-12">
-             <PublicInlineAlert
-               tone="warning"
-               title="Tu cuenta se esta mostrando con contexto parcial"
-               message={loadError}
-               compact
-             />
+      <div className="mx-auto w-full max-w-[1200px] px-0 lg:px-8">
+        {loadError ? (
+          <div className="px-4 py-4 lg:px-0">
+            <PublicInlineAlert
+              tone="warning"
+              title="Sincronización parcial"
+              message={loadError}
+              compact
+            />
           </div>
-        )}
+        ) : null}
 
-        <div className="flex flex-col gap-12">
-          {/* TITULO HERO SECCIÓN */}
-          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between border-b border-black/5 pb-12">
-             <div className="space-y-3">
-                <p className="font-black text-[10px] uppercase tracking-[0.4em] text-[#d71920]">Zona de Entrenamiento Digital</p>
-                <h1 className="font-display text-6xl font-black uppercase tracking-tighter text-[#111111] sm:text-8xl italic">
-                  MI <span className="text-black/10">ESPACIO</span>
-                </h1>
-             </div>
-             <div className="flex items-center gap-6">
-                <div className="bg-white border border-black/10 p-6 shadow-xl text-center min-w-[180px]">
-                   <p className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Último Acceso</p>
-                   <p className="text-sm font-bold text-[#111111] uppercase tracking-tighter mt-1">{formatMemberAccountDate(user.last_sign_in_at)}</p>
+        <div className="flex flex-col">
+          {/* Perfil del Socio - Rediseño Mobile First */}
+          <section className="bg-white px-4 py-8 border-b border-black/5 lg:bg-transparent lg:border-none lg:px-0 lg:py-12">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-2 bg-[#d71920]/10 px-2 py-1">
+                  <span className="h-1.5 w-1.5 bg-[#d71920]" />
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#d71920]">
+                    Área Privada del Socio
+                  </p>
                 </div>
-             </div>
-          </div>
-
-          {/* GRID PRINCIPAL */}
-          <div className="grid grid-cols-1 gap-12 xl:grid-cols-[400px_1fr]">
-             
-             {/* SIDEBAR: IDENTIDAD */}
-             <aside className="space-y-10">
-                <div className="sticky top-28 space-y-10">
-                   
-                   {/* ID CARD */}
-                   <div className="bg-[#111111] p-10 text-white shadow-2xl relative overflow-hidden group">
-                      <div className="relative z-10 space-y-10">
-                         <div className="flex justify-between items-start">
-                            <div className="h-20 w-20 bg-white flex items-center justify-center shadow-inner">
-                               <User className="h-10 w-10 text-[#111111]" />
-                            </div>
-                            <div className="bg-[#d71920] px-3 py-1">
-                               <p className="text-[9px] font-black uppercase tracking-widest text-white">PRO MEMBER</p>
-                            </div>
-                         </div>
-                         
-                         <div className="space-y-2">
-                            <p className="text-[11px] font-black uppercase tracking-widest text-white/30">Ficha del Socio</p>
-                            <h2 className="text-4xl font-display font-black uppercase tracking-tight leading-none italic">{account.fullName}</h2>
-                            <p className="text-sm font-medium text-white/60 mt-4 border-l-2 border-[#d71920] pl-4">{account.email}</p>
-                         </div>
-
-                         <div className="pt-8 border-t border-white/5 space-y-5">
-                            <div className="flex justify-between items-center">
-                               <span className="text-[10px] font-black uppercase text-white/20">Identificador</span>
-                               <span className="text-[10px] font-mono text-white/40">{user.id.slice(0,12).toUpperCase()}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                               <span className="text-[10px] font-black uppercase text-white/20">Miembro desde</span>
-                               <span className="text-[10px] font-bold text-white/60">{formatMemberAccountDate(user.created_at)}</span>
-                            </div>
-                         </div>
-                      </div>
-                      <div className="absolute -right-20 -bottom-20 h-80 w-80 bg-[#d71920]/10 rounded-full blur-[120px] group-hover:bg-[#d71920]/20 transition-all duration-700" />
-                   </div>
-
-                   {/* SECURITY & STATUS */}
-                   <div className="bg-white border border-black/10 p-8 shadow-sm space-y-6">
-                      <div className="flex items-center gap-3">
-                         <ShieldCheck className="h-5 w-5 text-green-600" />
-                         <p className="text-[11px] font-black uppercase tracking-widest text-[#111111]">Estatus de Cuenta</p>
-                      </div>
-                      <div className="bg-[#fbfbf8] p-4 border border-black/5">
-                         <p className="text-[9px] font-black uppercase text-[#7a7f87] mb-2">Auth Provider</p>
-                         <p className="text-xs font-bold text-[#111111] uppercase tracking-tighter italic">{account.providerLabel}</p>
-                      </div>
-                      <div className="flex items-center gap-3 px-2">
-                         <Lock className="h-3 w-3 text-black/20" />
-                         <p className="text-[10px] text-[#7a7f87] font-medium leading-relaxed">Protección de datos activa mediante políticas RLS de nivel 4.</p>
-                      </div>
-                   </div>
-
-                   {/* NAVIGATION LINKS */}
-                   <div className="space-y-4">
-                      <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[#111111] px-2">Acceso a Funciones</p>
-                      <div className="grid gap-2">
-                         {quickLinks.map((link) => (
-                            <Link 
-                              key={link.href} 
-                              href={link.href}
-                              className="group flex items-center justify-between bg-white border border-black/10 p-5 transition-all hover:border-[#111111] hover:translate-x-1"
-                            >
-                               <div className="flex items-center gap-4">
-                                  <div className="h-1.5 w-1.5 rounded-full bg-black/10 group-hover:bg-[#d71920]" />
-                                  <span className="text-[11px] font-black uppercase tracking-widest text-[#7a7f87] group-hover:text-[#111111]">{link.label}</span>
-                               </div>
-                               <ArrowRight className="h-4 w-4 text-black/10 group-hover:text-[#d71920]" />
-                            </Link>
-                         ))}
-                      </div>
-                   </div>
-
+                <div className="space-y-1">
+                  <h1 className="font-display text-4xl font-black uppercase leading-[0.9] tracking-tight text-[#111111] italic sm:text-6xl lg:text-7xl">
+                    Mi Espacio
+                  </h1>
+                  <p className="text-xs font-medium text-[#5f6368] lg:text-base">
+                    {account.fullName} <span className="mx-1 text-black/10">|</span> {account.email}
+                  </p>
                 </div>
-             </aside>
+              </div>
 
-             {/* MAIN CONTENT AREA */}
-             <div className="space-y-16">
-                
-                {/* SECTION: PERFIL */}
-                <section className="space-y-8">
-                   <div className="flex items-center justify-between border-b border-black/10 pb-6">
-                      <div className="flex items-center gap-4">
-                         <div className="h-14 w-14 bg-[#111111] flex items-center justify-center">
-                            <Activity className="h-7 w-7 text-[#d71920]" />
-                         </div>
-                         <h2 className="font-display text-4xl font-black uppercase tracking-tighter text-[#111111]">Gestión de Perfil</h2>
-                      </div>
-                      <Badge variant="muted" className="h-8 px-4 font-black uppercase text-[9px] tracking-widest bg-black/5 border-none">Información General</Badge>
-                   </div>
-                   <div className="bg-white border border-black/10 p-10 shadow-lg">
-                      <MemberAccountSettings initialAccount={account} />
-                   </div>
-                </section>
+              <div className="grid grid-cols-2 gap-px bg-black/5 border border-black/5 lg:flex lg:flex-row lg:bg-transparent lg:border-none lg:gap-4">
+                <div className="bg-white p-3 lg:border lg:border-black/10 lg:min-w-[140px] lg:p-4">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-[#7a7f87] lg:text-[9px]">
+                    Miembro desde
+                  </p>
+                  <p className="mt-1 text-[11px] font-bold uppercase tracking-tight text-[#111111] lg:text-sm">
+                    {formatMemberAccountDate(memberProfile?.created_at ?? user.created_at)}
+                  </p>
+                </div>
+                <div className="bg-white p-3 lg:border lg:border-black/10 lg:min-w-[140px] lg:p-4">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-[#7a7f87] lg:text-[9px]">
+                    Último Acceso
+                  </p>
+                  <p className="mt-1 text-[11px] font-bold uppercase tracking-tight text-[#111111] lg:text-sm">
+                    {formatMemberAccountDate(user.last_sign_in_at)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
 
-                <section className="space-y-8">
-                   <div className="flex items-center gap-4 border-b border-black/10 pb-6">
-                      <div className="h-14 w-14 bg-[#111111] flex items-center justify-center">
-                         <Star className="h-7 w-7 text-[#d71920]" />
-                      </div>
-                      <h2 className="font-display text-4xl font-black uppercase tracking-tighter text-[#111111]">
-                        Resena de la Comunidad
-                      </h2>
-                   </div>
-                   <MemberTestimonialForm initialTestimonial={testimonial} />
-                </section>
+          <Tabs value={activeTab} className="flex w-full flex-col">
+            {/* Navegación de Pestañas - Sticky en Móvil */}
+            <div className="sticky top-16 z-30 flex w-full border-b border-black/5 bg-white/90 backdrop-blur-md lg:top-20 lg:static lg:bg-transparent lg:border-none lg:backdrop-blur-none lg:mb-10">
+              <TabsList
+                variant="line"
+                className="hide-scrollbar flex w-full flex-nowrap items-stretch justify-start overflow-x-auto px-2 py-1 lg:mx-auto lg:max-w-max lg:gap-4 lg:px-0 lg:py-0"
+              >
+                {memberAccountTabs.map((tab) => {
+                  const isActive = activeTab === tab.value;
 
-                {/* SECTION: E-COMMERCE */}
-                <section className="space-y-8">
-                   <div className="flex items-center gap-4 border-b border-black/10 pb-6">
-                      <div className="h-14 w-14 bg-[#111111] flex items-center justify-center">
-                         <ShoppingBag className="h-7 w-7 text-[#d71920]" />
-                      </div>
-                      <h2 className="font-display text-4xl font-black uppercase tracking-tighter text-[#111111]">E-Commerce & Carrito</h2>
-                   </div>
-                   
-                   <div className={cn(
-                     "p-12 border shadow-2xl transition-all relative overflow-hidden",
-                     activeCart && activeCart.items?.length > 0 ? "bg-[#111111] text-white border-[#111111]" : "bg-[#fbfbf8] border-black/10 border-dashed"
-                   )}>
-                      {activeCart && activeCart.items?.length > 0 ? (
-                         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
-                            <div className="space-y-4">
-                               <div className="flex items-center gap-3">
-                                  <Zap className="h-6 w-6 text-[#d71920] fill-current animate-bounce" />
-                                  <p className="text-xs font-black uppercase tracking-[0.3em] text-[#d71920]">Checkout Pendiente</p>
-                               </div>
-                               <h3 className="text-4xl font-display font-black uppercase tracking-tight italic">Tienes {activeCart.summary.itemCount} artículos esperando</h3>
-                               <p className="text-xl text-white/40">Total estimado: <span className="text-white font-bold">{formatCartAmount(activeCart.summary.total, activeCart.summary.currencyCode)}</span></p>
-                            </div>
-                            <Button asChild className="h-20 px-16 bg-[#d71920] text-white font-black uppercase tracking-[0.3em] hover:bg-white hover:text-[#111111] transition-all rounded-none text-xs shadow-xl">
-                               <Link href="/carrito">FINALIZAR PEDIDO</Link>
-                            </Button>
-                         </div>
-                      ) : (
-                         <div className="flex flex-col items-center justify-center py-10 gap-6">
-                            <div className="h-20 w-20 bg-black/5 flex items-center justify-center rounded-full">
-                               <ShoppingBag className="h-10 w-10 text-black/10" />
-                            </div>
-                            <div className="text-center space-y-2">
-                               <p className="text-xl font-black uppercase text-[#111111] tracking-tight">Tu carrito está vacío</p>
-                               <p className="text-sm text-[#7a7f87] max-w-sm">Explora el catálogo de suplementación y equipamiento profesional de Nuova Forza.</p>
-                            </div>
-                            <Link href="/tienda" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d71920] hover:underline underline-offset-8">Ir a la Tienda Pro</Link>
-                         </div>
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      asChild
+                      className={cn(
+                        "relative h-11 min-w-[90px] flex-shrink-0 px-3 text-[9px] font-black uppercase tracking-[0.2em] transition-all lg:h-14 lg:min-w-[160px] lg:px-4 lg:text-[10px] lg:border",
+                        isActive
+                          ? "text-[#d71920] lg:border-[#111111] lg:bg-[#111111] lg:text-white"
+                          : "text-[#7a7f87] lg:border-black/10 lg:bg-white lg:hover:border-[#111111] lg:hover:text-[#111111]",
                       )}
-                      {activeCart && activeCart.items?.length > 0 && (
-                         <div className="absolute top-0 right-0 h-full w-1/2 bg-[#d71920]/5 -skew-x-12 translate-x-20" />
-                      )}
-                   </div>
-                </section>
+                    >
+                      <Link href={buildMemberAccountTabHref(tab.value)}>
+                        <span className="flex w-full items-center justify-center gap-2">
+                          {tab.label}
+                          {isActive && <div className="absolute bottom-0 left-0 h-1 w-full bg-[#d71920] lg:hidden" />}
+                        </span>
+                      </Link>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
 
-                {/* SECTION: LOGÍSTICA */}
-                <section className="space-y-8">
-                   <div className="flex items-center gap-4 border-b border-black/10 pb-6">
-                      <div className="h-14 w-14 bg-[#111111] flex items-center justify-center">
-                         <Package className="h-7 w-7 text-[#d71920]" />
+            <section id="account-tabs" className="w-full px-3 py-6 lg:mx-auto lg:max-w-[1000px] lg:px-0 lg:py-0">
+              <TabsContent value="resumen" className="mt-0 space-y-4 outline-none lg:space-y-8">
+                {/* Bloque QR de Acceso Inmediato */}
+                {latestMembershipRequest ? (
+                  <div className="group relative overflow-hidden border border-[#111111] bg-[#111111] p-5 text-white lg:p-10">
+                    <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <QrCode className="h-4 w-4 text-[#d71920]" />
+                          <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#d71920]">
+                            Acceso Directo
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="font-display text-3xl font-black uppercase tracking-tight italic lg:text-5xl">
+                            {memberProfile ? "Tu Pase de Socio" : "Membresía Activa"}
+                          </h4>
+                          <p className="max-w-md text-xs leading-relaxed text-white/50 lg:text-base">
+                            {memberProfile
+                              ? "Muestra tu código QR en la terminal para ingresar al gimnasio."
+                              : "Tu solicitud de membresía está activa. Revisa tu vigencia y saldo."}
+                          </p>
+                        </div>
                       </div>
-                      <h2 className="font-display text-4xl font-black uppercase tracking-tighter text-[#111111]">Logística de Recogida</h2>
-                   </div>
+                      <div className="flex flex-col gap-2 sm:flex-row lg:min-w-[320px] lg:gap-3">
+                        <Button asChild className="h-12 flex-1 bg-[#d71920] text-[9px] font-black uppercase tracking-widest text-white hover:bg-white hover:text-[#111111] lg:h-14 lg:text-[10px]">
+                          <Link href={membershipQrHref}>
+                            {memberProfile ? "Ver mi QR" : "Abrir Membresía"}
+                          </Link>
+                        </Button>
+                        <Button
+                          asChild
+                          variant="outline"
+                          className="h-12 flex-1 border-white/20 bg-transparent text-[9px] font-black uppercase tracking-widest text-white hover:bg-white hover:text-[#111111] lg:h-14 lg:text-[10px]"
+                        >
+                          <Link href={membershipDetailHref}>Ver Detalle</Link>
+                        </Button>
+                      </div>
+                    </div>
+                    {/* Background decoration */}
+                    <div className="absolute -right-12 -top-12 h-64 w-64 bg-[#d71920]/5 blur-3xl" />
+                  </div>
+                ) : null}
 
-                   <div className="grid grid-cols-1 gap-10 md:grid-cols-[1fr_320px]">
-                      <div className="bg-white border border-black/10 p-12 shadow-xl space-y-10">
-                         <div className="flex items-center justify-between border-b border-black/5 pb-8">
-                            <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">Tracking de Pedido Reciente</p>
-                            <History className="h-5 w-5 text-black/10" />
-                         </div>
-                         
-                         {latestPickupRequest ? (
-                            <div className="space-y-10">
-                               <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-                                  <div className="space-y-2">
-                                     <p className="text-[10px] font-black uppercase text-[#d71920] tracking-widest">Referencia Oficial</p>
-                                     <h3 className="text-6xl font-display font-black uppercase tracking-tighter text-[#111111] italic leading-none">{latestPickupRequest.requestNumber}</h3>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-3">
-                                     <Badge variant="default" className={cn("text-[10px] font-black uppercase h-8 px-6 rounded-none tracking-widest", getPickupRequestStatusTone(latestPickupRequest.status) === 'success' ? 'bg-green-600' : 'bg-[#111111]')}>
-                                        {pickupRequestStatusLabels[latestPickupRequest.status]}
-                                     </Badge>
-                                     <p className="text-[10px] font-bold text-[#7a7f87] uppercase tracking-widest">Pago: {pickupRequestPaymentStatusLabels[latestPickupRequest.paymentStatus]}</p>
-                                  </div>
-                               </div>
-                               <div className="p-8 bg-[#fbfbf8] border border-black/10 flex flex-col md:flex-row md:items-center justify-between gap-10">
-                                  <div>
-                                     <p className="text-[10px] font-black uppercase text-[#7a7f87] mb-2 tracking-widest">Monto de Operación</p>
-                                     <p className="text-4xl font-display font-black text-[#111111] leading-none">{formatCartAmount(latestPickupRequest.total, latestPickupRequest.currencyCode)}</p>
-                                  </div>
-                                  <Button asChild variant="outline" className="h-14 px-10 border-[#111111] text-[#111111] hover:bg-[#111111] hover:text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-none shadow-lg">
-                                     <Link href={`/mi-cuenta/pedidos/${latestPickupRequest.id}`}>VER TRAZABILIDAD</Link>
-                                  </Button>
-                               </div>
-                            </div>
-                          ) : (
-                             <div className="py-16 text-center border-2 border-dashed border-black/5 bg-[#fbfbf8]">
-                                <p className="text-sm font-bold text-black/20 uppercase tracking-[0.4em]">Sin registros logísticos.</p>
-                             </div>
-                          )}
-                       </div>
+                {/* Grid de Estado de Cuenta */}
+                <div className="grid gap-3 lg:grid-cols-3 lg:gap-6">
+                  {/* Status: Membresía */}
+                  <div className="border border-black/10 bg-white p-5 lg:p-8">
+                    <div className="mb-4 flex items-center justify-between border-b border-black/5 pb-3">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#d71920] lg:text-[10px]">
+                        Plan Actual
+                      </p>
+                      <ShieldCheck className="h-3.5 w-3.5 text-black/10 lg:h-4 lg:w-4" />
+                    </div>
+                    <div className="space-y-4 lg:space-y-6">
+                      <div className="space-y-1">
+                        <h5 className="font-display text-2xl font-black uppercase tracking-tight text-[#111111] lg:text-3xl">
+                          {latestMembershipRequest?.planTitleSnapshot ?? "Sin Plan"}
+                        </h5>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge 
+                            variant={latestMembershipRequest?.status === "active" ? "success" : "muted"}
+                            className="h-5 border-none px-1.5 text-[7px] font-black uppercase tracking-widest lg:h-6 lg:px-2 lg:text-[8px]"
+                          >
+                            {latestMembershipRequest ? membershipRequestStatusLabels[latestMembershipRequest.status] : "Inactivo"}
+                          </Badge>
+                        </div>
+                      </div>
+                      <Button asChild variant="outline" className="h-10 w-full border-black/10 text-[8px] font-black uppercase tracking-widest hover:bg-[#111111] hover:text-white lg:h-12 lg:text-[9px]">
+                        <Link href={buildMemberAccountTabHref("membresia")}>Ficha Membresía</Link>
+                      </Button>
+                    </div>
+                  </div>
 
-                       <div className="bg-[#111111] p-12 flex flex-col justify-center items-center gap-6 text-white shadow-2xl relative overflow-hidden">
-                          <Activity className="h-10 w-10 text-[#d71920]" />
-                          <div className="text-center space-y-2 relative z-10">
-                             <p className="text-8xl font-display font-black text-white leading-none tracking-tighter">{pickupHistory?.pickupRequests?.length || 0}</p>
-                             <p className="text-[11px] font-black uppercase text-white/30 tracking-[0.4em]">Pedidos Totales</p>
-                          </div>
-                       </div>
+                  {/* Status: Finanzas */}
+                  <div className="border border-black/10 bg-white p-5 lg:p-8">
+                    <div className="mb-4 flex items-center justify-between border-b border-black/5 pb-3">
+                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#d71920] lg:text-[10px]">
+                        Finanzas
+                      </p>
+                      <Activity className="h-4 w-4 text-black/10" />
+                    </div>
+                    <div className="space-y-4 lg:space-y-6">
+                      <div className="space-y-1">
+                        <h5 className="font-display text-2xl font-black uppercase tracking-tight text-[#111111] lg:text-3xl">
+                          {latestMembershipRequest
+                            ? formatCartAmount(
+                                latestMembershipRequest.manualPaymentSummary.balanceDue,
+                                latestMembershipRequest.currencyCode,
+                              )
+                            : "S/ 0.00"}
+                        </h5>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
+                          Saldo Pendiente
+                        </p>
+                      </div>
+                      <div className="bg-[#fbfbf8] p-3 border border-black/5">
+                        <p className="text-[8px] font-black uppercase tracking-widest text-[#7a7f87]">
+                          Vigencia Ciclo
+                        </p>
+                        <p className="text-xs font-bold text-[#111111]">
+                          {latestMembershipRequest?.cycleEndsOn
+                            ? formatMemberAccountDate(latestMembershipRequest.cycleEndsOn)
+                            : "No registrado"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status: Tienda */}
+                  <div className="border border-black/10 bg-white p-5 lg:p-8">
+                    <div className="mb-4 flex items-center justify-between border-b border-black/5 pb-3">
+                      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#d71920]">
+                        E-Commerce
+                      </p>
+                      <ShoppingBag className="h-4 w-4 text-black/10" />
+                    </div>
+                    <div className="space-y-4 lg:space-y-6">
+                      <div className="space-y-1">
+                        <h5 className="font-display text-2xl font-black uppercase tracking-tight text-[#111111] lg:text-3xl">
+                          {latestPickupRequest?.requestNumber ?? (activeCartItemCount > 0 ? "En Carrito" : "0 Pedidos")}
+                        </h5>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
+                          {activeCartItemCount > 0 ? `${activeCartItemCount} Artículos esperando` : "Historial de Pedidos"}
+                        </p>
+                      </div>
+                      <Button asChild variant="outline" className="h-10 w-full border-black/10 text-[8px] font-black uppercase tracking-widest hover:bg-[#111111] hover:text-white lg:h-12 lg:text-[9px]">
+                        <Link href={buildMemberAccountTabHref("pedidos")}>Mis Pedidos</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Accesos Rápidos Táctiles */}
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+                  <Button asChild variant="outline" className="h-16 flex-col items-start gap-1 border-black/10 bg-white p-4 transition-all hover:bg-[#111111] hover:text-white lg:h-20 lg:p-6">
+                    <Link href={buildMemberAccountTabHref("cuenta")}>
+                      <span className="text-[8px] font-black uppercase tracking-widest opacity-40">Profile</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Ajustes</span>
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="h-16 flex-col items-start gap-1 border-black/10 bg-white p-4 transition-all hover:bg-[#111111] hover:text-white lg:h-20 lg:p-6">
+                    <Link href="/tienda">
+                      <span className="text-[8px] font-black uppercase tracking-widest opacity-40">Store</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Tienda</span>
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="h-16 flex-col items-start gap-1 border-black/10 bg-white p-4 transition-all hover:bg-[#111111] hover:text-white lg:h-20 lg:p-6">
+                    <Link href={buildMemberAccountTabSectionHref("pedidos", "pickup-history")}>
+                      <span className="text-[8px] font-black uppercase tracking-widest opacity-40">Logs</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Historial</span>
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="h-16 flex-col items-start gap-1 border-[#d71920]/20 bg-[#d71920]/5 p-4 transition-all hover:bg-[#d71920] hover:text-white lg:h-20 lg:p-6">
+                    <Link href="/">
+                      <span className="text-[8px] font-black uppercase tracking-widest opacity-40">Home</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Inicio</span>
+                    </Link>
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="membresia" className="mt-0 space-y-6 outline-none lg:space-y-10">
+                <div className="flex items-center gap-4 lg:gap-6">
+                  <div className="flex h-12 w-12 items-center justify-center bg-[#111111] lg:h-16 lg:w-16">
+                    <QrCode className="h-6 w-6 text-[#d71920] lg:h-8 lg:w-8" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d71920]">
+                      Estado Operativo
+                    </p>
+                    <h3 className="font-display text-3xl font-black uppercase tracking-tight text-[#111111] lg:text-5xl">
+                      Membresía y QR
+                    </h3>
+                  </div>
+                </div>
+
+                {latestMembershipRequest ? (
+                  <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
+                    {/* Lado QR */}
+                    <div id="membership-qr" className="w-full lg:sticky lg:top-40 lg:w-[360px]">
+                      <MembershipQrCard
+                        memberName={account.fullName}
+                        qrUrl={buildMembershipValidationUrl(memberProfile?.membership_qr_token ?? "")}
+                        validation={latestMembershipRequest.validation}
+                        detailHref={membershipDetailHref}
+                      />
                     </div>
 
-                    {previousPickupRequests.length > 0 && (
-                       <div className="bg-white border border-black/10 shadow-lg overflow-hidden mt-10">
-                          <div className="bg-[#111111] px-10 py-5 flex items-center justify-between border-b border-white/5">
-                             <p className="text-[11px] font-black uppercase tracking-[0.3em] text-white/60">Archivo Histórico</p>
-                             <span className="text-[10px] font-bold text-white/20 uppercase">{previousPickupRequests.length} Entradas</span>
+                    {/* Lado Detalle */}
+                    <div className="flex-1 space-y-6">
+                      <div className="border border-black/10 bg-white p-6 lg:p-10">
+                        <div className="flex flex-col gap-6 border-b border-black/5 pb-8 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="space-y-3">
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d71920]">
+                              Plan Vigente
+                            </p>
+                            <h3 className="font-display text-4xl font-black uppercase tracking-tight text-[#111111] lg:text-5xl">
+                              {latestMembershipRequest.planTitleSnapshot}
+                            </h3>
+                            <p className="text-sm font-medium text-[#7a7f87]">
+                              ID {latestMembershipRequest.requestNumber} <span className="mx-2 text-black/10">|</span> 
+                              {latestMembershipRequest.billingLabel ?? `${latestMembershipRequest.durationDays} Días`}
+                            </p>
                           </div>
-                          <div className="divide-y divide-black/5">
-                             {previousPickupRequests.map((req) => (
-                                <div key={req.id} className="px-10 py-8 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-[#fbfbf8] transition-all gap-6">
-                                   <div className="space-y-2">
-                                      <div className="flex items-center gap-3">
-                                         <div className="h-1.5 w-1.5 rounded-full bg-[#d71920]" />
-                                         <p className="text-sm font-black uppercase text-[#111111] tracking-tight">{req.requestNumber}</p>
-                                      </div>
-                                      <p className="text-[10px] font-bold text-[#7a7f87] pl-4 uppercase tracking-widest">{formatMemberAccountDate(req.updatedAt)}</p>
-                                   </div>
-                                   <div className="flex items-center gap-10">
-                                      <div className="text-right">
-                                         <p className="text-[9px] font-black uppercase text-[#7a7f87] mb-1">Monto</p>
-                                         <p className="text-sm font-black text-[#111111]">{formatCartAmount(req.total, req.currencyCode)}</p>
-                                      </div>
-                                      <Link href={`/mi-cuenta/pedidos/${req.id}`} className="h-12 w-12 bg-white border border-black/10 flex items-center justify-center hover:bg-[#111111] hover:text-white transition-all shadow-sm">
-                                         <ArrowRight className="h-5 w-5" />
-                                      </Link>
-                                   </div>
-                                </div>
-                             ))}
+                          <div className="flex flex-wrap gap-2 lg:flex-col lg:items-end lg:gap-3">
+                            <Badge variant={latestMembershipRequest.validation.tone === "success" ? "success" : "warning"} className="h-7 border-none px-3 text-[9px] font-black uppercase tracking-widest">
+                              {membershipValidationStatusLabels[latestMembershipRequest.validation.status]}
+                            </Badge>
+                            <Badge variant={latestMembershipRequest.status === "active" ? "success" : "muted"} className="h-7 border-none px-3 text-[9px] font-black uppercase tracking-widest">
+                              {membershipRequestStatusLabels[latestMembershipRequest.status]}
+                            </Badge>
                           </div>
-                       </div>
-                    )}
-                 </section>
-              </div>
-           </div>
+                        </div>
+
+                        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                          <div className="bg-[#fbfbf8] p-5 border border-black/5">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[#7a7f87]">Precio Ciclo</p>
+                            <p className="mt-2 text-xl font-black text-[#111111]">
+                              {formatCartAmount(latestMembershipRequest.priceAmount, latestMembershipRequest.currencyCode)}
+                            </p>
+                          </div>
+                          <div className="bg-[#fbfbf8] p-5 border border-black/5">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[#7a7f87]">Pagado</p>
+                            <p className="mt-2 text-xl font-black text-green-600">
+                              {formatCartAmount(latestMembershipRequest.manualPaymentSummary.paidTotal, latestMembershipRequest.currencyCode)}
+                            </p>
+                          </div>
+                          <div className="bg-black/2 p-5 border border-black/5">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[#7a7f87]">Saldo</p>
+                            <p className="mt-2 text-xl font-black text-[#d71920]">
+                              {formatCartAmount(latestMembershipRequest.manualPaymentSummary.balanceDue, latestMembershipRequest.currencyCode)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 flex flex-col gap-4 lg:flex-row">
+                          <Button asChild className="h-14 flex-1 bg-[#111111] text-[10px] font-black uppercase tracking-widest text-white hover:bg-[#d71920]">
+                            <Link href={`/mi-cuenta/membresias/${latestMembershipRequest.id}`}>
+                              Ver Expediente Completo
+                            </Link>
+                          </Button>
+                          <MembershipReserveButton
+                            membershipPlanId={latestMembershipRequest.plan.id}
+                            renewsFromRequestId={latestMembershipRequest.id}
+                            label="Renovar mi Plan"
+                            variant="outline"
+                            className="h-14 flex-1 border-black/10 text-[10px] font-black uppercase tracking-widest hover:bg-[#111111] hover:text-white"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-12">
+                    <div className="flex-1 space-y-8 border border-black/10 bg-white p-8 lg:p-12">
+                      <div className="space-y-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d71920]">Sin Ciclo Activo</p>
+                        <h3 className="font-display text-4xl font-black uppercase tracking-tight text-[#111111] lg:text-6xl">
+                          Activa tu Membresía
+                        </h3>
+                        <p className="max-w-xl text-sm leading-relaxed text-[#5f6368] lg:text-base">
+                          Elige tu plan de entrenamiento y reserva tu lugar hoy mismo. Podrás gestionar el pago en recepción y activar tu QR de acceso.
+                        </p>
+                      </div>
+                      <div className="grid gap-4">
+                        {membershipPlans.slice(0, 3).map((plan) => (
+                          <div key={plan.id} className="flex flex-col gap-6 bg-[#fbfbf8] border border-black/5 p-6 sm:flex-row sm:items-center sm:justify-between transition-all hover:border-[#d71920]">
+                            <div className="space-y-1">
+                              <p className="text-xl font-black uppercase tracking-tight text-[#111111]">{plan.title}</p>
+                              <p className="text-[11px] font-bold text-[#7a7f87] uppercase tracking-widest">
+                                {plan.billing_label ?? `${plan.duration_days} días`} · S/ {plan.price_amount.toFixed(2)}
+                              </p>
+                            </div>
+                            <MembershipReserveButton
+                              membershipPlanId={plan.id}
+                              label="Reservar Ahora"
+                              className="h-12 bg-[#111111] px-8 text-[10px] font-black uppercase tracking-widest text-white hover:bg-[#d71920]"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="pedidos" className="mt-0 space-y-8 outline-none">
+                <div className="flex items-center gap-4 lg:gap-6">
+                  <div className="flex h-12 w-12 items-center justify-center bg-[#111111] lg:h-16 lg:w-16">
+                    <ShoppingBag className="h-6 w-6 text-[#d71920] lg:h-8 lg:w-8" />
+                  </div>
+                  <h3 className="font-display text-3xl font-black uppercase tracking-tight text-[#111111] lg:text-5xl">
+                    Tienda y Pedidos
+                  </h3>
+                </div>
+
+                <div className={cn(
+                  "relative overflow-hidden border p-8 lg:p-16",
+                  activeCart && activeCart.items?.length > 0
+                    ? "bg-[#111111] text-white border-[#111111]"
+                    : "bg-[#fbfbf8] border-dashed border-black/10"
+                )}>
+                  {activeCart && activeCart.items?.length > 0 ? (
+                    <div className="relative z-10 flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <Zap className="h-5 w-5 animate-pulse text-[#d71920]" />
+                          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d71920]">Carrito Pendiente</p>
+                        </div>
+                        <h4 className="font-display text-4xl font-black uppercase tracking-tight italic lg:text-6xl">
+                          Tienes {activeCart.summary.itemCount} productos
+                        </h4>
+                        <p className="text-xl text-white/40">
+                          Total: <span className="font-bold text-white">{formatCartAmount(activeCart.summary.total, activeCart.summary.currencyCode)}</span>
+                        </p>
+                      </div>
+                      <Button asChild className="h-16 bg-[#d71920] px-12 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-white hover:text-[#111111] lg:h-20 lg:px-16">
+                        <Link href="/carrito">Finalizar Pedido Ahora</Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-6 py-6 text-center">
+                      <ShoppingBag className="h-12 w-12 text-black/10" />
+                      <div className="space-y-2">
+                        <p className="text-xl font-black uppercase tracking-tight text-[#111111]">Carrito Vacío</p>
+                        <p className="max-w-xs text-sm text-[#7a7f87]">Visita nuestra tienda para ver suplementos y equipo profesional.</p>
+                      </div>
+                      <Button asChild variant="outline" className="h-10 border-black/10 text-[9px] font-black uppercase tracking-widest">
+                        <Link href="/tienda">Ir al Catálogo</Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Historial de Recogida */}
+                <div id="pickup-history" className="space-y-6">
+                  <div className="flex items-center justify-between border-b border-black/10 pb-4">
+                    <div className="flex items-center gap-3">
+                      <Package className="h-5 w-5 text-black/20" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Logística de Recogida</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-6 lg:flex-row">
+                    <div className="flex-1 space-y-6 border border-black/10 bg-white p-8 lg:p-12">
+                      {latestPickupRequest ? (
+                        <div className="space-y-10">
+                          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                            <div className="space-y-3">
+                              <p className="text-[10px] font-black uppercase tracking-widest text-[#d71920]">Pedido Reciente</p>
+                              <h4 className="font-display text-6xl font-black uppercase leading-none tracking-tighter text-[#111111] italic lg:text-7xl">
+                                {latestPickupRequest.requestNumber}
+                              </h4>
+                            </div>
+                            <div className="flex flex-col items-end gap-3">
+                              <Badge variant="default" className={cn(
+                                "h-8 border-none px-6 text-[10px] font-black uppercase tracking-widest",
+                                getPickupRequestStatusTone(latestPickupRequest.status) === "success" ? "bg-green-600" : "bg-[#111111]"
+                              )}>
+                                {pickupRequestStatusLabels[latestPickupRequest.status]}
+                              </Badge>
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-[#7a7f87]">
+                                Monto: {formatCartAmount(latestPickupRequest.total, latestPickupRequest.currencyCode)}
+                              </p>
+                            </div>
+                          </div>
+                          <Button asChild variant="outline" className="h-14 w-full border-black/10 font-black uppercase tracking-widest hover:bg-[#111111] hover:text-white">
+                            <Link href={`/mi-cuenta/pedidos/${latestPickupRequest.id}`}>Trazabilidad del Pedido</Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="py-12 text-center">
+                          <p className="text-xs font-bold uppercase tracking-widest text-black/20">Sin registros recientes.</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center gap-6 bg-[#111111] p-10 text-white lg:w-[280px]">
+                      <p className="font-display text-7xl font-black italic">{pickupCount}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-30">Total Pedidos</p>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="cuenta" className="mt-0 space-y-8 outline-none lg:space-y-12">
+                <section className="space-y-6">
+                  <div className="flex items-center gap-4 lg:gap-6">
+                    <div className="flex h-12 w-12 items-center justify-center bg-[#111111] lg:h-16 lg:w-16">
+                      <Activity className="h-6 w-6 text-[#d71920] lg:h-8 lg:w-8" />
+                    </div>
+                    <h3 className="font-display text-3xl font-black uppercase tracking-tight text-[#111111] lg:text-5xl">
+                      Ajustes del Perfil
+                    </h3>
+                  </div>
+                  <div className="border border-black/10 bg-white p-6 lg:p-12">
+                    <MemberAccountSettings initialAccount={account} />
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className="flex items-center gap-4 lg:gap-6">
+                    <div className="flex h-12 w-12 items-center justify-center bg-[#111111] lg:h-16 lg:w-16">
+                      <Star className="h-6 w-6 text-[#d71920] lg:h-8 lg:w-8" />
+                    </div>
+                    <h3 className="font-display text-3xl font-black uppercase tracking-tight text-[#111111] lg:text-5xl">
+                      Reseña Comunidad
+                    </h3>
+                  </div>
+                  <div className="border border-black/10 bg-white p-6 lg:p-12">
+                    <MemberTestimonialForm initialTestimonial={testimonial} />
+                  </div>
+                </section>
+              </TabsContent>
+            </section>
+          </Tabs>
         </div>
       </div>
     </main>
