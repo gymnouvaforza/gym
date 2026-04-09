@@ -33,7 +33,10 @@ import {
   type DBMemberProfile,
   type DBTrainerProfile,
 } from "@/lib/supabase/database.types";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import {
+  createSupabaseAdminClient,
+  createSupabasePublicClient,
+} from "@/lib/supabase/server";
 import {
   membershipAdminCreateRequestSchema,
   membershipPaymentEntrySchema,
@@ -451,14 +454,17 @@ async function maybePromoteMembershipRequestToActive(
 export const listMembershipPlans = cache(async function listMembershipPlans(options?: {
   activeOnly?: boolean;
 }) {
-  const client = createSupabaseAdminClient();
+  const activeOnly = options?.activeOnly ?? true;
+  const client = activeOnly
+    ? createSupabasePublicClient()
+    : createSupabaseAdminClient();
   let query = client
     .from("membership_plans")
     .select("*")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
 
-  if (options?.activeOnly ?? true) {
+  if (activeOnly) {
     query = query.eq("is_active", true);
   }
 
