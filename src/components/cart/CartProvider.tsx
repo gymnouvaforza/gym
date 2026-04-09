@@ -101,17 +101,23 @@ export function CartProvider({
           return;
         }
 
-        setResolvedMemberEmail(data.user?.email ?? null);
+        setResolvedMemberEmail((currentEmail) => data.user?.email ?? currentEmail ?? memberEmail);
       });
 
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
+      } = supabase.auth.onAuthStateChange((event, session) => {
         if (!active) {
           return;
         }
 
-        setResolvedMemberEmail(session?.user?.email ?? null);
+        setResolvedMemberEmail((currentEmail) => {
+          if (event === "SIGNED_OUT") {
+            return null;
+          }
+
+          return session?.user?.email ?? currentEmail ?? memberEmail;
+        });
       });
 
       return () => {
