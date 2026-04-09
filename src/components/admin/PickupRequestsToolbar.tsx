@@ -24,7 +24,7 @@ export default function PickupRequestsToolbar({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const [search, setSearch] = useState(() => filters.q);
 
@@ -64,7 +64,9 @@ export default function PickupRequestsToolbar({
 
   function handleClear() {
     setSearch("");
-    router.push(pathname, { scroll: false });
+    startTransition(() => {
+      router.push(pathname, { scroll: false });
+    });
   }
 
   const activeFilterCount = [
@@ -101,6 +103,11 @@ export default function PickupRequestsToolbar({
             <p className="truncate text-sm font-medium text-[#111111]">
               Refina la cola sin salir del listado y entra al detalle solo cuando haga falta.
             </p>
+            {isPending ? (
+              <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-[#d71920]">
+                Actualizando bandeja...
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -120,6 +127,7 @@ export default function PickupRequestsToolbar({
               onChange={(event) =>
                 updateParams({ sort: event.target.value as PickupRequestSort })
               }
+              aria-busy={isPending}
               className={`${controlClassName} pl-10`}
             >
               <option value="updated_desc">Ultima actividad primero</option>
@@ -142,6 +150,7 @@ export default function PickupRequestsToolbar({
               type="button"
               variant="outline"
               onClick={handleClear}
+              disabled={isPending}
               className="h-10 rounded-none border-dashed border-black/15 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-[#5f6368] hover:text-[#d71920]"
             >
               <RotateCcw className="h-4 w-4" />
@@ -162,6 +171,7 @@ export default function PickupRequestsToolbar({
             placeholder="Buscar por referencia, email, cart u order..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            aria-busy={isPending}
             className="h-10 rounded-none border-black/10 bg-[#fbfbf8] pl-10 text-sm font-medium"
           />
         </div>
@@ -174,6 +184,7 @@ export default function PickupRequestsToolbar({
             id="status"
             value={filters.status}
             onChange={(event) => updateParams({ status: event.target.value })}
+            aria-busy={isPending}
             className={controlClassName}
           >
             <option value="all">Todos los estados</option>
@@ -193,6 +204,7 @@ export default function PickupRequestsToolbar({
             id="paymentStatus"
             value={filters.paymentStatus}
             onChange={(event) => updateParams({ paymentStatus: event.target.value })}
+            aria-busy={isPending}
             className={controlClassName}
           >
             <option value="all">Todo el pago</option>
@@ -213,6 +225,7 @@ export default function PickupRequestsToolbar({
             id="emailStatus"
             value={filters.emailStatus}
             onChange={(event) => updateParams({ emailStatus: event.target.value })}
+            aria-busy={isPending}
             className={controlClassName}
           >
             <option value="all">Todo el email</option>
@@ -230,6 +243,7 @@ export default function PickupRequestsToolbar({
             id="attention"
             value={filters.attention}
             onChange={(event) => updateParams({ attention: event.target.value })}
+            aria-busy={isPending}
             className={controlClassName}
           >
             <option value="all">Toda la operacion</option>
@@ -254,6 +268,7 @@ export default function PickupRequestsToolbar({
               type="date"
               value={filters.dateFrom}
               onChange={(event) => updateParams({ dateFrom: event.target.value })}
+              aria-busy={isPending}
               className="h-10 rounded-none border-black/10 bg-[#fbfbf8] pl-10 text-sm font-medium"
             />
           </div>
@@ -273,6 +288,7 @@ export default function PickupRequestsToolbar({
               type="date"
               value={filters.dateTo}
               onChange={(event) => updateParams({ dateTo: event.target.value })}
+              aria-busy={isPending}
               className="h-10 rounded-none border-black/10 bg-[#fbfbf8] pl-10 text-sm font-medium"
             />
           </div>

@@ -34,17 +34,17 @@ export default function SiteTopbar({ settings }: { settings: SiteSettings }) {
   const badgePalette = badgeStyles[topbar.variant];
 
   return (
-    <div className={cn(palette, "relative z-[60]")}>
-      <div className="section-shell flex items-center justify-between py-2 sm:py-3">
+    <div className={cn(palette, "relative z-[60] py-2 sm:py-0")}>
+      <div className="section-shell flex flex-col items-center justify-center gap-2 sm:flex-row sm:justify-between sm:py-3">
         {/* Left: Badge + Text */}
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-2 overflow-hidden text-center sm:gap-3 sm:text-left">
           <span className={cn(
-            "hidden shrink-0 items-center px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] xs:inline-flex",
+            "hidden shrink-0 items-center px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.2em] xs:inline-flex sm:text-[9px]",
             badgePalette
           )}>
             {variantLabels[topbar.variant]}
           </span>
-          <p className="text-[11px] font-medium leading-tight sm:text-sm">
+          <p className="text-[10px] font-medium leading-tight sm:text-[11px] md:text-sm">
             {topbar.text}
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function SiteTopbar({ settings }: { settings: SiteSettings }) {
           {topbar.ctaLabel && topbar.ctaUrl ? (
             <Link
               href={topbar.ctaUrl}
-              className="inline-flex items-center justify-center border border-current/20 px-4 py-2 text-[9px] font-bold uppercase tracking-[0.2em] transition hover:border-current/50 hover:bg-black/10 sm:px-6 sm:py-2.5 sm:text-[10px]"
+              className="hidden md:inline-flex items-center justify-center border border-current/20 px-3 py-1.5 text-[8px] font-black uppercase tracking-[0.2em] transition hover:border-current/50 hover:bg-black/10 sm:px-6 sm:py-2.5 sm:text-[10px]"
             >
               {topbar.ctaLabel}
             </Link>

@@ -1,34 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
 
 import CartEntry from "@/components/cart/CartEntry";
-import { Button } from "@/components/ui/button";
+import SiteHeaderAuthActions from "@/components/marketing/SiteHeaderAuthActions";
 import { novaForzaHomeContent } from "@/lib/data/nova-forza-content";
 import type { SiteSettings } from "@/lib/supabase/database.types";
 
 interface SiteHeaderProps {
   settings: SiteSettings;
-  currentUser?: User | null;
 }
 
-export default function SiteHeader({ settings, currentUser = null }: Readonly<SiteHeaderProps>) {
-  const primaryAction = currentUser
-    ? { href: "/#contacto", label: settings.hero_primary_cta }
-    : { href: "/registro", label: "Unirme" };
-  const secondaryAction = currentUser
-    ? { href: "/mi-cuenta", label: "Mi cuenta" }
-    : { href: "/acceso", label: "Acceso" };
-
+export default function SiteHeader({ settings }: Readonly<SiteHeaderProps>) {
   return (
-    <header className="border-b border-black/5 bg-[#f5f5f0] py-5 lg:py-7">
-      <div className="section-shell flex items-center justify-between gap-8">
+    <header className="border-b border-black/5 bg-[#f5f5f0] py-3 sm:py-4 lg:py-7">
+      <div className="section-shell flex items-center justify-between gap-2 sm:gap-8">
         <Link
           href="/"
           className="group relative flex shrink-0 items-center justify-center transition-transform hover:scale-105"
           aria-label={settings.site_name}
         >
-          <div className="relative h-10 w-32 sm:h-12 sm:w-40">
+          <div className="relative h-7 w-20 xs:h-8 xs:w-24 sm:h-12 sm:w-40">
             <Image
               src="/images/logo/logo-trans.webp"
               alt={settings.site_name}
@@ -51,33 +42,19 @@ export default function SiteHeader({ settings, currentUser = null }: Readonly<Si
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-3 lg:gap-6">
           <CartEntry />
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="hidden sm:size-default lg:inline-flex"
-          >
-            <Link href={secondaryAction.href} className="px-6">{secondaryAction.label}</Link>
-          </Button>
-          <Button
-            asChild
-            size="sm"
-            className="btn-athletic btn-primary hidden sm:size-default lg:inline-flex"
-          >
-            <Link href={primaryAction.href} className="px-6">{primaryAction.label}</Link>
-          </Button>
+          <SiteHeaderAuthActions primaryLabel={settings.hero_primary_cta} mode="desktop" />
 
           <details className="relative lg:hidden">
-            <summary className="flex h-12 w-12 list-none items-center justify-center bg-black/5 text-foreground [&::-webkit-details-marker]:hidden">
+            <summary className="flex h-9 w-9 sm:h-12 sm:w-12 list-none items-center justify-center bg-black/5 text-foreground [&::-webkit-details-marker]:hidden cursor-pointer">
               <span className="sr-only">Abrir menu</span>
               <div className="flex flex-col gap-1.5">
-                <span className="h-0.5 w-6 rounded-none bg-foreground" />
-                <span className="h-0.5 w-4 rounded-none bg-foreground" />
+                <span className="h-0.5 w-4 sm:w-6 rounded-none bg-foreground" />
+                <span className="h-0.5 w-2.5 sm:w-4 rounded-none bg-foreground" />
               </div>
             </summary>
-            <div className="absolute right-0 top-14 z-20 w-[min(20rem,calc(100vw-2rem))] animate-in fade-in slide-in-from-top-2 border border-black/8 bg-[#f5f5f0] p-4 shadow-xl duration-200">
+            <div className="fixed right-4 sm:absolute sm:right-0 top-16 sm:top-14 z-[100] w-[min(20rem,calc(100vw-2rem))] animate-in fade-in slide-in-from-top-2 border border-black/8 bg-[#f5f5f0] p-4 shadow-xl duration-200">
               <nav className="flex flex-col">
                 {novaForzaHomeContent.navItems.map((item) => (
                   <Link
@@ -88,15 +65,7 @@ export default function SiteHeader({ settings, currentUser = null }: Readonly<Si
                     {item.label}
                   </Link>
                 ))}
-                
-                <div className="mt-4 grid grid-cols-2 gap-2 border-t border-black/8 pt-4">
-                  <Button asChild variant="outline" size="sm" className="w-full">
-                    <Link href={secondaryAction.href}>{secondaryAction.label}</Link>
-                  </Button>
-                  <Button asChild size="sm" className="btn-athletic btn-primary w-full">
-                    <Link href={primaryAction.href}>{primaryAction.label}</Link>
-                  </Button>
-                </div>
+                <SiteHeaderAuthActions primaryLabel={settings.hero_primary_cta} mode="mobile" />
                 <div className="mt-2 border-t border-black/8 pt-4">
                   <Link
                     href="/carrito"

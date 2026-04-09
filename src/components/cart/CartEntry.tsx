@@ -28,11 +28,11 @@ export default function CartEntry() {
         type="button"
         variant="outline"
         size="sm"
-        className="relative h-10 w-10 px-0"
+        className="relative h-9 w-9 sm:h-10 sm:w-10 px-0"
         onClick={() => setDrawerOpen(true)}
         aria-label="Abrir carrito"
       >
-        <ShoppingBag className="h-4 w-4" />
+        <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         {itemCount > 0 ? (
           <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#d71920] px-1 text-[10px] font-bold text-white">
             {itemCount}

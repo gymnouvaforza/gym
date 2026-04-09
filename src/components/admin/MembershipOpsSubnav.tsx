@@ -16,8 +16,8 @@ const items = [
   {
     href: "/dashboard/membresias/recepcion",
     icon: QrCode,
-    label: "Recepcion QR",
-    description: "Escaneo rapido para validar el acceso.",
+    label: "Escaneo QR",
+    description: "Escanea el QR para validar el ingreso.",
   },
 ] as const;
 

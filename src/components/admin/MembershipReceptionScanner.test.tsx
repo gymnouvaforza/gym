@@ -6,11 +6,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MembershipReceptionScanner from "@/components/admin/MembershipReceptionScanner";
 
-const navigationMocks = vi.hoisted(() => ({
-  pathname: "/dashboard/membresias/recepcion",
-  replace: vi.fn(),
-}));
-
 const scannerMocks = vi.hoisted(() => {
   let successHandler: ((decodedText: string) => void) | null = null;
   let startImplementation = vi.fn(
@@ -58,20 +53,14 @@ const scannerMocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => navigationMocks.pathname,
-  useRouter: () => ({
-    replace: navigationMocks.replace,
-  }),
-}));
-
 vi.mock("html5-qrcode", () => ({
   Html5Qrcode: scannerMocks.Html5Qrcode,
 }));
 
 describe("MembershipReceptionScanner", () => {
+  const fetchMock = vi.fn<typeof fetch>();
+
   beforeEach(() => {
-    navigationMocks.replace.mockReset();
     scannerMocks.stop.mockClear();
     scannerMocks.clear.mockClear();
     scannerMocks.setStartImplementation(
@@ -85,56 +74,37 @@ describe("MembershipReceptionScanner", () => {
         },
       ),
     );
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("resolves a manual token or URL through the current reception route", async () => {
+  it("starts the camera flow and validates the decoded QR against the internal endpoint", async () => {
     const user = userEvent.setup();
-    render(<MembershipReceptionScanner initialValue="" />);
+    const onValidationResolved = vi.fn();
 
-    await user.type(
-      screen.getByPlaceholderText(/validacion\/membresia/i),
-      "https://club.test/validacion/membresia/qr_token_12345",
-    );
-    await user.click(screen.getByRole("button", { name: /resolver qr/i }));
-
-    await waitFor(() => {
-      expect(navigationMocks.replace).toHaveBeenCalledWith(
-        "/dashboard/membresias/recepcion?token=https%3A%2F%2Fclub.test%2Fvalidacion%2Fmembresia%2Fqr_token_12345",
-      );
-    });
-  });
-
-  it("shows a validation hint when the manual fallback is empty", async () => {
-    const user = userEvent.setup();
-    render(<MembershipReceptionScanner initialValue="" />);
-
-    await user.click(screen.getByRole("button", { name: /resolver qr/i }));
-
-    expect(
-      screen.getByText("Pega un token o una URL valida antes de continuar."),
-    ).toBeInTheDocument();
-    expect(navigationMocks.replace).not.toHaveBeenCalled();
-  });
-
-  it("starts the camera flow and routes when a QR is decoded", async () => {
-    const user = userEvent.setup();
-    scannerMocks.setStartImplementation(
-      vi.fn(
-        async (
-          _cameraConfig: unknown,
-          _config: unknown,
-          onSuccess: (decodedText: string) => void,
-        ) => {
-          void onSuccess;
-        },
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          status: "ok",
+          reasonCode: "ok",
+          canEnter: true,
+          validationLabel: "Membresia al dia",
+          scannedToken: "ff6ae4fd-b470-4db1-8d47-711fb01eb0a2",
+          publicValidationUrl:
+            "https://novaforza.pe/validacion/membresia/ff6ae4fd-b470-4db1-8d47-711fb01eb0a2",
+          member: null,
+          membershipRequest: null,
+          errorMessage: null,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
       ),
     );
 
-    render(<MembershipReceptionScanner initialValue="" />);
+    render(<MembershipReceptionScanner onValidationResolved={onValidationResolved} />);
 
-    await user.click(screen.getByRole("button", { name: /activar camara/i }));
+    await user.click(screen.getByRole("button", { name: /abrir camara/i }));
 
-    expect(screen.getByText(/camara lista/i)).toBeInTheDocument();
+    expect(await screen.findByText(/escaneando/i)).toBeInTheDocument();
 
     const registeredHandler = scannerMocks.getSuccessHandler();
 
@@ -142,17 +112,28 @@ describe("MembershipReceptionScanner", () => {
       throw new Error("Expected QR success handler to be registered.");
     }
 
-    registeredHandler("qr_token_camera");
+    registeredHandler("ff6ae4fd-b470-4db1-8d47-711fb01eb0a2");
 
     await waitFor(() => {
       expect(scannerMocks.stop).toHaveBeenCalled();
-      expect(navigationMocks.replace).toHaveBeenCalledWith(
-        "/dashboard/membresias/recepcion?token=qr_token_camera",
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/dashboard/membership-qr/validate",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ scannedValue: "ff6ae4fd-b470-4db1-8d47-711fb01eb0a2" }),
+        }),
       );
     });
+
+    expect(onValidationResolved).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        reasonCode: "ok",
+        canEnter: true,
+      }),
+    );
   });
 
-  it("falls back gracefully when the camera cannot be opened", async () => {
+  it("surfaces camera permission failures without any manual fallback", async () => {
     const user = userEvent.setup();
     scannerMocks.setStartImplementation(
       vi.fn(async () => {
@@ -160,22 +141,42 @@ describe("MembershipReceptionScanner", () => {
       }),
     );
 
-    render(<MembershipReceptionScanner initialValue="" />);
+    render(<MembershipReceptionScanner />);
 
-    await user.click(screen.getByRole("button", { name: /activar camara/i }));
+    await user.click(screen.getByRole("button", { name: /abrir camara/i }));
 
     expect(await screen.findByText("No pudimos usar la camara")).toBeInTheDocument();
-    expect(screen.getByText(/permiso de camara denegado/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/permiso de camara denegado/i)).toHaveLength(2);
+    expect(screen.queryByText(/fallback manual/i)).not.toBeInTheDocument();
   });
 
-  it("clears the current token from the reception route", async () => {
+  it("returns an explicit error result when the dashboard cannot validate the QR", async () => {
     const user = userEvent.setup();
-    render(<MembershipReceptionScanner initialValue="qr_token_existing" />);
+    const onValidationResolved = vi.fn();
 
-    await user.click(screen.getByRole("button", { name: /limpiar lectura/i }));
+    fetchMock.mockRejectedValue(new Error("Supabase no responde"));
+
+    render(<MembershipReceptionScanner onValidationResolved={onValidationResolved} />);
+
+    await user.click(screen.getByRole("button", { name: /abrir camara/i }));
+
+    const registeredHandler = scannerMocks.getSuccessHandler();
+
+    if (!registeredHandler) {
+      throw new Error("Expected QR success handler to be registered.");
+    }
+
+    registeredHandler("ff6ae4fd-b470-4db1-8d47-711fb01eb0a2");
 
     await waitFor(() => {
-      expect(navigationMocks.replace).toHaveBeenCalledWith("/dashboard/membresias/recepcion");
+      expect(onValidationResolved).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          reasonCode: "server_error",
+          status: "error",
+        }),
+      );
     });
+
+    expect(screen.getByText(/la validacion fallo/i)).toBeInTheDocument();
   });
 });

@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -19,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { AuthBlockingState, PendingButtonLabel } from "@/components/ui/loading-state";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const loginSchema = z.object({
@@ -35,6 +35,7 @@ export default function LoginForm() {
       ? "Esta cuenta no tiene acceso al backoffice."
       : null,
   );
+  const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
   const next = searchParams.get("next") || "/dashboard";
 
@@ -48,6 +49,7 @@ export default function LoginForm() {
 
   async function onSubmit(values: LoginValues) {
     setError(null);
+    setIsNavigating(false);
 
     if (!values.identity.includes("@")) {
       const response = await fetch("/api/dev-login", {
@@ -65,6 +67,7 @@ export default function LoginForm() {
         return;
       }
 
+      setIsNavigating(true);
       router.push(next);
       router.refresh();
       return;
@@ -81,62 +84,79 @@ export default function LoginForm() {
       return;
     }
 
+    setIsNavigating(true);
     router.push(next);
     router.refresh();
   }
 
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Acceso al backoffice</CardTitle>
-        <CardDescription>
-          Usa una cuenta con acceso persistente al dashboard o, en local, las credenciales de entorno.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <FormField
-              control={form.control}
-              name="identity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email o usuario</FormLabel>
-                  <FormControl>
-                    <Input type="text" placeholder="admin@gym-local.test o admin" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contrasena</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="********" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {error ? (
-              <PublicInlineAlert
-                tone="error"
-                title="No se pudo iniciar sesion"
-                message={error}
-                compact
+    <div className="relative mx-auto w-full max-w-md">
+      {isNavigating ? (
+        <AuthBlockingState
+          title="Preparando tu panel"
+          body="El acceso ya fue validado. Estamos comprobando permisos y cargando el dashboard."
+        />
+      ) : null}
+      <Card className="mx-auto w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Acceso al backoffice</CardTitle>
+          <CardDescription>
+            Usa una cuenta con acceso persistente al dashboard o, en local, las credenciales de entorno.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <FormField
+                control={form.control}
+                name="identity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email o usuario</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="admin@gym-local.test o admin" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            ) : null}
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Entrar
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contrasena</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="********" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {error ? (
+                <PublicInlineAlert
+                  tone="error"
+                  title="No se pudo iniciar sesion"
+                  message={error}
+                  compact
+                />
+              ) : null}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={form.formState.isSubmitting || isNavigating}
+              >
+                <PendingButtonLabel
+                  pending={form.formState.isSubmitting || isNavigating}
+                  pendingLabel={isNavigating ? "Preparando panel" : "Validando acceso"}
+                >
+                  Entrar
+                </PendingButtonLabel>
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

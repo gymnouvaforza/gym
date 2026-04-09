@@ -32,16 +32,16 @@ describe("MembershipOpsSubnav", () => {
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("link", { name: /recepcion qr/i })).not.toHaveAttribute(
+    expect(screen.getByRole("link", { name: /escaneo qr/i })).not.toHaveAttribute(
       "aria-current",
     );
   });
 
-  it("marks recepcion qr as active on the scanner route", () => {
+  it("marks escaneo qr as active on the scanner route", () => {
     pathnameMock.current = "/dashboard/membresias/recepcion";
     render(<MembershipOpsSubnav />);
 
-    expect(screen.getByRole("link", { name: /recepcion qr/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /escaneo qr/i })).toHaveAttribute(
       "aria-current",
       "page",
     );

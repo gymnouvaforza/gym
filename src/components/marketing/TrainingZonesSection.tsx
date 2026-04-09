@@ -113,10 +113,10 @@ export default function TrainingZonesSection() {
       {/* Background aesthetic */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top_right,_rgba(215,25,32,0.08),_transparent_40%)]" />
 
-      <div className="section-shell relative z-10 w-full pl-6 pr-0 md:pl-12 lg:pl-16 xl:pl-24 max-w-none">
+      <div className="section-shell relative z-10 w-full px-4 sm:pl-6 sm:pr-0 md:pl-12 lg:pl-16 xl:pl-24 max-w-none">
         
         {/* Header Row */}
-        <div className="pr-6 md:pr-12 lg:pr-16 xl:pr-24 flex flex-col gap-8 md:flex-row md:items-end md:justify-between mb-12 md:mb-16">
+        <div className="sm:pr-6 md:pr-12 lg:pr-16 xl:pr-24 flex flex-col gap-8 md:flex-row md:items-end md:justify-between mb-12 md:mb-16">
           <div className="max-w-2xl">
             <p className="section-kicker text-accent">{trainingZonesSectionCopy.kicker}</p>
             <h2 className="section-title text-white">

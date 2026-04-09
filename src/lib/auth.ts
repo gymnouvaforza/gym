@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { ADMIN_LOGIN_PATH } from "@/lib/admin";
 import {
@@ -48,7 +49,7 @@ function isSupabaseAuthApiError(error: unknown) {
   return candidate.__isAuthError === true || candidate.status === 401;
 }
 
-export async function isLocalAdminSession() {
+export const isLocalAdminSession = cache(async function isLocalAdminSession() {
   if (!hasLocalAdminEnv()) {
     return false;
   }
@@ -58,9 +59,9 @@ export async function isLocalAdminSession() {
   const localSession = cookieStore.get(LOCAL_ADMIN_COOKIE)?.value;
 
   return Boolean(adminEnv && localSession === adminEnv.user);
-}
+});
 
-export async function getSupabaseUser() {
+export const getSupabaseUser = cache(async function getSupabaseUser() {
   if (!hasSupabasePublicEnv()) {
     return null;
   }
@@ -83,7 +84,7 @@ export async function getSupabaseUser() {
     );
     return null;
   }
-}
+});
 
 export async function getCurrentMemberUser() {
   return getSupabaseUser();
@@ -110,7 +111,8 @@ async function canBootstrapDashboardAccess() {
   }
 }
 
-export async function getDashboardAccessState(): Promise<DashboardAccessState> {
+export const getDashboardAccessState = cache(
+  async function getDashboardAccessState(): Promise<DashboardAccessState> {
   const supabaseUser = await getSupabaseUser();
 
   if (supabaseUser?.id) {
@@ -172,7 +174,8 @@ export async function getDashboardAccessState(): Promise<DashboardAccessState> {
     accessMode: null,
     accessWarning: null,
   };
-}
+  },
+);
 
 export async function getCurrentAdminUser(): Promise<User | LocalAdminUser | null> {
   const accessState = await getDashboardAccessState();
@@ -214,7 +217,7 @@ export async function requireSuperadminUser(
   return accessState.user;
 }
 
-export async function getDashboardCapabilities() {
+export const getDashboardCapabilities = cache(async function getDashboardCapabilities() {
   const accessState = await getDashboardAccessState();
   const canManageRealData = hasSupabaseServiceRole();
 
@@ -226,4 +229,4 @@ export async function getDashboardCapabilities() {
     isLocalReadOnly: accessState.accessMode === "local" && !canManageRealData,
     isReadOnly: !canManageRealData,
   };
-}
+});

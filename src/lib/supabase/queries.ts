@@ -574,7 +574,8 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
   }
 });
 
-export async function getDashboardMarketingSnapshot(): Promise<DashboardMarketingSnapshot> {
+export const getDashboardMarketingSnapshot = cache(
+  async function getDashboardMarketingSnapshot(): Promise<DashboardMarketingSnapshot> {
   if (!hasSupabasePublicEnv()) {
     return {
       settings: defaultSiteSettings,
@@ -640,7 +641,8 @@ export async function getDashboardMarketingSnapshot(): Promise<DashboardMarketin
       warning: "No se pudo cargar el marketing real. Se muestra contenido fallback.",
     };
   }
-}
+  },
+);
 
 export async function getLeadById(id: string): Promise<Lead | null> {
   const supabase = createSupabaseAdminClient();
@@ -654,7 +656,7 @@ export async function getLeadById(id: string): Promise<Lead | null> {
   return normalizeLead(data);
 }
 
-export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
+export const getDashboardSnapshot = cache(async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
   if (!hasSupabasePublicEnv()) {
     return {
       settings: defaultSiteSettings,
@@ -746,7 +748,7 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
     isFallback: warnings.length > 0,
     warning: warnings.length > 0 ? warnings.join(" ") : null,
   };
-}
+});
 
 export async function listMarketingTestimonialsRecord(
   supabase: GymSupabaseClient,

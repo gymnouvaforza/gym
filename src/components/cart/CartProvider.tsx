@@ -26,6 +26,7 @@ import {
   updateCartLineItem,
 } from "@/lib/cart/medusa";
 import { getErrorMessage, isMissingCartMessage, STALE_CART_MESSAGE } from "@/lib/cart/runtime";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
 
 export interface CartContextValue {
@@ -71,6 +72,7 @@ export function CartProvider({
   children: ReactNode;
   memberEmail?: string | null;
 }>) {
+  const [resolvedMemberEmail, setResolvedMemberEmail] = useState<string | null>(memberEmail);
   const [cart, setCart] = useState<Cart | null>(null);
   const [lastSubmittedPickupRequest, setLastSubmittedPickupRequest] =
     useState<PickupRequestDetail | null>(null);
@@ -83,6 +85,47 @@ export function CartProvider({
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const lastSyncedSignature = useRef<string | null>(null);
   const abandonedCartIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    setResolvedMemberEmail(memberEmail);
+  }, [memberEmail]);
+
+  useEffect(() => {
+    let active = true;
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+
+      void supabase.auth.getUser().then(({ data }) => {
+        if (!active) {
+          return;
+        }
+
+        setResolvedMemberEmail(data.user?.email ?? null);
+      });
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!active) {
+          return;
+        }
+
+        setResolvedMemberEmail(session?.user?.email ?? null);
+      });
+
+      return () => {
+        active = false;
+        subscription.unsubscribe();
+      };
+    } catch {
+      setResolvedMemberEmail(memberEmail);
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [memberEmail]);
 
   function isRecoverableCartFlowMessage(message: string | null | undefined) {
     if (!message) {
@@ -208,7 +251,7 @@ export function CartProvider({
     setLastSubmittedWhatsAppUrl(null);
     setPickupEmailWarning(null);
 
-    if (memberEmail) {
+    if (resolvedMemberEmail) {
       try {
         const recoveredCart = await syncCartWithMember(null);
 
@@ -225,10 +268,10 @@ export function CartProvider({
       }
     }
 
-    const nextCart = await createCart(memberEmail);
+    const nextCart = await createCart(resolvedMemberEmail);
     commitCart(nextCart);
 
-    if (memberEmail && !nextCart.customerId) {
+    if (resolvedMemberEmail && !nextCart.customerId) {
       try {
         const syncedCart = await syncCartWithMember(nextCart.id);
         commitCart(syncedCart ?? nextCart);
@@ -289,12 +332,12 @@ export function CartProvider({
       return;
     }
 
-    if (!memberEmail) {
+    if (!resolvedMemberEmail) {
       return;
     }
 
     const cartId = cart?.id ?? null;
-    const signature = `${memberEmail}:${cartId ?? "no-cart"}`;
+    const signature = `${resolvedMemberEmail}:${cartId ?? "no-cart"}`;
 
     if (lastSyncedSignature.current === signature) {
       return;
@@ -308,7 +351,7 @@ export function CartProvider({
     }
 
     recoverMemberCart();
-  }, [isReady, memberEmail, cart?.id]);
+  }, [isReady, resolvedMemberEmail, cart?.id]);
 
   async function runBusyAction(action: () => Promise<void>) {
     setIsBusy(true);
@@ -370,7 +413,7 @@ export function CartProvider({
 
       commitCart(nextCart);
 
-      if (memberEmail && !nextCart.customerId) {
+      if (resolvedMemberEmail && !nextCart.customerId) {
         try {
           const syncedCart = await syncCartWithMember(nextCart.id);
           commitCart(syncedCart ?? nextCart);
@@ -486,7 +529,7 @@ export function CartProvider({
         lastSubmittedWhatsAppUrl,
         pickupEmailWarning,
         notice,
-        memberEmail,
+        memberEmail: resolvedMemberEmail,
         error,
         isReady,
         isBusy,

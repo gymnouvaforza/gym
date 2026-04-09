@@ -21,7 +21,7 @@ export default function LeadsToolbar({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const [search, setSearch] = useState(() => filters.q);
 
@@ -57,7 +57,9 @@ export default function LeadsToolbar({
 
   function handleClear() {
     setSearch("");
-    router.push(pathname, { scroll: false });
+    startTransition(() => {
+      router.push(pathname, { scroll: false });
+    });
   }
 
   const hasFilters =
@@ -72,6 +74,11 @@ export default function LeadsToolbar({
 
   return (
     <div className="space-y-6">
+      {isPending ? (
+        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#d71920]">
+          Actualizando listado...
+        </p>
+      ) : null}
       {/* SEARCH BOX */}
       <div className="space-y-2">
         <label htmlFor="q" className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
@@ -84,6 +91,7 @@ export default function LeadsToolbar({
             placeholder="Nombre, email..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            aria-busy={isPending}
             className="flex h-10 w-full border border-black/10 bg-[#fbfbf8] pl-9 pr-4 text-xs font-bold text-[#111111] outline-none focus:bg-white focus:ring-1 focus:ring-[#d71920]/20 transition-all"
           />
         </div>
@@ -100,6 +108,7 @@ export default function LeadsToolbar({
               id="status"
               value={filters.status}
               onChange={(event) => updateParams({ status: event.target.value })}
+              aria-busy={isPending}
               className="h-10 w-full appearance-none border border-black/10 bg-white px-3 text-xs font-black uppercase text-[#111111] outline-none focus:ring-1 focus:ring-[#d71920]/20 transition-all"
             >
               <option value="all">Todos los estados</option>
@@ -120,6 +129,7 @@ export default function LeadsToolbar({
               id="source"
               value={filters.source}
               onChange={(event) => updateParams({ source: event.target.value })}
+              aria-busy={isPending}
               className="h-10 w-full appearance-none border border-black/10 bg-white px-3 text-xs font-black uppercase text-[#111111] outline-none focus:ring-1 focus:ring-[#d71920]/20 transition-all"
             >
               <option value="all">Cualquier origen</option>
@@ -142,6 +152,7 @@ export default function LeadsToolbar({
               id="sort"
               value={filters.sort}
               onChange={(event) => updateParams({ sort: event.target.value as LeadSort })}
+              aria-busy={isPending}
               className="h-10 w-full appearance-none border border-black/10 bg-white px-3 text-xs font-black uppercase text-[#111111] outline-none focus:ring-1 focus:ring-[#d71920]/20 transition-all"
             >
               <option value="created_desc">Recientes primero</option>
@@ -179,6 +190,7 @@ export default function LeadsToolbar({
         {hasFilters ? (
           <button
             onClick={handleClear}
+            disabled={isPending}
             className="w-full py-2 text-[9px] font-black uppercase tracking-[0.2em] text-[#d71920] hover:bg-[#d71920]/5 transition-all flex items-center justify-center gap-2"
           >
             <X className="h-3 w-3" />

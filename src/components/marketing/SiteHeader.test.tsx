@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 
 import { render, screen } from "@testing-library/react";
-import type { User } from "@supabase/supabase-js";
 import type { ComponentProps } from "react";
 import { vi } from "vitest";
 
@@ -27,33 +26,16 @@ vi.mock("@/components/cart/CartEntry", () => ({
   default: () => <button type="button">Abrir carrito</button>,
 }));
 
+vi.mock("@/components/marketing/SiteHeaderAuthActions", () => ({
+  default: () => <div>Header auth actions</div>,
+}));
+
 describe("SiteHeader", () => {
-  it("shows public auth actions when there is no member session", () => {
-    render(<SiteHeader settings={defaultSiteSettings} currentUser={null} />);
+  it("renders the site header shell with cart and auth actions", () => {
+    render(<SiteHeader settings={defaultSiteSettings} />);
 
-    const joinLinks = screen.getAllByRole("link", { name: /Unirme/i });
-
-    expect(joinLinks).toHaveLength(2);
-    joinLinks.forEach((link) => {
-      expect(link).toHaveAttribute("href", "/registro");
-    });
-    expect(screen.queryByRole("link", { name: "Mi cuenta" })).not.toBeInTheDocument();
-  });
-
-  it("shows the private account link when a member session exists", () => {
-    render(
-      <SiteHeader
-        settings={defaultSiteSettings}
-        currentUser={{ email: "socio@gym.com" } as User}
-      />,
-    );
-
-    const accountLinks = screen.getAllByRole("link", { name: "Mi cuenta" });
-
-    expect(accountLinks).toHaveLength(2);
-    accountLinks.forEach((link) => {
-      expect(link).toHaveAttribute("href", "/mi-cuenta");
-    });
-    expect(screen.queryByRole("link", { name: /Unirme/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: defaultSiteSettings.site_name })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Abrir carrito/i })).toBeInTheDocument();
+    expect(screen.getAllByText("Header auth actions")).toHaveLength(2);
   });
 });

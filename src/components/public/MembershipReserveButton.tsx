@@ -1,12 +1,13 @@
 "use client";
 
-import { Loader2, QrCode, Repeat, ShieldPlus } from "lucide-react";
+import { QrCode, Repeat, ShieldPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { reserveMembershipPlanAction } from "@/app/(public)/membership-actions";
 import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Button } from "@/components/ui/button";
+import { PendingButtonLabel } from "@/components/ui/loading-state";
 import { cn } from "@/lib/utils";
 
 interface MembershipReserveButtonProps {
@@ -61,14 +62,14 @@ export default function MembershipReserveButton({
           className,
         )}
       >
-        {isPending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : renewsFromRequestId ? (
+        {!isPending && renewsFromRequestId ? (
           <Repeat className="h-4 w-4" />
-        ) : (
+        ) : !isPending ? (
           <ShieldPlus className="h-4 w-4" />
-        )}
-        {label}
+        ) : null}
+        <PendingButtonLabel pending={isPending} pendingLabel="Preparando detalle">
+          {label}
+        </PendingButtonLabel>
       </Button>
 
       <p className="flex items-center gap-2 text-[11px] text-[#5f6368]">

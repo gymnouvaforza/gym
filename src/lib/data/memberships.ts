@@ -20,6 +20,10 @@ import {
   type MembershipRequestDetail,
   type MembershipRequestStatus,
 } from "@/lib/memberships";
+import {
+  buildMembershipQrPublicValidationUrl,
+  parseMembershipQrScannedValue,
+} from "@/lib/membership-qr";
 import { SITE_URL } from "@/lib/seo";
 import {
   type DBMembershipPaymentEntry,
@@ -57,8 +61,6 @@ interface MembershipRequestListFilters {
   status?: MembershipRequestStatus | null;
   supabaseUserId?: string | null;
 }
-
-const MEMBERSHIP_QR_SCAN_TOKEN_PATTERN = /^[A-Za-z0-9_-]{8,128}$/;
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -939,36 +941,11 @@ export async function getMembershipValidationByToken(token: string) {
 }
 
 export function buildMembershipValidationUrl(token: string) {
-  return new URL(`/validacion/membresia/${token}`, SITE_URL).toString();
+  return buildMembershipQrPublicValidationUrl(SITE_URL, token);
 }
 
 export function parseMembershipQrScanToken(input: string) {
-  const normalized = input.trim();
-
-  if (!normalized) {
-    return null;
-  }
-
-  const extractTokenFromPath = (pathname: string) => {
-    const match = pathname.match(/\/validacion\/membresia\/([^/?#]+)/i);
-    const candidate = match?.[1] ? decodeURIComponent(match[1]).trim() : "";
-
-    return MEMBERSHIP_QR_SCAN_TOKEN_PATTERN.test(candidate) ? candidate : null;
-  };
-
-  if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
-    try {
-      return extractTokenFromPath(new URL(normalized).pathname);
-    } catch {
-      return null;
-    }
-  }
-
-  if (normalized.startsWith("/")) {
-    return extractTokenFromPath(normalized);
-  }
-
-  return MEMBERSHIP_QR_SCAN_TOKEN_PATTERN.test(normalized) ? normalized : null;
+  return parseMembershipQrScannedValue(input);
 }
 
 export async function getDashboardMembershipScanResultByToken(token: string) {

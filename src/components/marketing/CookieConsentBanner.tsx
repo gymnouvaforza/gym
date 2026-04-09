@@ -4,21 +4,32 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { persistCookieConsent } from "@/lib/cms/cookie-consent";
+import {
+  getCookieConsentFromDocument,
+  persistCookieConsent,
+} from "@/lib/cms/cookie-consent";
 import type { DBCmsDocument } from "@/lib/supabase/database.types";
 
 export default function CookieConsentBanner({
-  document,
+  document: cmsDocument,
   initialConsent,
 }: Readonly<{
   document: DBCmsDocument;
   initialConsent?: "accepted" | "rejected";
 }>) {
-  const [consent, setConsent] = useState<"accepted" | "rejected" | null>(
-    initialConsent ?? null,
-  );
+  const [consent, setConsent] = useState<"accepted" | "rejected" | null>(() => {
+    if (initialConsent) {
+      return initialConsent;
+    }
 
-  if (consent) {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    return getCookieConsentFromDocument();
+  });
+
+  if ((!initialConsent && typeof window === "undefined") || consent) {
     return null;
   }
 
@@ -27,16 +38,16 @@ export default function CookieConsentBanner({
       <div className="section-shell flex flex-col gap-4 py-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f7b4b7]">
-            {document.title}
+            {cmsDocument.title}
           </p>
-          <p className="mt-2 text-sm leading-6 text-white/85">{document.summary}</p>
-          <p className="mt-2 text-sm leading-6 text-white/65">{document.body_markdown}</p>
-          {document.cta_label && document.cta_href ? (
+          <p className="mt-2 text-sm leading-6 text-white/85">{cmsDocument.summary}</p>
+          <p className="mt-2 text-sm leading-6 text-white/65">{cmsDocument.body_markdown}</p>
+          {cmsDocument.cta_label && cmsDocument.cta_href ? (
             <Link
-              href={document.cta_href}
+              href={cmsDocument.cta_href}
               className="mt-3 inline-flex text-xs font-semibold uppercase tracking-[0.18em] text-[#f6d3d4] underline-offset-4 hover:underline"
             >
-              {document.cta_label}
+              {cmsDocument.cta_label}
             </Link>
           ) : null}
         </div>

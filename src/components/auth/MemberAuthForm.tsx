@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -20,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { AuthBlockingState, PendingButtonLabel } from "@/components/ui/loading-state";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface MemberAuthFormProps {
@@ -51,6 +51,7 @@ type MemberAuthValues = z.infer<ReturnType<typeof createMemberAuthSchema>>;
 
 export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) {
   const [error, setError] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/mi-cuenta";
@@ -82,6 +83,7 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
 
   async function onSubmit(values: MemberAuthValues) {
     setError(null);
+    setIsNavigating(false);
 
     const supabase = createSupabaseBrowserClient();
 
@@ -98,6 +100,7 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
 
       if (!data.session) {
         triggerWelcomeEmail(values.email);
+        setIsNavigating(true);
         const completeParams = new URLSearchParams();
         completeParams.set("email", values.email);
         router.push(`/registro/completado?${completeParams.toString()}`);
@@ -106,6 +109,7 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
 
       triggerWelcomeEmail(values.email);
       const welcomeUrl = `${next}${next.includes("?") ? "&" : "?"}welcome=1`;
+      setIsNavigating(true);
       router.push(welcomeUrl);
       router.refresh();
       return;
@@ -121,23 +125,36 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
       return;
     }
 
+    setIsNavigating(true);
     router.push(next);
     router.refresh();
   }
 
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardTitle>{isRegister ? "Crea tu cuenta" : "Accede a tu cuenta"}</CardTitle>
-        <CardDescription>
-          {isRegister
-            ? "Activa un acceso basico para futuras gestiones privadas del gimnasio."
-            : "Entra con tu email y contrasena para ver tu espacio privado."}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+    <div className="relative mx-auto w-full max-w-md">
+      {isNavigating ? (
+        <AuthBlockingState
+          eyebrow={isRegister ? "Creando acceso" : "Validando acceso"}
+          title={isRegister ? "Preparando tu cuenta" : "Cargando tu espacio"}
+          body={
+            isRegister
+              ? "La cuenta ya fue aceptada. Estamos preparando la pantalla final del alta."
+              : "Las credenciales son correctas. Estamos abriendo tu espacio privado."
+          }
+        />
+      ) : null}
+      <Card className="mx-auto w-full max-w-md">
+        <CardHeader>
+          <CardTitle>{isRegister ? "Crea tu cuenta" : "Accede a tu cuenta"}</CardTitle>
+          <CardDescription>
+            {isRegister
+              ? "Activa un acceso basico para futuras gestiones privadas del gimnasio."
+              : "Entra con tu email y contrasena para ver tu espacio privado."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
               control={form.control}
               name="email"
@@ -201,27 +218,44 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
               />
             ) : null}
 
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {isRegister ? "Crear cuenta" : "Entrar"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting || isNavigating}
+            >
+              <PendingButtonLabel
+                pending={form.formState.isSubmitting || isNavigating}
+                pendingLabel={
+                  isNavigating
+                    ? isRegister
+                      ? "Preparando acceso"
+                      : "Cargando tu espacio"
+                    : isRegister
+                      ? "Creando cuenta"
+                      : "Validando acceso"
+                }
+              >
+                {isRegister ? "Crear cuenta" : "Entrar"}
+              </PendingButtonLabel>
             </Button>
-          </form>
-        </Form>
+            </form>
+          </Form>
 
-        <p className="mt-5 text-center text-sm text-[#5f6368]">
-          {isRegister ? "Ya tienes cuenta?" : "Aun no tienes cuenta?"}{" "}
-          <Link
-            href={
-              isRegister
-                ? `/acceso?next=${encodeURIComponent(next)}`
-                : `/registro?next=${encodeURIComponent(next)}`
-            }
-            className="font-semibold text-[#d71920]"
-          >
-            {isRegister ? "Accede aqui" : "Registrate aqui"}
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+          <p className="mt-5 text-center text-sm text-[#5f6368]">
+            {isRegister ? "Ya tienes cuenta?" : "Aun no tienes cuenta?"}{" "}
+            <Link
+              href={
+                isRegister
+                  ? `/acceso?next=${encodeURIComponent(next)}`
+                  : `/registro?next=${encodeURIComponent(next)}`
+              }
+              className="font-semibold text-[#d71920]"
+            >
+              {isRegister ? "Accede aqui" : "Registrate aqui"}
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

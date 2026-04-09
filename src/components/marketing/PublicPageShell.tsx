@@ -1,4 +1,3 @@
-import type { User } from "@supabase/supabase-js";
 import type { ReactNode } from "react";
 
 import CookieConsentBanner from "@/components/marketing/CookieConsentBanner";
@@ -17,7 +16,6 @@ interface PublicPageShellProps {
     href: string;
     label: string;
   }>;
-  currentUser?: User | null;
   initialConsent?: "accepted" | "rejected";
   className?: string;
   mainClassName?: string;
@@ -28,7 +26,6 @@ export default function PublicPageShell({
   settings,
   cookieDocument,
   legalLinks,
-  currentUser = null,
   initialConsent,
   className,
   mainClassName,
@@ -37,7 +34,7 @@ export default function PublicPageShell({
     <div className={cn("min-h-screen bg-[#f7f4ef]", className)}>
       <div className="sticky top-0 z-50">
         <SiteTopbar settings={settings} />
-        <SiteHeader settings={settings} currentUser={currentUser} />
+        <SiteHeader settings={settings} />
       </div>
       <main className={mainClassName}>{children}</main>
       <SiteFooter settings={settings} legalLinks={legalLinks} />

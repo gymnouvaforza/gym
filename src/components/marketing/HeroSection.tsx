@@ -53,7 +53,7 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
               </p>
             </div>
 
-            <h1 className="animate-slide-up mt-8 font-display text-[40px] font-extrabold uppercase italic leading-[0.95] tracking-tight reveal-2 sm:text-[56px] lg:text-[82px] [animation-fill-mode:forwards]">
+            <h1 className="animate-slide-up mt-8 font-display text-[28px] font-extrabold uppercase italic leading-[0.95] tracking-tight reveal-2 xs:text-[40px] sm:text-[56px] lg:text-[82px] [animation-fill-mode:forwards]">
               {renderTitleLines([...titleParts.left, ...titleParts.right], true)}
             </h1>
 

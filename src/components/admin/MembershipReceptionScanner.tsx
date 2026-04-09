@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition } from "react";
-import { Camera, CameraOff, Loader2, QrCode, ScanLine } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
+import { Camera, CameraOff, Loader2, QrCode, RotateCcw, ScanLine } from "lucide-react";
 
 import FeedbackCallout from "@/components/ui/feedback-callout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
-type MembershipReceptionScannerProps = {
-  initialValue?: string;
-};
+import {
+  createMembershipQrErrorResponse,
+  isMembershipQrValidationResponse,
+  type MembershipQrValidationResponse,
+} from "@/lib/membership-qr";
 
 type ScannerHandle = {
   clear: () => Promise<unknown> | unknown;
@@ -23,23 +22,43 @@ type ScannerHandle = {
   stop: () => Promise<unknown>;
 };
 
+export type MembershipReceptionScannerPhase =
+  | "idle"
+  | "preparing"
+  | "scanning"
+  | "validating"
+  | "camera_error";
+
+export interface MembershipReceptionScannerState {
+  errorMessage: string | null;
+  helperMessage: string | null;
+  phase: MembershipReceptionScannerPhase;
+}
+
+interface MembershipReceptionScannerProps {
+  onStateChange?: (state: MembershipReceptionScannerState) => void;
+  onValidationResolved?: (result: MembershipQrValidationResponse | null) => void;
+}
+
+const DEFAULT_STATE: MembershipReceptionScannerState = {
+  phase: "idle",
+  helperMessage: "Abre la camara del dispositivo de recepcion para empezar a escanear.",
+  errorMessage: null,
+};
+
 export default function MembershipReceptionScanner({
-  initialValue = "",
+  onStateChange,
+  onValidationResolved,
 }: Readonly<MembershipReceptionScannerProps>) {
-  const router = useRouter();
-  const pathname = usePathname();
   const scannerRegionId = useId().replace(/:/g, "");
   const scannerRef = useRef<ScannerHandle | null>(null);
   const lastScanValueRef = useRef<string | null>(null);
-  const [manualValue, setManualValue] = useState(initialValue);
-  const [cameraState, setCameraState] = useState<"idle" | "starting" | "live" | "error">("idle");
-  const [scannerMessage, setScannerMessage] = useState<string | null>(null);
-  const [scannerError, setScannerError] = useState<string | null>(null);
-  const [isRouting, startRouting] = useTransition();
+  const [state, setState] = useState<MembershipReceptionScannerState>(DEFAULT_STATE);
+  const [hasResolvedScan, setHasResolvedScan] = useState(false);
 
   useEffect(() => {
-    setManualValue(initialValue);
-  }, [initialValue]);
+    onStateChange?.(state);
+  }, [onStateChange, state]);
 
   useEffect(() => {
     return () => {
@@ -62,50 +81,106 @@ export default function MembershipReceptionScanner({
     };
   }, []);
 
-  function navigateWithToken(rawValue: string) {
-    const resolved = rawValue.trim();
-
-    startRouting(() => {
-      const nextUrl = resolved
-        ? `${pathname}?token=${encodeURIComponent(resolved)}`
-        : pathname;
-      router.replace(nextUrl);
-    });
+  function publishState(next: MembershipReceptionScannerState) {
+    setState(next);
   }
 
-  async function stopCamera() {
+  async function stopCamera(options?: {
+    clearMessage?: boolean;
+  }) {
     const scanner = scannerRef.current;
 
-    if (!scanner) {
-      setCameraState("idle");
-      return;
-    }
+    if (scanner) {
+      try {
+        await scanner.stop();
+      } catch {
+        // Ignore stop race conditions from the scanner library.
+      }
 
-    try {
-      await scanner.stop();
-    } catch {
-      // Ignore stop race conditions from the scanner library.
-    }
-
-    try {
-      await Promise.resolve(scanner.clear());
-    } catch {
-      // Ignore cleanup failures.
+      try {
+        await Promise.resolve(scanner.clear());
+      } catch {
+        // Ignore cleanup failures from the scanner library.
+      }
     }
 
     scannerRef.current = null;
-    setCameraState("idle");
-    setScannerMessage("Camara detenida. Puedes reactivarla cuando quieras.");
+
+    publishState({
+      phase: "idle",
+      errorMessage: null,
+      helperMessage: options?.clearMessage
+        ? DEFAULT_STATE.helperMessage
+        : "Camara detenida. Cuando quieras, puedes escanear otro QR.",
+    });
+  }
+
+  async function validateScannedValue(decodedText: string) {
+    publishState({
+      phase: "validating",
+      errorMessage: null,
+      helperMessage: "QR detectado. Validando acceso operativo...",
+    });
+    setHasResolvedScan(false);
+    onValidationResolved?.(null);
+
+    try {
+      const response = await fetch("/api/dashboard/membership-qr/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          scannedValue: decodedText,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!isMembershipQrValidationResponse(payload)) {
+        throw new Error("La app no pudo interpretar la respuesta de validacion QR.");
+      }
+
+      onValidationResolved?.(payload);
+      setHasResolvedScan(true);
+      publishState({
+        phase: "idle",
+        errorMessage: payload.status === "error" ? payload.errorMessage : null,
+        helperMessage: payload.canEnter
+          ? "Acceso validado. Ya puedes escanear otra membresia."
+          : "Validacion terminada. Revisa el estado en el panel lateral.",
+      });
+    } catch (error) {
+      const fallback = createMembershipQrErrorResponse({
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : "No pudimos completar la validacion QR desde el dashboard.",
+      });
+
+      onValidationResolved?.(fallback);
+      setHasResolvedScan(true);
+      publishState({
+        phase: "idle",
+        errorMessage: fallback.errorMessage,
+        helperMessage: "La validacion fallo. Puedes reintentar el escaneo.",
+      });
+    }
   }
 
   async function startCamera() {
-    if (cameraState === "starting" || cameraState === "live") {
+    if (state.phase === "preparing" || state.phase === "scanning" || state.phase === "validating") {
       return;
     }
 
-    setScannerError(null);
-    setScannerMessage("Activando camara trasera para escaneo continuo...");
-    setCameraState("starting");
+    onValidationResolved?.(null);
+    setHasResolvedScan(false);
+    lastScanValueRef.current = null;
+    publishState({
+      phase: "preparing",
+      errorMessage: null,
+      helperMessage: "Preparando camara trasera para recepcion...",
+    });
 
     try {
       const { Html5Qrcode } = await import("html5-qrcode");
@@ -116,48 +191,39 @@ export default function MembershipReceptionScanner({
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: { width: 220, height: 220 },
+          qrbox: { width: 240, height: 240 },
         },
-        async (decodedText) => {
+        (decodedText) => {
           if (!decodedText.trim() || lastScanValueRef.current === decodedText) {
             return;
           }
 
           lastScanValueRef.current = decodedText;
-          setScannerMessage("QR detectado. Abriendo validacion operativa...");
 
-          await stopCamera();
-          navigateWithToken(decodedText);
+          void stopCamera({ clearMessage: true }).then(() => validateScannedValue(decodedText));
         },
         () => undefined,
       );
 
-      setCameraState("live");
-      setScannerMessage("Camara lista. Enfoca el QR del socio para abrir su ficha.");
+      publishState({
+        phase: "scanning",
+        errorMessage: null,
+        helperMessage: "Enfoca el QR dentro del recuadro. El acceso se validara en cuanto lo lea.",
+      });
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "No se pudo acceder a la camara en este dispositivo.";
-
-      setCameraState("error");
-      setScannerError(message);
-      setScannerMessage(null);
+      publishState({
+        phase: "camera_error",
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : "No se pudo acceder a la camara en este dispositivo.",
+        helperMessage: null,
+      });
     }
   }
 
-  function handleManualSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!manualValue.trim()) {
-      setScannerError("Pega un token o una URL valida antes de continuar.");
-      return;
-    }
-
-    setScannerError(null);
-    setScannerMessage("Resolviendo QR manual...");
-    navigateWithToken(manualValue);
-  }
+  const isBusy =
+    state.phase === "preparing" || state.phase === "scanning" || state.phase === "validating";
 
   return (
     <div className="space-y-5">
@@ -168,14 +234,14 @@ export default function MembershipReceptionScanner({
           </div>
           <div className="space-y-2">
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#d71920]">
-              Recepcion en vivo
+              Recepcion movil
             </p>
             <h3 className="text-lg font-black uppercase tracking-tight">
-              Escanea el QR del socio
+              Escaneo directo por camara
             </h3>
             <p className="text-sm leading-6 text-white/70">
-              Usa la camara del movil o tablet del staff. Si el navegador falla, pega la URL o el
-              token manualmente y el panel resolvera la ficha igual.
+              El flujo operativo es solo por camara. Cuando el QR entra en foco, el panel valida en
+              vivo si el socio puede pasar o si necesita revision.
             </p>
           </div>
         </div>
@@ -185,101 +251,112 @@ export default function MembershipReceptionScanner({
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button
             type="button"
-            onClick={startCamera}
-            disabled={cameraState === "starting" || cameraState === "live" || isRouting}
+            onClick={() => void startCamera()}
+            disabled={isBusy}
             className="sm:flex-1"
           >
-            {cameraState === "starting" ? (
+            {state.phase === "preparing" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Activando camara
+                Preparando camara
+              </>
+            ) : state.phase === "validating" ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Validando QR
+              </>
+            ) : state.phase === "camera_error" ? (
+              <>
+                <RotateCcw className="h-4 w-4" />
+                Reintentar camara
               </>
             ) : (
               <>
                 <Camera className="h-4 w-4" />
-                Activar camara
+                {hasResolvedScan ? "Escanear otro QR" : "Abrir camara"}
               </>
             )}
           </Button>
+
           <Button
             type="button"
             variant="outline"
             onClick={() => void stopCamera()}
-            disabled={cameraState !== "live"}
+            disabled={state.phase !== "scanning" && state.phase !== "preparing"}
             className="sm:flex-1"
           >
             <CameraOff className="h-4 w-4" />
-            Detener camara
+            Cerrar camara
           </Button>
         </div>
 
-        <div
-          id={scannerRegionId}
-          className="min-h-[280px] border border-dashed border-black/10 bg-[#fbfbf8]"
-        />
+        <div className="relative overflow-hidden border border-dashed border-black/10 bg-[#fbfbf8]">
+          <div
+            id={scannerRegionId}
+            className="min-h-[320px] [&_video]:h-[320px] [&_video]:w-full [&_video]:object-cover"
+          />
 
-        {scannerMessage ? (
-          <FeedbackCallout chrome="admin" tone="info" message={scannerMessage} compact />
+          {state.phase !== "scanning" ? (
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#fbfbf8] px-6 text-center">
+              <div className="flex h-16 w-16 items-center justify-center border border-black/10 bg-white text-[#d71920]">
+                {state.phase === "preparing" || state.phase === "validating" ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : state.phase === "camera_error" ? (
+                  <CameraOff className="h-6 w-6" />
+                ) : (
+                  <QrCode className="h-6 w-6" />
+                )}
+              </div>
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#d71920]">
+                  {state.phase === "preparing"
+                    ? "Preparando"
+                    : state.phase === "validating"
+                      ? "Validando"
+                      : state.phase === "camera_error"
+                        ? "Error de camara"
+                        : "Listo"}
+                </p>
+                <p className="text-base font-bold uppercase tracking-tight text-[#111111]">
+                  {state.phase === "preparing"
+                    ? "Activando visor trasero"
+                    : state.phase === "validating"
+                      ? "Comprobando membresia"
+                      : state.phase === "camera_error"
+                        ? "No pudimos abrir la camara"
+                        : "Abre la camara para empezar"}
+                </p>
+                <p className="mx-auto max-w-sm text-sm leading-6 text-[#5f6368]">
+                  {state.errorMessage ?? state.helperMessage ?? DEFAULT_STATE.helperMessage}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="pointer-events-none absolute inset-x-6 top-6 border border-[#d71920]/20 bg-black/70 px-4 py-3 text-center text-white">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#d71920]">
+                Escaneando
+              </p>
+              <p className="mt-2 text-sm leading-6 text-white/80">
+                Mantén el QR centrado. El sistema congelará la lectura al primer código válido.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {state.helperMessage ? (
+          <FeedbackCallout chrome="admin" tone="info" message={state.helperMessage} compact />
         ) : null}
 
-        {scannerError ? (
+        {state.errorMessage ? (
           <FeedbackCallout
             chrome="admin"
-            tone="warning"
+            tone="error"
             title="No pudimos usar la camara"
-            message={scannerError}
+            message={state.errorMessage}
             compact
           />
         ) : null}
       </div>
-
-      <form onSubmit={handleManualSubmit} className="space-y-4 border border-black/10 bg-white p-5 shadow-sm">
-        <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#d71920]">
-            Fallback manual
-          </p>
-          <h3 className="text-lg font-black uppercase tracking-tight text-[#111111]">
-            Pega la URL o el token
-          </h3>
-        </div>
-
-        <Input
-          value={manualValue}
-          onChange={(event) => setManualValue(event.target.value)}
-          placeholder="https://.../validacion/membresia/TOKEN o TOKEN puro"
-          autoComplete="off"
-          spellCheck={false}
-        />
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button type="submit" disabled={isRouting} className="sm:flex-1">
-            {isRouting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Abriendo ficha
-              </>
-            ) : (
-              <>
-                <QrCode className="h-4 w-4" />
-                Resolver QR
-              </>
-            )}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setManualValue("");
-              setScannerError(null);
-              setScannerMessage(null);
-              navigateWithToken("");
-            }}
-            className="sm:flex-1"
-          >
-            Limpiar lectura
-          </Button>
-        </div>
-      </form>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { PendingButtonLabel } from "@/components/ui/loading-state";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function SignOutButton() {
@@ -29,9 +30,20 @@ export default function SignOutButton() {
   }
 
   return (
-    <Button type="button" variant="outline" size="sm" onClick={handleSignOut} disabled={isPending}>
-      <LogOut className="h-4 w-4" />
-      Salir
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={handleSignOut}
+      disabled={isPending}
+      className="px-2 sm:px-3"
+    >
+      {!isPending ? <LogOut className="h-4 w-4" /> : null}
+      <span className="hidden sm:inline">
+        <PendingButtonLabel pending={isPending} pendingLabel="Cerrando sesion">
+          Salir
+        </PendingButtonLabel>
+      </span>
     </Button>
   );
 }

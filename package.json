@@ -37,6 +37,7 @@
     "test:marketing": "node scripts/run-tests-by-path.mjs src/components/marketing src/lib/data/store.test.ts src/lib/data/products.test.ts src/lib/commerce",
     "test:supabase": "node scripts/run-tests-by-path.mjs src/lib/supabase",
     "test:medusa": "node scripts/run-tests-by-path.mjs apps/medusa/src",
+    "supabase:qr:doctor": "node scripts/supabase-qr-doctor.mjs",
     "medusa:seed:nova": "npm --prefix apps/medusa run seed:nova",
     "sync:store:medusa": "node scripts/sync-store-supabase-to-medusa.cjs"
   },

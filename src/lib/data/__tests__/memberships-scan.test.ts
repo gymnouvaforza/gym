@@ -99,15 +99,17 @@ describe("membership QR reception helpers", () => {
   it("extracts the token from a full validation URL", () => {
     expect(
       parseMembershipQrScanToken(
-        "https://nuovaforza.test/validacion/membresia/qr_token_12345",
+        "https://nuovaforza.test/validacion/membresia/ff6ae4fd-b470-4db1-8d47-711fb01eb0a2",
       ),
-    ).toBe("qr_token_12345");
+    ).toBe("ff6ae4fd-b470-4db1-8d47-711fb01eb0a2");
   });
 
   it("accepts a raw token and rejects unrelated URLs", () => {
-    expect(parseMembershipQrScanToken("qr_token_12345")).toBe("qr_token_12345");
-    expect(parseMembershipQrScanToken("/validacion/membresia/qr_token_67890")).toBe(
-      "qr_token_67890",
+    expect(parseMembershipQrScanToken("ff6ae4fd-b470-4db1-8d47-711fb01eb0a2")).toBe(
+      "ff6ae4fd-b470-4db1-8d47-711fb01eb0a2",
+    );
+    expect(parseMembershipQrScanToken("/validacion/membresia/05ddab45-3519-4d2f-8071-91f3ca59b0d5")).toBe(
+      "05ddab45-3519-4d2f-8071-91f3ca59b0d5",
     );
     expect(parseMembershipQrScanToken("https://example.com/otra/ruta")).toBeNull();
   });
@@ -126,7 +128,7 @@ describe("membership QR reception helpers", () => {
           supabase_user_id: "user_1",
           trainer_user_id: "trainer_1",
           training_plan_label: null,
-          membership_qr_token: "qr_token_12345",
+          membership_qr_token: "ff6ae4fd-b470-4db1-8d47-711fb01eb0a2",
           membership_plan_id: "plan_1",
         },
         latestRequest: {
@@ -194,7 +196,9 @@ describe("membership QR reception helpers", () => {
       }),
     );
 
-    const result = await getDashboardMembershipScanResultByToken("qr_token_12345");
+    const result = await getDashboardMembershipScanResultByToken(
+      "ff6ae4fd-b470-4db1-8d47-711fb01eb0a2",
+    );
 
     expect(result).not.toBeNull();
     expect(result?.member.fullName).toBe("Socio Titan");
@@ -218,7 +222,7 @@ describe("membership QR reception helpers", () => {
           supabase_user_id: null,
           trainer_user_id: null,
           training_plan_label: null,
-          membership_qr_token: "qr_token_manual",
+          membership_qr_token: "05ddab45-3519-4d2f-8071-91f3ca59b0d5",
           membership_plan_id: "plan_2",
         },
         latestRequest: null,
@@ -246,7 +250,9 @@ describe("membership QR reception helpers", () => {
       }),
     );
 
-    const result = await getDashboardMembershipScanResultByToken("qr_token_manual");
+    const result = await getDashboardMembershipScanResultByToken(
+      "05ddab45-3519-4d2f-8071-91f3ca59b0d5",
+    );
 
     expect(result).not.toBeNull();
     expect(result?.membershipRequestId).toBeNull();
@@ -261,6 +267,8 @@ describe("membership QR reception helpers", () => {
       }),
     );
 
-    await expect(getDashboardMembershipScanResultByToken("missing_token")).resolves.toBeNull();
+    await expect(
+      getDashboardMembershipScanResultByToken("d61d4c17-c03b-418f-91ee-4a8a7cebc645"),
+    ).resolves.toBeNull();
   });
 });

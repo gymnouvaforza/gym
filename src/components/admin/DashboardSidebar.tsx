@@ -51,43 +51,41 @@ type NavHeaderItem = {
 type NavItem = NavLinkItem | NavHeaderItem;
 
 const links: NavItem[] = [
-  { href: "/dashboard", label: "COMMAND CENTER", icon: Activity },
-  { isHeader: true, label: "Growth & Revenue", href: "#" },
-  { href: "/dashboard/leads", label: "LEADS ENGINE", icon: Zap, tag: "Hot" },
-  { href: "/dashboard/miembros", label: "MEMBER SCOUTING", icon: ClipboardList },
+  { href: "/dashboard", label: "Inicio", icon: Activity },
+  { isHeader: true, label: "Atencion y ventas", href: "#" },
+  { href: "/dashboard/leads", label: "Consultas", icon: Zap },
+  { href: "/dashboard/miembros", label: "Socios", icon: ClipboardList },
   {
     href: "/dashboard/membresias",
-    label: "MEMBERSHIP OPS",
+    label: "Membresias",
     icon: QrCode,
-    tag: "New",
     children: [
-      { href: "/dashboard/membresias/pedidos", label: "SOLICITUDES", icon: ClipboardList },
-      { href: "/dashboard/membresias/recepcion", label: "RECEPCION QR", icon: QrCode },
+      { href: "/dashboard/membresias/pedidos", label: "Solicitudes", icon: ClipboardList },
+      { href: "/dashboard/membresias/recepcion", label: "Escaneo QR", icon: QrCode },
     ],
   },
-  { href: "/dashboard/tienda", label: "RETAIL CONSOLE", icon: ShoppingBag },
+  { href: "/dashboard/tienda", label: "Tienda", icon: ShoppingBag },
   
-  { isHeader: true, label: "Core Technology", href: "#" },
+  { isHeader: true, label: "App y entreno", href: "#" },
   {
     href: "/dashboard/mobile",
-    label: "MOBILE HUB",
+    label: "App movil",
     icon: Smartphone,
-    tag: "Pro",
     children: [
-      { href: "/dashboard/mobile", label: "ACCESS CONTROL", icon: Database },
-      { href: "/dashboard/miembros", label: "MEMBER SCOUTING", icon: ClipboardList },
-      { href: "/dashboard/rutinas", label: "ROUTINE DESIGNER", icon: Weight },
+      { href: "/dashboard/mobile", label: "Control de acceso", icon: Database },
+      { href: "/dashboard/miembros", label: "Socios", icon: ClipboardList },
+      { href: "/dashboard/rutinas", label: "Rutinas", icon: Weight },
     ],
   },
   
-  { isHeader: true, label: "Digital Presence", href: "#" },
-  { href: "/dashboard/web", label: "IDENTITY STUDIO", icon: Globe },
-  { href: "/dashboard/marketing", label: "CAMPAIGNS", icon: CalendarClock },
-  { href: "/dashboard/cms", label: "MEDIA & LEGAL", icon: FileText },
+  { isHeader: true, label: "Web y contenido", href: "#" },
+  { href: "/dashboard/web", label: "Web", icon: Globe },
+  { href: "/dashboard/marketing", label: "Campanas", icon: CalendarClock },
+  { href: "/dashboard/cms", label: "Textos y legal", icon: FileText },
   
-  { isHeader: true, label: "System", href: "#" },
-  { href: "/dashboard/info", label: "GYM PROFILE", icon: Users },
-  { href: "/dashboard/advanced", label: "KERNEL ARGS", icon: Settings2 },
+  { isHeader: true, label: "Ajustes", href: "#" },
+  { href: "/dashboard/info", label: "Datos del gym", icon: Users },
+  { href: "/dashboard/advanced", label: "Ajustes avanzados", icon: Settings2 },
 ];
 
 function isItemActive(pathname: string, href: string) {
