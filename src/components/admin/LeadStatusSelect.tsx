@@ -6,8 +6,8 @@ import { useEffect, useState, useTransition } from "react";
 import { updateLeadStatus } from "@/app/(admin)/dashboard/actions";
 import FeedbackCallout from "@/components/ui/feedback-callout";
 import type { LeadStatus } from "@/lib/supabase/database.types";
-
-import LeadStatusBadge from "./LeadStatusBadge";
+import { getLeadStatusMeta } from "@/lib/admin-dashboard";
+import { cn } from "@/lib/utils";
 
 interface LeadStatusSelectProps {
   leadId: string;
@@ -53,32 +53,66 @@ export default function LeadStatusSelect({
     });
   }
 
+  const meta = getLeadStatusMeta(selectedStatus);
+
+  const getSelectStyle = () => {
+    switch (meta.tone) {
+      case "success":
+        return "border-green-800 bg-green-700/10 text-green-800 hover:bg-green-700/20";
+      case "warning":
+        return "border-amber-700 bg-amber-600/10 text-amber-900 hover:bg-amber-600/20";
+      case "muted":
+        return "border-black/5 bg-[#f3f4f6] text-[#7a7f87] hover:bg-black/5";
+      default:
+        return "border-transparent bg-black text-white hover:bg-black/90";
+    }
+  };
+
   return (
     <div className="space-y-2">
       <label className="sr-only" htmlFor={`lead-status-${leadId}`}>
         Estado del lead
       </label>
       <div className="flex flex-wrap items-center gap-2">
-        <select
-          id={`lead-status-${leadId}`}
-          value={selectedStatus}
-          onChange={(event) => handleChange(event.target.value as LeadStatus)}
-          disabled={isPending || Boolean(disabledReason)}
-          title={disabledReason ?? undefined}
-          className="h-11 rounded-none border border-black/10 bg-white px-3 text-sm text-[#111111] outline-none transition-colors focus:border-[#d71920]/30 focus-visible:ring-2 focus-visible:ring-[#d71920]/20 disabled:opacity-60"
+        <div 
+          className={cn(
+            "relative inline-flex items-center justify-between h-7 rounded-none border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer group shadow-[2px_2px_0px_rgba(0,0,0,0.05)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
+            getSelectStyle()
+          )}
         >
-          {items.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-        {isPending ? <Loader2 className="h-4 w-4 animate-spin text-[#7a7f87]" /> : null}
-        {!isPending ? <LeadStatusBadge status={selectedStatus} /> : null}
+          <span className="mr-2">{meta.label}</span>
+          <div className="flex items-center opacity-40 group-hover:opacity-100 transition-opacity">
+            <svg width="8" height="5" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <select
+            id={`lead-status-${leadId}`}
+            value={selectedStatus}
+            onChange={(event) => handleChange(event.target.value as LeadStatus)}
+            disabled={isPending || Boolean(disabledReason)}
+            title={disabledReason ?? undefined}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+          >
+            {items.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#d71920]" /> : null}
       </div>
-      <p className="text-xs text-[#5f6368]" aria-live="polite">
-        {feedback ?? (disabledReason ? "Solo lectura." : "")}
-      </p>
+      {feedback && feedback !== "Estado actualizado." ? (
+        <p className="text-[10px] text-[#5f6368] font-bold italic" aria-live="polite">
+          {feedback}
+        </p>
+      ) : feedback === "Estado actualizado." ? (
+        <p className="text-[10px] text-green-700 font-bold flex items-center gap-1 animate-in fade-in slide-in-from-left-1" aria-live="polite">
+          <span className="h-1 w-1 rounded-full bg-green-600" />
+          {feedback}
+        </p>
+      ) : null}
       {error ? <FeedbackCallout chrome="admin" tone="error" message={error} compact /> : null}
     </div>
   );

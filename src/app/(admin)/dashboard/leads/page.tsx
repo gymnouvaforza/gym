@@ -85,7 +85,7 @@ export default async function DashboardLeadsPage({
           <div className="sticky top-24 space-y-8">
             
             {/* KPI FOCUS */}
-            <AdminSurface className="p-0 overflow-hidden border-black/10 shadow-lg bg-white">
+            <AdminSurface id="filtros" className="p-0 overflow-hidden border-black/10 shadow-lg bg-white">
               <div className="bg-[#111111] p-5 text-white flex items-center justify-between">
                 <p className="text-[10px] font-black uppercase tracking-widest text-white/60 text-center">Filtros Activos</p>
                 <Filter className="h-3 w-3 text-[#d71920]" />
@@ -177,6 +177,7 @@ export default async function DashboardLeadsPage({
           </div>
 
           <AdminSection
+            id="bandeja"
             title="OPERATIONAL QUEUE"
             description="Gestiona tus prospectos con el maximo detalle operativo."
             icon={SearchCheck}

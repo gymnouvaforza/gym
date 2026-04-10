@@ -23,6 +23,7 @@ const optionalDateTime = z.union([
 
 export const siteSettingsSchema = z
   .object({
+    id: z.number().optional(),
     site_name: z.string().trim().min(2, "El nombre del sitio es obligatorio.").max(80, "Maximo 80 caracteres."),
     site_tagline: z
       .string()

@@ -60,7 +60,8 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
     startTransition(async () => {
       try {
         await saveSiteSettings(values);
-        setFeedback("Diseno actualizado.");
+        setFeedback("success");
+        setTimeout(() => setFeedback(null), 4000);
       } catch (error) {
         setFeedback(error instanceof Error ? error.message : "Error al guardar.");
       }
@@ -69,7 +70,7 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-20">
         <input type="hidden" {...form.register("seo_og_image_url")} />
         <AdminCollapsibleSection
           title="Mensaje de bienvenida (Hero)"
@@ -138,6 +139,49 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
                     <FormLabel>Boton secundario</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4 pt-2 border-t border-black/5">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Listado de destacados</p>
+              <FormField
+                control={form.control}
+                name="hero_highlight_one"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Destacado 1</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ej: +10 anos de experiencia en Chiclayo" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="hero_highlight_two"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Destacado 2</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ej: Equipos profesionales de alta gama" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="hero_highlight_three"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Destacado 3</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ej: Entrenadores certificados" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -235,11 +279,20 @@ export default function WebSectionForm({ settings, disabledReason }: WebSectionF
 
         <AdminSurface className="sticky bottom-4 z-10 border-black/10 bg-white/95 p-4 backdrop-blur">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-[#5f6368]" aria-live="polite">
-              {isPending
-                ? "Guardando cambios..."
-                : feedback ?? disabledReason ?? "Edita la seccion y guarda para publicar."}
-            </p>
+            <div className="flex items-center gap-3">
+              {feedback === "success" ? (
+                <div className="flex items-center gap-2 rounded-none bg-green-500/10 px-3 py-1 text-[11px] font-bold text-green-700 animate-in fade-in slide-in-from-left-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                  Cambios publicados correctamente
+                </div>
+              ) : (
+                <p className="text-sm text-[#5f6368]" aria-live="polite">
+                  {isPending
+                    ? "Guardando cambios..."
+                    : feedback ?? disabledReason ?? "Edita la seccion y guarda para publicar."}
+                </p>
+              )}
+            </div>
             <Button
               type="submit"
               disabled={isPending || Boolean(disabledReason)}

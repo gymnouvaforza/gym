@@ -3,11 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import {
   defaultMarketingPlans,
   defaultMarketingScheduleRows,
+  defaultMarketingTeamMembers,
   defaultMarketingTestimonials,
 } from "@/lib/data/marketing-content";
 import {
   normalizeMarketingPlans,
   normalizeMarketingScheduleRows,
+  normalizeMarketingTeamMembers,
   normalizeMarketingTestimonials,
   saveMarketingContentRecord,
 } from "@/lib/supabase/queries";
@@ -108,33 +110,84 @@ describe("normalizeMarketingTestimonials", () => {
   });
 });
 
+describe("normalizeMarketingTeamMembers", () => {
+  it("falls back safely and keeps members ordered", () => {
+    const members = normalizeMarketingTeamMembers([
+      {
+        id: "trainer-2",
+        site_settings_id: 1,
+        name: "Entrenadora B",
+        role: "Movilidad",
+        bio: "Especialista en movilidad y rendimiento funcional.",
+        image_url: "https://example.com/trainer-b.png",
+        order: 1,
+        is_active: true,
+        created_at: defaultMarketingTeamMembers[0].created_at,
+        updated_at: defaultMarketingTeamMembers[0].updated_at,
+      },
+      {
+        id: "trainer-1",
+        site_settings_id: 1,
+        name: "Entrenador A",
+        role: "Fuerza",
+        bio: "Tecnica, progresion y trabajo de base para fuerza.",
+        image_url: "https://example.com/trainer-a.png",
+        order: 0,
+        is_active: true,
+        created_at: defaultMarketingTeamMembers[0].created_at,
+        updated_at: defaultMarketingTeamMembers[0].updated_at,
+      },
+    ]);
+
+    expect(members.map((member) => member.name)).toEqual(["Entrenador A", "Entrenadora B"]);
+    expect(normalizeMarketingTeamMembers(null)).toHaveLength(defaultMarketingTeamMembers.length);
+  });
+});
+
 describe("saveMarketingContentRecord", () => {
-  it("upserts current rows and removes omitted ids from both tables", async () => {
+  it("upserts current rows and removes omitted ids from all marketing tables", async () => {
     const upserts: Record<string, unknown[]> = {};
     const deletes: Record<string, string[]> = {};
 
     const supabase = {
-      from: vi.fn((table: string) => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(async () => ({
-            data:
-              table === "marketing_plans"
-                ? [{ id: "plan-kept" }, { id: "plan-old" }]
-                : [{ id: "row-kept" }, { id: "row-old" }],
-            error: null,
+      from: vi.fn((table: string) => {
+        if (table === "site_settings") {
+          return {
+            select: vi.fn(() => ({
+              limit: vi.fn(() => ({
+                maybeSingle: vi.fn(async () => ({
+                  data: { id: 1 },
+                  error: null,
+                })),
+              })),
+            })),
+          };
+        }
+
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(async () => ({
+              data:
+                table === "marketing_plans"
+                  ? [{ id: "plan-kept" }, { id: "plan-old" }]
+                  : table === "marketing_schedule_rows"
+                    ? [{ id: "row-kept" }, { id: "row-old" }]
+                    : [{ id: "trainer-kept" }, { id: "trainer-old" }],
+              error: null,
+            })),
           })),
-        })),
-        upsert: vi.fn(async (payload: unknown[]) => {
-          upserts[table] = payload;
-          return { error: null };
-        }),
-        delete: vi.fn(() => ({
-          in: vi.fn(async (_column: string, ids: string[]) => {
-            deletes[table] = ids;
+          upsert: vi.fn(async (payload: unknown[]) => {
+            upserts[table] = payload;
             return { error: null };
           }),
-        })),
-      })),
+          delete: vi.fn(() => ({
+            in: vi.fn(async (_column: string, ids: string[]) => {
+              deletes[table] = ids;
+              return { error: null };
+            }),
+          })),
+        };
+      }),
     };
 
     const values: MarketingContentValues = {
@@ -163,13 +216,26 @@ describe("saveMarketingContentRecord", () => {
           order: 0,
         },
       ],
+      teamMembers: [
+        {
+          id: "trainer-kept",
+          name: "Coach central",
+          role: "Fuerza",
+          bio: "Bio con contexto suficiente para validar el entrenador.",
+          image_url: "https://example.com/coach-central.png",
+          is_active: true,
+          order: 0,
+        },
+      ],
     };
 
     await saveMarketingContentRecord(supabase as never, values);
 
     expect(upserts.marketing_plans).toHaveLength(1);
     expect(upserts.marketing_schedule_rows).toHaveLength(1);
+    expect(upserts.marketing_team_members).toHaveLength(1);
     expect(deletes.marketing_plans).toEqual(["plan-old"]);
     expect(deletes.marketing_schedule_rows).toEqual(["row-old"]);
+    expect(deletes.marketing_team_members).toEqual(["trainer-old"]);
   });
 });

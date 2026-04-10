@@ -6,6 +6,10 @@ import {
   Search,
   ShieldCheck,
   Wallet,
+  Users,
+  FileText,
+  Calendar,
+  RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 
@@ -192,25 +196,45 @@ export default async function DashboardMembershipRequestsPage({
               <TableHeader>
                 <TableRow className="border-none bg-black/5 hover:bg-black/5">
                   <TableHead className="text-[10px] font-black uppercase text-[#111111]">
-                    Solicitud
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-3 w-3" />
+                      <span>Solicitud</span>
+                    </div>
                   </TableHead>
                   <TableHead className="text-[10px] font-black uppercase text-[#111111]">
-                    Socio
+                    <div className="flex items-center gap-2">
+                      <Users className="h-3 w-3" />
+                      <span>Socio</span>
+                    </div>
                   </TableHead>
                   <TableHead className="text-[10px] font-black uppercase text-[#111111]">
-                    Plan / ciclo
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3" />
+                      <span>Plan / ciclo</span>
+                    </div>
                   </TableHead>
                   <TableHead className="text-[10px] font-black uppercase text-[#111111]">
-                    Cobro
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-3 w-3" />
+                      <span>Cobro</span>
+                    </div>
                   </TableHead>
                   <TableHead className="text-[10px] font-black uppercase text-[#111111]">
-                    Validacion
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-3 w-3" />
+                      <span>Validacion</span>
+                    </div>
                   </TableHead>
                   <TableHead className="text-[10px] font-black uppercase text-[#111111]">
-                    Mirror
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="h-3 w-3" />
+                      <span>Mirror</span>
+                    </div>
                   </TableHead>
                   <TableHead className="text-[10px] font-black uppercase text-[#111111]">
-                    Accion
+                    <div className="flex items-center justify-end gap-2">
+                      <span>Accion</span>
+                    </div>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -226,7 +250,7 @@ export default async function DashboardMembershipRequestsPage({
                           {request.email}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          <Badge variant={request.status === "active" ? "success" : "muted"}>
+                          <Badge variant={request.status === "active" ? "success" : "muted"} className="font-black uppercase text-[9px] tracking-tighter">
                             {membershipRequestStatusLabels[request.status]}
                           </Badge>
                         </div>
@@ -269,6 +293,7 @@ export default async function DashboardMembershipRequestsPage({
                                 ? "warning"
                                 : "muted"
                           }
+                          className="font-black uppercase text-[9px] tracking-tighter"
                         >
                           {membershipManualPaymentStatusLabels[request.manualPaymentSummary.status]}
                         </Badge>
@@ -276,7 +301,7 @@ export default async function DashboardMembershipRequestsPage({
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <Badge variant={request.validation.tone === "success" ? "success" : "warning"}>
+                        <Badge variant={request.validation.tone === "success" ? "success" : "warning"} className="font-black uppercase text-[9px] tracking-tighter">
                           {membershipValidationStatusLabels[request.validation.status]}
                         </Badge>
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#7a7f87]">
@@ -294,6 +319,7 @@ export default async function DashboardMembershipRequestsPage({
                                 ? "warning"
                                 : "muted"
                           }
+                          className="font-black uppercase text-[9px] tracking-tighter"
                         >
                           {membershipCommerceSyncStatusLabels[request.commerce.syncStatus]}
                         </Badge>

@@ -12,9 +12,11 @@ import { defaultSiteSettings } from "@/lib/data/default-content";
 import {
   defaultMarketingPlans,
   defaultMarketingScheduleRows,
+  defaultMarketingTeamMembers,
   defaultMarketingTestimonials,
   type MarketingPlan,
   type MarketingScheduleRow,
+  type MarketingTeamMember,
   type MarketingTestimonial,
   type MarketingTestimonialModerationStatus,
 } from "@/lib/data/marketing-content";
@@ -33,6 +35,7 @@ import type {
   DBCmsDocument,
   DBMarketingPlan,
   DBMarketingScheduleRow,
+  DBMarketingTeamMember,
   DBMarketingTestimonial,
   Json,
   Lead,
@@ -46,13 +49,14 @@ import {
 
 type GymSupabaseClient = SupabaseClient<Database>;
 
-const SETTINGS_ID = 1;
+// SETTINGS_ID has been replaced by dynamic lookup
 const leadStatuses: LeadStatus[] = ["new", "contacted", "closed"];
 
 export interface MarketingSnapshot {
   settings: SiteSettings;
   plans: MarketingPlan[];
   scheduleRows: MarketingScheduleRow[];
+  teamMembers: MarketingTeamMember[];
   testimonials: MarketingTestimonial[];
   isFallback: boolean;
   warning: string | null;
@@ -161,6 +165,40 @@ export function normalizeMarketingScheduleRows(
     .sort((left, right) => left.order - right.order);
 }
 
+export function normalizeMarketingTeamMember(
+  row: Partial<DBMarketingTeamMember> | null | undefined,
+  index = 0,
+): MarketingTeamMember {
+  const fallback = defaultMarketingTeamMembers[index] ?? defaultMarketingTeamMembers[0];
+
+  return {
+    ...fallback,
+    ...row,
+    id: row?.id ?? fallback.id,
+    site_settings_id: row?.site_settings_id ?? fallback.site_settings_id,
+    name: safeString(row?.name, fallback.name),
+    role: safeString(row?.role, fallback.role),
+    bio: safeString(row?.bio, fallback.bio),
+    image_url: trimToNull(row?.image_url) ?? fallback.image_url,
+    order: row?.order ?? fallback.order,
+    is_active: row?.is_active ?? fallback.is_active,
+    created_at: row?.created_at ?? fallback.created_at,
+    updated_at: row?.updated_at ?? fallback.updated_at,
+  };
+}
+
+export function normalizeMarketingTeamMembers(
+  rows: Partial<DBMarketingTeamMember>[] | null | undefined,
+): MarketingTeamMember[] {
+  if (!rows?.length) {
+    return defaultMarketingTeamMembers.map((member) => ({ ...member }));
+  }
+
+  return rows
+    .map((row, index) => normalizeMarketingTeamMember(row, index))
+    .sort((left, right) => left.order - right.order);
+}
+
 export function normalizeMarketingTestimonial(
   row: Partial<DBMarketingTestimonial> | null | undefined,
 ): MarketingTestimonial | null {
@@ -191,7 +229,7 @@ export function normalizeMarketingTestimonial(
 
   return {
     id: row.id,
-    site_settings_id: row.site_settings_id ?? SETTINGS_ID,
+    site_settings_id: row.site_settings_id ?? 1,
     member_profile_id: row.member_profile_id,
     supabase_user_id: row.supabase_user_id,
     quote: normalizedQuote,
@@ -394,7 +432,7 @@ export function buildSiteSettingsPayload(
   values: SiteSettingsValues,
 ): Database["public"]["Tables"]["site_settings"]["Insert"] {
   return {
-    id: SETTINGS_ID,
+    id: values.id || 1,
     site_name: values.site_name.trim(),
     site_tagline: values.site_tagline.trim(),
     hero_badge: values.hero_badge.trim(),
@@ -450,10 +488,11 @@ export function buildCmsDocumentPayload(
 
 function buildMarketingPlanPayload(
   values: MarketingContentValues["plans"][number],
+  siteSettingsId: number,
 ): Database["public"]["Tables"]["marketing_plans"]["Insert"] {
   return {
     id: values.id,
-    site_settings_id: SETTINGS_ID,
+    site_settings_id: siteSettingsId,
     title: values.title.trim(),
     description: trimToNull(values.description),
     price_label: values.price_label.trim(),
@@ -472,14 +511,32 @@ function buildMarketingPlanPayload(
 
 function buildMarketingScheduleRowPayload(
   values: MarketingContentValues["scheduleRows"][number],
+  siteSettingsId: number,
 ): Database["public"]["Tables"]["marketing_schedule_rows"]["Insert"] {
   return {
     id: values.id,
-    site_settings_id: SETTINGS_ID,
+    site_settings_id: siteSettingsId,
     label: values.label.trim(),
     description: trimToNull(values.description),
     opens_at: values.opens_at.trim(),
     closes_at: values.closes_at.trim(),
+    order: values.order,
+    is_active: values.is_active,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function buildMarketingTeamMemberPayload(
+  values: MarketingContentValues["teamMembers"][number],
+  siteSettingsId: number,
+): Database["public"]["Tables"]["marketing_team_members"]["Insert"] {
+  return {
+    id: values.id,
+    site_settings_id: siteSettingsId,
+    name: values.name.trim(),
+    role: values.role.trim(),
+    bio: values.bio.trim(),
+    image_url: trimToNull(values.image_url),
     order: values.order,
     is_active: values.is_active,
     updated_at: new Date().toISOString(),
@@ -492,12 +549,17 @@ function mapSupabaseError(error: PostgrestError | Error | null | undefined, enti
   return message ?? `No se pudo guardar ${entityName}.`;
 }
 
+function isMissingTableError(error: PostgrestError | null | undefined) {
+  return error?.code === "PGRST205";
+}
+
 export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> => {
   if (!hasSupabasePublicEnv()) {
     return {
       settings: defaultSiteSettings,
       plans: defaultMarketingPlans,
       scheduleRows: defaultMarketingScheduleRows,
+      teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
       isFallback: true,
       warning: "Supabase no esta configurado. Se muestran datos fallback.",
@@ -520,7 +582,7 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
 
     const actualSettingsId = settings?.id;
 
-    const [ { data: plans, error: plansError }, { data: scheduleRows, error: scheduleError }, { data: testimonials, error: testimonialsError } ] =
+    const [ { data: plans, error: plansError }, { data: scheduleRows, error: scheduleError }, { data: teamMembers, error: teamMembersError }, { data: testimonials, error: testimonialsError } ] =
       await Promise.all([
       // If we have a settings ID, use it. If not, fetch all (as per flexibility requirement)
       actualSettingsId 
@@ -529,6 +591,9 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
       actualSettingsId
         ? supabase.from("marketing_schedule_rows").select("*").eq("site_settings_id", actualSettingsId)
         : supabase.from("marketing_schedule_rows").select("*"),
+      actualSettingsId
+        ? supabase.from("marketing_team_members").select("*").eq("site_settings_id", actualSettingsId)
+        : supabase.from("marketing_team_members").select("*"),
       actualSettingsId
         ? supabase
             .from("marketing_testimonials")
@@ -549,6 +614,9 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
 
     if (plansError) console.error("Error fetching marketing_plans:", plansError);
     if (scheduleError) console.error("Error fetching marketing_schedule_rows:", scheduleError);
+    if (teamMembersError && !isMissingTableError(teamMembersError)) {
+      console.error("Error fetching marketing_team_members:", teamMembersError);
+    }
     if (testimonialsError) console.error("Error fetching marketing_testimonials:", testimonialsError);
 
     const normalizedPlans = normalizeMarketingPlans(plans).filter((plan) => plan.is_active);
@@ -557,6 +625,7 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
       settings: normalizeSiteSettings(settings),
       plans: normalizedPlans,
       scheduleRows: normalizeMarketingScheduleRows(scheduleRows).filter((row) => row.is_active),
+      teamMembers: normalizeMarketingTeamMembers(teamMembers).filter((member) => member.is_active),
       testimonials: normalizeMarketingTestimonials(testimonials),
       isFallback: false,
       warning: null,
@@ -567,6 +636,7 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
       settings: defaultSiteSettings,
       plans: defaultMarketingPlans,
       scheduleRows: defaultMarketingScheduleRows,
+      teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
       isFallback: true,
       warning: "No se pudieron cargar los datos reales de Supabase. Se muestra contenido fallback.",
@@ -581,6 +651,7 @@ export const getDashboardMarketingSnapshot = cache(
       settings: defaultSiteSettings,
       plans: defaultMarketingPlans,
       scheduleRows: defaultMarketingScheduleRows,
+      teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
       isFallback: true,
       warning: "Supabase no esta configurado. Marketing usa contenido fallback.",
@@ -599,7 +670,7 @@ export const getDashboardMarketingSnapshot = cache(
 
     const actualSettingsId = settings?.id;
 
-    const [{ data: plans }, { data: scheduleRows }] = await Promise.all([
+    const [{ data: plans }, { data: scheduleRows }, { data: teamMembers }] = await Promise.all([
       actualSettingsId
         ? publicSupabase.from("marketing_plans").select("*").eq("site_settings_id", actualSettingsId)
         : publicSupabase.from("marketing_plans").select("*"),
@@ -609,6 +680,12 @@ export const getDashboardMarketingSnapshot = cache(
             .select("*")
             .eq("site_settings_id", actualSettingsId)
         : publicSupabase.from("marketing_schedule_rows").select("*"),
+      actualSettingsId
+        ? publicSupabase
+            .from("marketing_team_members")
+            .select("*")
+            .eq("site_settings_id", actualSettingsId)
+        : publicSupabase.from("marketing_team_members").select("*"),
     ]);
 
     let testimonials: MarketingTestimonial[] = [];
@@ -626,6 +703,7 @@ export const getDashboardMarketingSnapshot = cache(
       settings: normalizeSiteSettings(settings),
       plans: normalizeMarketingPlans(plans),
       scheduleRows: normalizeMarketingScheduleRows(scheduleRows),
+      teamMembers: normalizeMarketingTeamMembers(teamMembers),
       testimonials,
       isFallback: false,
       warning: null,
@@ -636,6 +714,7 @@ export const getDashboardMarketingSnapshot = cache(
       settings: defaultSiteSettings,
       plans: defaultMarketingPlans,
       scheduleRows: defaultMarketingScheduleRows,
+      teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
       isFallback: true,
       warning: "No se pudo cargar el marketing real. Se muestra contenido fallback.",
@@ -662,6 +741,7 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
       settings: defaultSiteSettings,
       plans: defaultMarketingPlans,
       scheduleRows: defaultMarketingScheduleRows,
+      teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
       leads: [],
       isFallback: true,
@@ -675,11 +755,13 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
     { data: settings, error: settingsError },
     { data: plans, error: plansError },
     { data: scheduleRows, error: scheduleRowsError },
+    { data: teamMembers, error: teamMembersError },
     { data: testimonials, error: testimonialsError },
   ] = await Promise.all([
     publicSupabase.from("site_settings").select("*").limit(1).maybeSingle(),
     publicSupabase.from("marketing_plans").select("*"), // Fetch all for dashboard flexibility
     publicSupabase.from("marketing_schedule_rows").select("*"),
+    publicSupabase.from("marketing_team_members").select("*"),
     publicSupabase
       .from("marketing_testimonials")
       .select("*")
@@ -695,7 +777,7 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
     warnings.push("No se pudieron cargar los ajustes reales del sitio. Se muestran valores fallback.");
   }
 
-  if (plansError || scheduleRowsError) {
+  if (plansError || scheduleRowsError || teamMembersError) {
     warnings.push("No se pudo cargar parte del contenido comercial editable.");
   }
 
@@ -716,6 +798,9 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
       scheduleRows: scheduleRowsError
         ? defaultMarketingScheduleRows
         : normalizeMarketingScheduleRows(scheduleRows),
+      teamMembers: teamMembersError
+        ? defaultMarketingTeamMembers
+        : normalizeMarketingTeamMembers(teamMembers),
       testimonials: testimonialsError
         ? defaultMarketingTestimonials
         : normalizeMarketingTestimonials(testimonials),
@@ -741,6 +826,9 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
     scheduleRows: scheduleRowsError
       ? defaultMarketingScheduleRows
       : normalizeMarketingScheduleRows(scheduleRows),
+    teamMembers: teamMembersError
+      ? defaultMarketingTeamMembers
+      : normalizeMarketingTeamMembers(teamMembers),
     testimonials: testimonialsError
       ? defaultMarketingTestimonials
       : normalizeMarketingTestimonials(testimonials),
@@ -827,7 +915,7 @@ export async function upsertMemberMarketingTestimonialRecord(
 ) {
   // Ensure we use a valid site_settings_id
   const { data: settings } = await supabase.from("site_settings").select("id").limit(1).maybeSingle();
-  const actualSettingsId = settings?.id ?? SETTINGS_ID;
+  const actualSettingsId = settings?.id ?? 1;
 
   const payload: Database["public"]["Tables"]["marketing_testimonials"]["Insert"] = {
     ...values,
@@ -1058,16 +1146,19 @@ export async function getMarketingScheduleRowsRecord(
 type MarketingPlanInsert = Database["public"]["Tables"]["marketing_plans"]["Insert"];
 type MarketingScheduleRowInsert =
   Database["public"]["Tables"]["marketing_schedule_rows"]["Insert"];
+type MarketingTeamMemberInsert =
+  Database["public"]["Tables"]["marketing_team_members"]["Insert"];
 
-async function replaceMarketingTableRows(
+export async function saveMarketingTableRowsRecord(
   supabase: GymSupabaseClient,
-  table: "marketing_plans" | "marketing_schedule_rows",
-  payloads: MarketingPlanInsert[] | MarketingScheduleRowInsert[],
+  table: "marketing_plans" | "marketing_schedule_rows" | "marketing_team_members",
+  payloads: MarketingPlanInsert[] | MarketingScheduleRowInsert[] | MarketingTeamMemberInsert[],
+  siteSettingsId: number,
 ) {
   const { data: existingRows, error: existingError } = await supabase
     .from(table)
     .select("id")
-    .eq("site_settings_id", SETTINGS_ID);
+    .eq("site_settings_id", siteSettingsId);
 
   if (existingError) {
     throw new Error(mapSupabaseError(existingError, "el contenido de marketing"));
@@ -1086,6 +1177,10 @@ async function replaceMarketingTableRows(
     const { error } =
       table === "marketing_plans"
         ? await supabase.from("marketing_plans").upsert(payloads as MarketingPlanInsert[])
+        : table === "marketing_team_members"
+          ? await supabase
+              .from("marketing_team_members")
+              .upsert(payloads as MarketingTeamMemberInsert[])
         : await supabase
             .from("marketing_schedule_rows")
             .upsert(payloads as MarketingScheduleRowInsert[]);
@@ -1104,15 +1199,43 @@ async function replaceMarketingTableRows(
   }
 }
 
+export async function saveMarketingPlansRecord(
+  supabase: GymSupabaseClient,
+  plans: MarketingContentValues["plans"],
+) {
+  const { data: settings } = await supabase.from("site_settings").select("id").limit(1).maybeSingle();
+  const siteSettingsId = settings?.id ?? 1;
+  const payloads = plans.map((p) => buildMarketingPlanPayload(p, siteSettingsId));
+  await saveMarketingTableRowsRecord(supabase, "marketing_plans", payloads, siteSettingsId);
+}
+
+export async function saveMarketingScheduleRowsRecord(
+  supabase: GymSupabaseClient,
+  rows: MarketingContentValues["scheduleRows"],
+) {
+  const { data: settings } = await supabase.from("site_settings").select("id").limit(1).maybeSingle();
+  const siteSettingsId = settings?.id ?? 1;
+  const payloads = rows.map((s) => buildMarketingScheduleRowPayload(s, siteSettingsId));
+  await saveMarketingTableRowsRecord(supabase, "marketing_schedule_rows", payloads, siteSettingsId);
+}
+
+export async function saveMarketingTeamMembersRecord(
+  supabase: GymSupabaseClient,
+  members: MarketingContentValues["teamMembers"],
+) {
+  const { data: settings } = await supabase.from("site_settings").select("id").limit(1).maybeSingle();
+  const siteSettingsId = settings?.id ?? 1;
+  const payloads = members.map((t) => buildMarketingTeamMemberPayload(t, siteSettingsId));
+  await saveMarketingTableRowsRecord(supabase, "marketing_team_members", payloads, siteSettingsId);
+}
+
 export async function saveMarketingContentRecord(
   supabase: GymSupabaseClient,
   values: MarketingContentValues,
 ) {
-  const planPayloads = values.plans.map(buildMarketingPlanPayload);
-  const schedulePayloads = values.scheduleRows.map(buildMarketingScheduleRowPayload);
-
-  await replaceMarketingTableRows(supabase, "marketing_plans", planPayloads);
-  await replaceMarketingTableRows(supabase, "marketing_schedule_rows", schedulePayloads);
+  await saveMarketingPlansRecord(supabase, values.plans);
+  await saveMarketingScheduleRowsRecord(supabase, values.scheduleRows);
+  await saveMarketingTeamMembersRecord(supabase, values.teamMembers);
 }
 
 export async function listCmsDocumentsRecord(

@@ -26,6 +26,7 @@ export default async function DashboardCmsPage() {
       {disabledReason ? <DashboardNotice message={disabledReason} /> : null}
 
       <AdminSection
+        id="documentos"
         title="CMS legal y sistema"
         description="Cada documento se publica por separado y la web usa fallback local si Supabase no responde."
         icon={ShieldAlert}

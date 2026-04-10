@@ -21,7 +21,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listDashboardMembers } from "@/lib/data/gym-management";
-import { cn } from "@/lib/utils";
 
 export default async function DashboardMembersPage({
   searchParams,
@@ -91,6 +90,7 @@ export default async function DashboardMembersPage({
           </div>
 
           <AdminSection
+            id="listado"
             title="SOCIOS REGISTRADOS"
             description="Filtra por estado operativo o busca por identificador unico."
             className="mt-0"
@@ -126,56 +126,77 @@ export default async function DashboardMembersPage({
                 </button>
               </form>
 
-              <div className="bg-white border border-black/10 shadow-sm overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-black/5 hover:bg-black/5 border-none">
-                      <TableHead className="font-black text-[10px] uppercase text-[#111111]">Socio</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase text-[#111111]">Estado</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase text-[#111111]">Resumen Interno</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase text-[#111111]">Carga Tecnica</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase text-[#111111]">Accion</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {members.map((member) => (
-                      <TableRow key={member.id} className="group hover:bg-[#fbfbf8] transition-colors border-black/5">
-                        <TableCell>
-                          <div className="flex items-center gap-4 py-1">
-                            <div className="h-10 w-10 shrink-0 bg-black/5 flex items-center justify-center font-bold text-[#111111]">
-                              {member.fullName[0]}
-                            </div>
-                            <div>
-                              <Link
-                                href={`/dashboard/miembros/${member.id}`}
-                                className="text-sm font-bold text-[#111111] hover:text-[#d71920] transition-colors uppercase tracking-tight"
-                              >
-                                {member.fullName}
-                              </Link>
-                              <p className="text-[10px] font-medium text-[#7a7f87] uppercase tracking-wide">
-                                {member.memberNumber} · {member.email}
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={member.status === "active" ? "success" : "muted"} className="font-black uppercase text-[9px] tracking-tighter">
-                            {member.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-[11px] font-bold text-[#111111] uppercase tracking-tighter bg-black/5 px-2 py-1">
-                            {member.planLabel}
-                          </span>
-                        </TableCell>
-                        <TableCell>
+                <div className="bg-white border border-black/10 shadow-sm overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-black/5 hover:bg-black/5 border-none">
+                        <TableHead className="font-black text-[10px] uppercase text-[#111111]">
                           <div className="flex items-center gap-2">
-                            <div className={cn("h-1.5 w-1.5 rounded-full", member.currentRoutineTitle ? "bg-green-500" : "bg-amber-500")} />
-                            <span className="text-[11px] font-medium text-[#111111] truncate max-w-[140px]">
-                              {member.currentRoutineTitle ?? "SIN ASIGNAR"}
-                            </span>
+                            <Users className="h-3 w-3" />
+                            <span>Socio</span>
                           </div>
-                        </TableCell>
+                        </TableHead>
+                        <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                          <div className="flex items-center gap-2">
+                            <Activity className="h-3 w-3" />
+                            <span>Estado</span>
+                          </div>
+                        </TableHead>
+                        <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck className="h-3 w-3" />
+                            <span>Resumen Interno</span>
+                          </div>
+                        </TableHead>
+                        <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                          <div className="flex items-center gap-2">
+                            <Dumbbell className="h-3 w-3" />
+                            <span>Carga Tecnica</span>
+                          </div>
+                        </TableHead>
+                        <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                          <div className="flex items-center justify-end gap-2">
+                            <span>Accion</span>
+                          </div>
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {members.map((member) => (
+                        <TableRow key={member.id} className="group hover:bg-[#fbfbf8] transition-colors border-black/5">
+                          <TableCell>
+                            <div className="flex items-center gap-4 py-1">
+                              <div className="h-10 w-10 shrink-0 bg-black/5 flex items-center justify-center font-bold text-[#111111]">
+                                {member.fullName[0]}
+                              </div>
+                              <div>
+                                <Link
+                                  href={`/dashboard/miembros/${member.id}`}
+                                  className="text-sm font-bold text-[#111111] hover:text-[#d71920] transition-colors uppercase tracking-tight"
+                                >
+                                  {member.fullName}
+                                </Link>
+                                <p className="text-[10px] font-medium text-[#7a7f87] uppercase tracking-wide">
+                                  {member.memberNumber} · {member.email}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={member.status === "active" ? "success" : "muted"} className="font-black uppercase text-[9px] tracking-tighter">
+                              {member.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="muted" className="font-black uppercase text-[9px] tracking-tighter">
+                              {member.planLabel}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={member.currentRoutineTitle ? "success" : "warning"} className="font-black uppercase text-[9px] tracking-tighter truncate max-w-[140px]">
+                              {member.currentRoutineTitle ?? "SIN ASIGNAR"}
+                            </Badge>
+                          </TableCell>
                         <TableCell>
                           <Link
                             href={`/dashboard/miembros/${member.id}`}

@@ -232,6 +232,65 @@ on conflict (id) do update set
   is_active = excluded.is_active,
   updated_at = excluded.updated_at;
 
+insert into public.marketing_team_members (
+  id,
+  site_settings_id,
+  name,
+  role,
+  bio,
+  image_url,
+  "order",
+  is_active,
+  created_at,
+  updated_at
+)
+values
+  (
+    '77777777-7777-7777-7777-777777777771',
+    1,
+    'Carlos Mendoza',
+    'Powerlifting & Hipertrofia',
+    'Ex-competidor nacional enfocado en mecanicas de levantamiento pesado y prevencion de lesiones.',
+    '/images/trainers/trainer-1.png',
+    0,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  ),
+  (
+    '77777777-7777-7777-7777-777777777772',
+    1,
+    'Elena Vargas',
+    'Entrenamiento Funcional',
+    'Especialista en movilidad y acondicionamiento metabolico. Certificacion NASM.',
+    '/images/trainers/trainer-2.png',
+    1,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  ),
+  (
+    '77777777-7777-7777-7777-777777777773',
+    1,
+    'Ricardo Diaz',
+    'Nutricion Deportiva',
+    'Experto en recomposicion corporal y diseno de planes alimenticios personalizados para atletas.',
+    '/images/trainers/trainer-3.png',
+    2,
+    true,
+    timezone('utc', now()),
+    timezone('utc', now())
+  )
+on conflict (id) do update set
+  site_settings_id = excluded.site_settings_id,
+  name = excluded.name,
+  role = excluded.role,
+  bio = excluded.bio,
+  image_url = excluded.image_url,
+  "order" = excluded."order",
+  is_active = excluded.is_active,
+  updated_at = excluded.updated_at;
+
 insert into public.cms_documents (
   key,
   kind,

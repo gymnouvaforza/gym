@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PublicHomePage() {
-  const [{ settings, scheduleRows, testimonials }, membershipPlans, user] = await Promise.all([
+  const [{ settings, scheduleRows, teamMembers, testimonials }, membershipPlans, user] = await Promise.all([
     getMarketingData(),
     listMembershipPlans({ activeOnly: true }),
     getCurrentMemberUser(),
@@ -44,7 +44,7 @@ export default async function PublicHomePage() {
         </div>
       </section>
       <ScheduleSection rows={scheduleRows} />
-      <TeamSection />
+      <TeamSection members={teamMembers} />
       <ProductsSection />
       <TestimonialsSection testimonials={testimonials} />
       <TrainingZonesSection />

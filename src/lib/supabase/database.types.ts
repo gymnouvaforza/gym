@@ -9,6 +9,7 @@ export type Json =
 export type DBCmsDocument = Database["public"]["Tables"]["cms_documents"]["Row"];
 export type DBMarketingPlan = Database["public"]["Tables"]["marketing_plans"]["Row"];
 export type DBMarketingScheduleRow = Database["public"]["Tables"]["marketing_schedule_rows"]["Row"];
+export type DBMarketingTeamMember = Database["public"]["Tables"]["marketing_team_members"]["Row"];
 export type DBMarketingTestimonial = Database["public"]["Tables"]["marketing_testimonials"]["Row"];
 export type Lead = Database["public"]["Tables"]["leads"]["Row"];
 export type LeadStatus = Database["public"]["Enums"]["lead_status"];
@@ -1908,6 +1909,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "marketing_schedule_rows_site_settings_id_fkey"
+            columns: ["site_settings_id"]
+            isOneToOne: false
+            referencedRelation: "site_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_team_members: {
+        Row: {
+          bio: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          order: number
+          role: string
+          site_settings_id: number
+          updated_at: string
+        }
+        Insert: {
+          bio: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          order?: number
+          role: string
+          site_settings_id?: number
+          updated_at?: string
+        }
+        Update: {
+          bio?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          order?: number
+          role?: string
+          site_settings_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_team_members_site_settings_id_fkey"
             columns: ["site_settings_id"]
             isOneToOne: false
             referencedRelation: "site_settings"

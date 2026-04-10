@@ -32,6 +32,19 @@ export interface MarketingScheduleRow {
   updated_at: string;
 }
 
+export interface MarketingTeamMember {
+  id: string;
+  site_settings_id: number;
+  name: string;
+  role: string;
+  bio: string;
+  image_url: string | null;
+  order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export type MarketingTestimonialModerationStatus = "pending" | "approved" | "rejected";
 
 export interface MarketingTestimonial {
@@ -155,3 +168,42 @@ export const defaultMarketingScheduleRows: MarketingScheduleRow[] = [
 ];
 
 export const defaultMarketingTestimonials: MarketingTestimonial[] = [];
+
+export const defaultMarketingTeamMembers: MarketingTeamMember[] = [
+  {
+    id: "77777777-7777-7777-7777-777777777771",
+    site_settings_id: 1,
+    name: 'Andrés "El Ruso"',
+    role: "Director Deportivo",
+    bio: "Especialista en levantamiento olímpico y programación avanzada.",
+    image_url: "/images/trainers/andres-el-ruso.png",
+    order: 0,
+    is_active: true,
+    created_at: nowIso,
+    updated_at: nowIso,
+  },
+  {
+    id: "77777777-7777-7777-7777-777777777772",
+    site_settings_id: 1,
+    name: 'Santiago "Chicho"',
+    role: "Head Coach",
+    bio: "Experto en Powerlifting y biomecánica avanzada del movimiento.",
+    image_url: "/images/trainers/santiago-chicho.png",
+    order: 1,
+    is_active: true,
+    created_at: nowIso,
+    updated_at: nowIso,
+  },
+  {
+    id: "77777777-7777-7777-7777-777777777773",
+    site_settings_id: 1,
+    name: "María José",
+    role: "Recepción",
+    bio: "Encargada de la atención al cliente y gestión de la comunidad.",
+    image_url: "/images/trainers/maria-jose.png",
+    order: 2,
+    is_active: true,
+    created_at: nowIso,
+    updated_at: nowIso,
+  },
+];

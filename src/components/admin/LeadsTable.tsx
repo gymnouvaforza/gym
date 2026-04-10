@@ -15,6 +15,15 @@ import DashboardEmptyState from "./DashboardEmptyState";
 import LeadDetailsDialogTrigger from "./LeadDetailsDialogTrigger";
 import LeadStatusBadge from "./LeadStatusBadge";
 import LeadStatusSelect from "./LeadStatusSelect";
+import { 
+  User, 
+  MessageSquare, 
+  Phone, 
+  Activity, 
+  Globe, 
+  Calendar, 
+  Eye 
+} from "lucide-react";
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -100,21 +109,56 @@ export default function LeadsTable({
       </div>
 
       <div className="hidden md:block">
-        <Table>
+        <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow>
-              <TableHead>Lead</TableHead>
-              <TableHead>Mensaje</TableHead>
-              <TableHead>Telefono</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Origen</TableHead>
-              <TableHead>Fecha</TableHead>
-              <TableHead className="text-right">Detalle</TableHead>
+              <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                <div className="flex items-center gap-2">
+                  <User className="h-3 w-3" />
+                  <span>Lead</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-3 w-3" />
+                  <span>Mensaje</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-3 w-3" />
+                  <span>Telefono</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-3 w-3" />
+                  <span>Estado</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-3 w-3" />
+                  <span>Origen</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-3 w-3" />
+                  <span>Fecha</span>
+                </div>
+              </TableHead>
+              <TableHead className="font-black text-[10px] uppercase text-[#111111] text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <Eye className="h-3 w-3" />
+                  <span>Detalle</span>
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {leads.map((lead) => (
-              <TableRow key={lead.id}>
+              <TableRow key={lead.id} className="group hover:bg-black/[0.02] transition-colors">
                 <TableCell>
                   <p className="font-medium text-[#111111]">{lead.name}</p>
                   <p className="mt-1 text-sm text-[#5f6368]">{lead.email}</p>
@@ -132,8 +176,8 @@ export default function LeadsTable({
                     disabledReason={disabledReason}
                   />
                 </TableCell>
-                <TableCell className="uppercase text-[#5f6368]">{lead.source}</TableCell>
-                <TableCell>{formatShortDate(lead.created_at)}</TableCell>
+                <TableCell className="uppercase text-[11px] font-semibold tracking-widest text-[#5f6368] opacity-80">{lead.source}</TableCell>
+                <TableCell className="whitespace-nowrap font-medium text-[#7a7f87] text-[11px] uppercase tracking-tighter">{formatShortDate(lead.created_at)}</TableCell>
                 <TableCell className="text-right">
                   <LeadDetailsDialogTrigger lead={lead} disabledReason={disabledReason} />
                 </TableCell>

@@ -150,6 +150,19 @@ export default function SettingsForm({ settings, disabledReason }: SettingsFormP
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="seo_canonical_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL Canónica</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://mi-gym.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </AdminCollapsibleSection>
 

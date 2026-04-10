@@ -5,6 +5,7 @@ import {
   ClipboardList,
   FileText,
   Globe,
+  Tag,
   Settings2,
   ShoppingBag,
   Smartphone,
@@ -13,6 +14,7 @@ import {
   Sun,
   Zap,
   Activity,
+  ShieldCheck,
   ChevronRight,
   Database,
   Users,
@@ -21,7 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
 
@@ -31,6 +33,7 @@ type NavLinkChild = {
   href: string;
   label: string;
   icon: LucideIcon;
+  activeMatch?: string | string[];
 };
 
 type NavLinkItem = {
@@ -39,6 +42,7 @@ type NavLinkItem = {
   icon: LucideIcon;
   children?: NavLinkChild[];
   tag?: string;
+  activeMatch?: string | string[];
   isHeader?: false;
 };
 
@@ -53,8 +57,24 @@ type NavItem = NavLinkItem | NavHeaderItem;
 const links: NavItem[] = [
   { href: "/dashboard", label: "Inicio", icon: Activity },
   { isHeader: true, label: "Atencion y ventas", href: "#" },
-  { href: "/dashboard/leads", label: "Consultas", icon: Zap },
-  { href: "/dashboard/miembros", label: "Socios", icon: ClipboardList },
+  {
+    href: "/dashboard/leads",
+    label: "Consultas",
+    icon: Zap,
+    children: [
+      { href: "/dashboard/leads#filtros", label: "Filtros", icon: Database },
+      { href: "/dashboard/leads#bandeja", label: "Bandeja", icon: ClipboardList },
+    ],
+  },
+  {
+    href: "/dashboard/miembros",
+    label: "Socios",
+    icon: ClipboardList,
+    children: [
+      { href: "/dashboard/miembros#listado", label: "Listado", icon: ClipboardList },
+      { href: "/dashboard/miembros/nuevo", label: "Nuevo socio", icon: Users },
+    ],
+  },
   {
     href: "/dashboard/membresias",
     label: "Membresias",
@@ -64,7 +84,17 @@ const links: NavItem[] = [
       { href: "/dashboard/membresias/recepcion", label: "Escaneo QR", icon: QrCode },
     ],
   },
-  { href: "/dashboard/tienda", label: "Tienda", icon: ShoppingBag },
+  {
+    href: "/dashboard/tienda",
+    label: "Tienda",
+    icon: ShoppingBag,
+    children: [
+      { href: "/dashboard/tienda", label: "Resumen", icon: ShoppingBag },
+      { href: "/dashboard/tienda/productos", label: "Productos", icon: Tag },
+      { href: "/dashboard/tienda/categorias", label: "Categorias", icon: LayoutGrid },
+      { href: "/dashboard/tienda/pedidos", label: "Pedidos", icon: QrCode },
+    ],
+  },
   
   { isHeader: true, label: "App y entreno", href: "#" },
   {
@@ -72,24 +102,125 @@ const links: NavItem[] = [
     label: "App movil",
     icon: Smartphone,
     children: [
-      { href: "/dashboard/mobile", label: "Control de acceso", icon: Database },
-      { href: "/dashboard/miembros", label: "Socios", icon: ClipboardList },
+      { href: "/dashboard/mobile?segment=superadmin", label: "Superadmins", icon: ShieldCheck },
+      { href: "/dashboard/mobile?segment=trainer", label: "Entrenadores", icon: Users },
+      { href: "/dashboard/mobile?segment=user", label: "Usuarios", icon: Database },
       { href: "/dashboard/rutinas", label: "Rutinas", icon: Weight },
     ],
   },
   
   { isHeader: true, label: "Web y contenido", href: "#" },
-  { href: "/dashboard/web", label: "Web", icon: Globe },
-  { href: "/dashboard/marketing", label: "Campanas", icon: CalendarClock },
-  { href: "/dashboard/cms", label: "Textos y legal", icon: FileText },
+  {
+    href: "/dashboard/web",
+    label: "Web",
+    icon: Globe,
+    children: [
+      { href: "/dashboard/web#secciones", label: "Secciones", icon: Globe },
+      { href: "/dashboard/web#exploracion", label: "Exploracion", icon: LayoutGrid },
+    ],
+  },
+  {
+    href: "/dashboard/marketing",
+    label: "Campanas",
+    icon: CalendarClock,
+    activeMatch: [
+      "/dashboard/marketing",
+      "/dashboard/marketing/planes",
+    ],
+    children: [
+      {
+        href: "/dashboard/marketing",
+        label: "Moderacion resenas",
+        icon: ClipboardList,
+        activeMatch: "/dashboard/marketing",
+      },
+      { href: "/dashboard/marketing/planes", label: "Planes", icon: Tag },
+    ],
+  },
+  {
+    href: "/dashboard/cms",
+    label: "Textos y legal",
+    icon: FileText,
+    children: [
+      { href: "/dashboard/cms#documentos", label: "Documentos", icon: FileText },
+    ],
+  },
   
   { isHeader: true, label: "Ajustes", href: "#" },
-  { href: "/dashboard/info", label: "Datos del gym", icon: Users },
-  { href: "/dashboard/advanced", label: "Ajustes avanzados", icon: Settings2 },
+  {
+    href: "/dashboard/info",
+    label: "Datos del gym",
+    icon: Users,
+    activeMatch: ["/dashboard/info", "/dashboard/info/horarios", "/dashboard/info/entrenadores"],
+    children: [
+      { href: "/dashboard/info", label: "General", icon: Users, activeMatch: "/dashboard/info" },
+      { href: "/dashboard/info/horarios", label: "Horarios", icon: CalendarClock },
+      { href: "/dashboard/info/entrenadores", label: "Entrenadores", icon: Users },
+    ],
+  },
+  {
+    href: "/dashboard/advanced",
+    label: "Ajustes avanzados",
+    icon: Settings2,
+    children: [
+      { href: "/dashboard/advanced#configuracion", label: "Configuracion", icon: Settings2 },
+    ],
+  },
 ];
 
-function isItemActive(pathname: string, href: string) {
-  return href === "/dashboard" ? pathname === href : pathname.startsWith(href);
+function parseNavigationTarget(value: string) {
+  const [pathWithQuery, hash] = value.split("#");
+  const [path, query] = pathWithQuery.split("?");
+
+  return {
+    path: path || value,
+    query: query ? `?${query}` : "",
+    hash: hash ? `#${hash}` : "",
+  };
+}
+
+function isItemActive(
+  pathname: string,
+  currentQuery: string,
+  currentHash: string,
+  href: string,
+  activeMatch?: string | string[],
+) {
+  const candidates = Array.isArray(activeMatch)
+    ? activeMatch
+    : activeMatch
+      ? [activeMatch]
+      : [href];
+
+  // When activeMatch is explicitly provided, use exact matching.
+  // When falling back to href (no activeMatch), use startsWith (except /dashboard root).
+  const useExact = Boolean(activeMatch);
+
+  return candidates.some((candidate) => {
+    const normalized = parseNavigationTarget(candidate);
+
+    if (normalized.query && normalized.hash) {
+      return (
+        pathname === normalized.path &&
+        currentQuery === normalized.query &&
+        currentHash === normalized.hash
+      );
+    }
+
+    if (normalized.query) {
+      return pathname === normalized.path && currentQuery === normalized.query;
+    }
+
+    if (normalized.hash) {
+      return pathname === normalized.path && currentHash === normalized.hash;
+    }
+
+    if (useExact || normalized.path === "/dashboard") {
+      return pathname === normalized.path;
+    }
+
+    return pathname.startsWith(normalized.path);
+  });
 }
 
 const THEME_STORAGE_KEY = "nuova-forza-theme";
@@ -105,6 +236,30 @@ function getThemeSnapshot() {
 
 function getThemeServerSnapshot() {
   return false;
+}
+
+function getHashSnapshot() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return window.location.hash;
+}
+
+function getHashServerSnapshot() {
+  return "";
+}
+
+function subscribeToHashChange(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
+
+  window.addEventListener("hashchange", onStoreChange);
+
+  return () => {
+    window.removeEventListener("hashchange", onStoreChange);
+  };
 }
 
 function notifyThemeListeners() {
@@ -134,6 +289,13 @@ function subscribeToThemePreference(onStoreChange: () => void) {
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentQuery = searchParams.toString() ? `?${searchParams.toString()}` : "";
+  const currentHash = useSyncExternalStore(
+    subscribeToHashChange,
+    getHashSnapshot,
+    getHashServerSnapshot,
+  );
   const isDarkMode = useSyncExternalStore(
     subscribeToThemePreference,
     getThemeSnapshot,
@@ -152,10 +314,10 @@ export default function DashboardSidebar() {
 
   return (
     <div className="flex h-full flex-col bg-[#111111] text-white">
-      {/* BRANDING AREA - ULTRA INDUSTRIAL */}
-      <div className="p-8 pb-10">
-        <div className="flex items-center gap-4">
-          <div className="relative h-10 w-10 shrink-0 bg-white p-1.5">
+      {/* BRANDING AREA */}
+      <div className="p-6 pb-8">
+        <div className="flex items-center gap-3">
+          <div className="relative h-10 w-10 shrink-0 bg-white p-1.5 rounded-sm">
              <Image 
                src="/images/logo/logo-trans.webp" 
                alt="Nuova Forza Logo" 
@@ -164,21 +326,21 @@ export default function DashboardSidebar() {
              />
           </div>
           <div>
-            <h2 className="font-display text-2xl font-black uppercase tracking-tighter leading-none">
+            <h2 className="font-display text-xl font-bold uppercase tracking-tight leading-none">
               NUOVA<span className="text-[#d71920]">FORZA</span>
             </h2>
-            <p className="mt-1 text-[8px] font-black uppercase tracking-[0.4em] text-white/30">Backoffice Gym</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/50">Backoffice Gym</p>
           </div>
         </div>
       </div>
 
       {/* NAVIGATION - SCROLLABLE */}
-      <div className="flex-1 overflow-y-auto hide-scrollbar px-4 pb-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <nav className="space-y-1">
+      <div className="flex-1 overflow-y-auto hide-scrollbar px-3 pb-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <nav className="space-y-[2px]">
           {links.map((link, idx) => {
             if (link.isHeader) {
               return (
-                <p key={idx} className="mb-2 mt-8 px-4 text-[9px] font-black uppercase tracking-[0.2em] text-white/20">
+                <p key={idx} className="mb-2 mt-6 px-3 text-xs font-bold uppercase tracking-wider text-white/40">
                   {link.label}
                 </p>
               );
@@ -188,42 +350,56 @@ export default function DashboardSidebar() {
             const hasChildren = Boolean(link.children?.length);
             
             // Un item es activo si su href coincide O si algun hijo es activo
-            const isSelfActive = isItemActive(pathname, link.href);
-            const isChildActive = link.children?.some(c => isItemActive(pathname, c.href));
+            const isSelfActive = isItemActive(
+              pathname,
+              currentQuery,
+              currentHash,
+              link.href,
+              link.activeMatch,
+            );
+            const isChildActive = link.children?.some((child) =>
+              isItemActive(pathname, currentQuery, currentHash, child.href, child.activeMatch),
+            );
             const isActive = isSelfActive || isChildActive;
             
             // Mostrar submenu si esta activo
             const showSubmenu = isActive;
 
             return (
-              <div key={link.href + idx} className="space-y-1">
+              <div key={link.href + idx} className="space-y-[2px]">
                 <Link
                   href={link.href}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "group flex items-center justify-between px-4 py-3 transition-all border-l-2",
+                    "group flex items-center justify-between px-3 py-2.5 rounded-md transition-all",
                     isActive
-                      ? "bg-white/5 border-[#d71920] text-white shadow-lg"
-                      : "bg-transparent border-transparent text-white/40 hover:bg-white/[0.02] hover:text-white"
+                      ? "bg-white/10 text-white font-medium"
+                      : "bg-transparent text-white/60 hover:bg-white/[0.04] hover:text-white"
                   )}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <Icon className={cn("h-4 w-4 transition-colors", isActive ? "text-[#d71920]" : "group-hover:text-white")} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">{link.label}</span>
+                    <span className="text-sm font-medium tracking-wide">{link.label}</span>
                   </div>
                   {link.tag && !isActive && (
-                    <div className="flex items-center gap-1.5 bg-white px-2 py-0.5 shadow-[0_0_10px_rgba(255,255,255,0.1)]">
-                       <div className="h-1 w-1 rounded-full bg-[#d71920] animate-pulse" />
-                       <span className="text-[7px] font-black text-[#111111] uppercase tracking-tighter">{link.tag}</span>
+                    <div className="flex items-center gap-1.5 bg-white/10 px-2 py-0.5 rounded-sm">
+                       <div className="h-1.5 w-1.5 rounded-full bg-[#d71920] animate-pulse" />
+                       <span className="text-[10px] font-bold text-white tracking-tight uppercase">{link.tag}</span>
                     </div>
                   )}
-                  {hasChildren && <ChevronRight className={cn("h-3 w-3 transition-transform text-[#d71920]", showSubmenu && "rotate-90")} />}
+                  {hasChildren && <ChevronRight className={cn("h-3.5 w-3.5 transition-transform text-white/40 group-hover:text-white/80", showSubmenu && "rotate-90 text-white/80")} />}
                 </Link>
 
                 {hasChildren && showSubmenu && (
-                  <div className="ml-4 mt-1 space-y-1 border-l border-white/5 pl-2 animate-in fade-in slide-in-from-left-2 duration-300">
+                  <div className="ml-3 mt-1 space-y-1 border-l border-white/10 pl-2 animate-in fade-in slide-in-from-left-2 duration-300">
                     {link.children?.map((child) => {
-                      const isSubActive = isItemActive(pathname, child.href);
+                      const isSubActive = isItemActive(
+                        pathname,
+                        currentQuery,
+                        currentHash,
+                        child.href,
+                        child.activeMatch,
+                      );
                       const SubIcon = child.icon;
                       return (
                         <Link
@@ -231,13 +407,13 @@ export default function DashboardSidebar() {
                           href={child.href}
                           aria-current={isSubActive ? "page" : undefined}
                           className={cn(
-                            "flex items-center gap-3 px-4 py-2.5 text-[9px] font-bold uppercase tracking-widest transition-all",
+                            "flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium tracking-wide transition-all",
                             isSubActive 
-                              ? "bg-white/5 text-white" 
-                              : "text-white/30 hover:text-white"
+                              ? "bg-white/10 text-white font-semibold" 
+                              : "text-white/50 hover:bg-white/[0.02] hover:text-white"
                           )}
                         >
-                          <SubIcon className={cn("h-3 w-3", isSubActive ? "text-[#d71920]" : "text-white/10")} />
+                          <SubIcon className={cn("h-3.5 w-3.5", isSubActive ? "text-[#d71920]" : "text-white/30")} />
                           {child.label}
                         </Link>
                       );
@@ -251,34 +427,34 @@ export default function DashboardSidebar() {
       </div>
 
       {/* FOOTER AREA: THEME SWITCH & STATUS */}
-      <div className="mt-auto border-t border-white/5 p-6 bg-black/20">
+      <div className="mt-auto border-t border-white/10 p-4 bg-black/20">
         <button 
           onClick={toggleTheme}
-          className="flex w-full items-center justify-between bg-white/5 border border-white/10 px-4 py-3 transition-all hover:bg-white/10 group"
+          className="flex w-full items-center justify-between rounded-md bg-white/5 border border-white/10 px-4 py-2.5 transition-all hover:bg-white/10 group"
         >
           <div className="flex items-center gap-3">
             {isDarkMode ? (
               <>
-                <Sun className="h-3.5 w-3.5 text-amber-500" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-white">Light Mode</span>
+                <Sun className="h-4 w-4 text-amber-500" />
+                <span className="text-xs font-medium tracking-wide text-white">Light Mode</span>
               </>
             ) : (
               <>
-                <Moon className="h-3.5 w-3.5 text-white/40 group-hover:text-white" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-white">Dark Mode</span>
+                <Moon className="h-4 w-4 text-white/60 group-hover:text-white" />
+                <span className="text-xs font-medium tracking-wide text-white">Dark Mode</span>
               </>
             )}
           </div>
           <div className="h-4 w-px bg-white/10" />
-          <LayoutGrid className="h-3 w-3 text-white/20" />
+          <LayoutGrid className="h-3.5 w-3.5 text-white/30" />
         </button>
         
-        <div className="mt-6 flex items-center justify-between px-1">
+        <div className="mt-4 flex items-center justify-between px-2">
            <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-[8px] font-black uppercase tracking-widest text-white/20 text-xs">System Online</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-white/50">System Online</p>
            </div>
-           <p className="text-[8px] font-black text-white/10">V2.0.4</p>
+           <p className="text-[10px] font-medium text-white/30">V2.0.4</p>
         </div>
       </div>
     </div>

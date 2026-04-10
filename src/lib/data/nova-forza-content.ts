@@ -19,13 +19,6 @@ export interface PlanFeature {
   included: boolean;
 }
 
-export interface TeamMember {
-  name: string;
-  role: string;
-  bio: string;
-  imageUrl: string;
-}
-
 export interface FeaturedProduct {
   category: string;
   name: string;
@@ -66,26 +59,6 @@ export const novaForzaHomeContent = {
       description: "Metodo claro para que veas cambios reales en fuerza, fisico y rendimiento.",
     },
   ] satisfies ValueProp[],
-  team: [
-    {
-      name: "Carlos Mendoza",
-      role: "Powerlifting & Hipertrofia",
-      bio: "Ex-competidor nacional enfocado en mecanicas de levantamiento pesado y prevencion de lesiones.",
-      imageUrl: "/images/trainers/trainer-1.png",
-    },
-    {
-      name: "Elena Vargas",
-      role: "Entrenamiento Funcional",
-      bio: "Especialista en movilidad y acondicionamiento metabolico. Certificacion NASM.",
-      imageUrl: "/images/trainers/trainer-2.png",
-    },
-    {
-      name: "Ricardo Diaz",
-      role: "Nutricion Deportiva",
-      bio: "Experto en recomposicion corporal y diseno de planes alimenticios personalizados para atletas.",
-      imageUrl: "/images/trainers/trainer-3.png",
-    },
-  ] satisfies TeamMember[],
   featuredProducts: [
     {
       category: "Proteina",

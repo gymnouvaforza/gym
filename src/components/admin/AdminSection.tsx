@@ -1,11 +1,11 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 import AdminSurface from "./AdminSurface";
 
-interface AdminSectionProps {
+interface AdminSectionProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   description?: string;
   badge?: ReactNode;
@@ -23,9 +23,10 @@ export default function AdminSection({
   children,
   className,
   contentClassName,
+  ...props
 }: Readonly<AdminSectionProps>) {
   return (
-    <AdminSurface className={cn("p-6 sm:p-7", className)}>
+    <AdminSurface className={cn("p-6 sm:p-7", className)} {...props}>
       <div className="flex flex-col gap-3 border-b border-black/8 pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-3">
           <div className="flex items-start gap-3">

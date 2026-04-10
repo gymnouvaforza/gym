@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Edit3, ImageIcon } from "lucide-react";
+import { Edit3, ImageIcon, Tag, DollarSign, WalletCards, Library, Settings } from "lucide-react";
 
 import type { StoreDashboardProduct } from "@/lib/data/store";
 import { formatProductPrice, productStockStatusLabels } from "@/lib/data/products";
@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import DeleteStoreItemButton from "./DeleteStoreItemButton";
 import { cn } from "@/lib/utils";
 
@@ -48,15 +47,45 @@ export default function StoreProductsTable({ products }: Readonly<StoreProductsT
 
   return (
     <div className="bg-white border border-black/10 shadow-sm overflow-hidden">
-      <Table>
+      <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow className="bg-black/5 hover:bg-black/5 border-none">
-            <TableHead className="font-black text-[10px] uppercase text-[#111111] w-[80px]">Ref.</TableHead>
-            <TableHead className="font-black text-[10px] uppercase text-[#111111]">Producto</TableHead>
-            <TableHead className="font-black text-[10px] uppercase text-[#111111]">Precio Local</TableHead>
-            <TableHead className="font-black text-[10px] uppercase text-[#111111]">Referencia</TableHead>
-            <TableHead className="font-black text-[10px] uppercase text-[#111111]">Stock</TableHead>
-            <TableHead className="font-black text-[10px] uppercase text-[#111111] text-right">Gestion</TableHead>
+            <TableHead className="font-black text-[10px] uppercase text-[#111111] w-[80px]">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-3 w-3" />
+                <span>Ref.</span>
+              </div>
+            </TableHead>
+            <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+              <div className="flex items-center gap-2">
+                <Tag className="h-3 w-3" />
+                <span>Producto</span>
+              </div>
+            </TableHead>
+            <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-3 w-3" />
+                <span>Precio Local</span>
+              </div>
+            </TableHead>
+            <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+              <div className="flex items-center gap-2">
+                <WalletCards className="h-3 w-3" />
+                <span>Referencia</span>
+              </div>
+            </TableHead>
+            <TableHead className="font-black text-[10px] uppercase text-[#111111]">
+              <div className="flex items-center gap-2">
+                <Library className="h-3 w-3" />
+                <span>Stock</span>
+              </div>
+            </TableHead>
+            <TableHead className="font-black text-[10px] uppercase text-[#111111] text-right">
+              <div className="flex items-center justify-end gap-2">
+                <Settings className="h-3 w-3" />
+                <span>Gestion</span>
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

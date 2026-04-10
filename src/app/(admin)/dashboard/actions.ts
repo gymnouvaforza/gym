@@ -9,6 +9,9 @@ import {
   moderateMarketingTestimonialRecord,
   saveCmsDocumentRecord,
   saveMarketingContentRecord,
+  saveMarketingPlansRecord,
+  saveMarketingScheduleRowsRecord,
+  saveMarketingTeamMembersRecord,
   saveSiteSettingsRecord,
   updateLeadFollowUpRecord,
   updateLeadStatusRecord,
@@ -87,6 +90,42 @@ export async function saveMarketingContent(values: MarketingContentValues): Prom
       success: false, 
       error: message 
     };
+  }
+}
+
+export async function saveMarketingPlans(plans: MarketingContentValues["plans"]): Promise<ActionResponse> {
+  try {
+    const supabase = await getAuthenticatedSupabase();
+    await saveMarketingPlansRecord(supabase, plans);
+    revalidateApp();
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error al guardar los planes.";
+    return { success: false, error: message };
+  }
+}
+
+export async function saveMarketingSchedule(rows: MarketingContentValues["scheduleRows"]): Promise<ActionResponse> {
+  try {
+    const supabase = await getAuthenticatedSupabase();
+    await saveMarketingScheduleRowsRecord(supabase, rows);
+    revalidateApp();
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error al guardar los horarios.";
+    return { success: false, error: message };
+  }
+}
+
+export async function saveMarketingTeamMembers(members: MarketingContentValues["teamMembers"]): Promise<ActionResponse> {
+  try {
+    const supabase = await getAuthenticatedSupabase();
+    await saveMarketingTeamMembersRecord(supabase, members);
+    revalidateApp();
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error al guardar el equipo.";
+    return { success: false, error: message };
   }
 }
 

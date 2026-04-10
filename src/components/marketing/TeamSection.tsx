@@ -2,9 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { novaForzaHomeContent } from "@/lib/data/nova-forza-content";
+import type { MarketingTeamMember } from "@/lib/data/marketing-content";
 
-export default function TeamSection() {
+interface TeamSectionProps {
+  members: MarketingTeamMember[];
+}
+
+export default function TeamSection({ members }: Readonly<TeamSectionProps>) {
+  if (members.length === 0) {
+    return null;
+  }
+
   return (
     <section id="entrenadores" className="section-anchor relative overflow-hidden bg-[#111111] py-24 md:py-32">
       <div className="absolute inset-0 athletic-grid opacity-10" />
@@ -20,17 +28,17 @@ export default function TeamSection() {
             href="#contacto"
             className="group inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.3em] text-accent transition-all hover:gap-5"
           >
-            Ver todo el staff
+            Habla con el equipo
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {novaForzaHomeContent.team.map((member) => (
+          {members.map((member) => (
             <article key={member.name} className="group relative overflow-hidden bg-white/5 transition-all duration-500 hover:bg-white/10">
               <div className="relative aspect-[3/4] overflow-hidden">
                 <Image
-                  src={member.imageUrl}
+                  src={member.image_url ?? "/images/trainers/trainer-1.png"}
                   alt={member.name}
                   fill
                   className="object-cover grayscale transition-all duration-700 group-hover:scale-110 group-hover:grayscale-0"

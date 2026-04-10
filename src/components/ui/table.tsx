@@ -1,13 +1,63 @@
-import * as React from "react";
+"use client";
 
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-x-auto">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
-    </div>
-  ),
+  ({ className, ...props }, forwardedRef) => {
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const [startX, setStartX] = React.useState(0);
+    const [scrollLeft, setScrollLeft] = React.useState(0);
+
+    const onMouseDown = (e: React.MouseEvent) => {
+      if (!containerRef.current) return;
+      
+      const target = e.target as HTMLElement;
+      if (
+        target.closest("button") ||
+        target.closest("a") ||
+        target.closest("input") ||
+        target.closest("select") ||
+        target.closest("[role='button']") ||
+        target.closest("[role='dialog']")
+      ) {
+        return;
+      }
+
+      setIsDragging(true);
+      setStartX(e.pageX - containerRef.current.offsetLeft);
+      setScrollLeft(containerRef.current.scrollLeft);
+    };
+
+    const onMouseLeave = () => setIsDragging(false);
+    const onMouseUp = () => setIsDragging(false);
+    
+    const onMouseMove = (e: React.MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - containerRef.current.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      containerRef.current.scrollLeft = scrollLeft - walk;
+    };
+
+    return (
+      <div 
+        ref={containerRef}
+        onMouseDown={onMouseDown}
+        onMouseLeave={onMouseLeave}
+        onMouseUp={onMouseUp}
+        onMouseMove={onMouseMove}
+        className={cn(
+          "relative w-full overflow-x-auto",
+          isDragging ? "cursor-grabbing select-none" : "cursor-grab"
+        )}
+        style={{ scrollbarWidth: "thin" }}
+      >
+        <table ref={forwardedRef} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+      </div>
+    );
+  }
 );
 Table.displayName = "Table";
 

@@ -88,7 +88,7 @@ export default function LeadsToolbar({
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#111111]/20" />
           <input
             id="q"
-            placeholder="Nombre, email..."
+            placeholder="Nombre, email o telefono..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             aria-busy={isPending}

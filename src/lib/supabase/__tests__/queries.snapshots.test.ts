@@ -87,6 +87,10 @@ describe("getDashboardSnapshot", () => {
           return createTestimonialsQuery([]);
         }
 
+        if (table === "marketing_team_members") {
+          return createMarketingCollectionQuery([]);
+        }
+
         return createMarketingCollectionQuery([]);
       },
     });
@@ -148,6 +152,23 @@ describe("getDashboardSnapshot", () => {
           ]);
         }
 
+        if (table === "marketing_team_members") {
+          return createMarketingCollectionQuery([
+            {
+              id: "trainer-1",
+              site_settings_id: 1,
+              name: "Coach real",
+              role: "Fuerza",
+              bio: "Bio suficientemente larga para un entrenador visible.",
+              image_url: "https://example.com/coach-real.png",
+              order: 0,
+              is_active: true,
+              created_at: new Date(0).toISOString(),
+              updated_at: new Date(0).toISOString(),
+            },
+          ]);
+        }
+
         return createMarketingCollectionQuery([
           {
             id: "row-1",
@@ -171,6 +192,7 @@ describe("getDashboardSnapshot", () => {
     expect(snapshot.settings.site_name).toBe("Nuova Forza real");
     expect(snapshot.plans[0]?.title).toBe("Plan real");
     expect(snapshot.scheduleRows[0]?.label).toBe("Lunes");
+    expect(snapshot.teamMembers[0]?.name).toBe("Coach real");
     expect(snapshot.testimonials[0]?.author_name).toBe("Titan Uno");
   });
 });

@@ -1,14 +1,14 @@
-import { Settings2, ShieldCheck } from "lucide-react";
+import { Tag } from "lucide-react";
 
 import AdminSection from "@/components/admin/AdminSection";
 import DashboardNotice from "@/components/admin/DashboardNotice";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
-import SettingsForm from "@/components/admin/SettingsForm";
+import MarketingPlansForm from "@/components/admin/MarketingPlansForm";
 import { getDashboardCapabilities } from "@/lib/auth";
-import { getDashboardData } from "@/lib/data/site";
+import { getDashboardMarketingData } from "@/lib/data/site";
 
-export default async function DashboardSettingsPage() {
-  const { settings, warning } = await getDashboardData();
+export default async function DashboardMarketingPlanesPage() {
+  const { settings, plans, warning } = await getDashboardMarketingData();
   const { isReadOnly } = await getDashboardCapabilities();
   const disabledReason = isReadOnly
     ? "Configura SUPABASE_SERVICE_ROLE_KEY para guardar cambios reales."
@@ -17,20 +17,19 @@ export default async function DashboardSettingsPage() {
   return (
     <div className="space-y-6">
       <DashboardPageHeader
-        title="Ajustes Internos"
-        description="Configuracion avanzada del sitio: identidad, buscadores y pie de pagina."
-        icon={Settings2}
-        eyebrow="Sistema"
+        title="Planes"
+        description={`Gesiona los planes de suscripcion visibles en la web de ${settings.site_name}.`}
+        icon={Tag}
+        eyebrow="Marketing · Planes"
       />
       {warning ? <DashboardNotice message={warning} /> : null}
       {disabledReason ? <DashboardNotice message={disabledReason} /> : null}
       <AdminSection
-        id="configuracion"
-        title="Configuracion global"
-        description="Una sola ruta para editar la capa publica sin perder contexto."
-        icon={ShieldCheck}
+        title="Planes de suscripcion"
+        description="Edita nombre, precio, destacado y bullets del bloque comercial."
+        icon={Tag}
       >
-        <SettingsForm settings={settings} disabledReason={disabledReason} />
+        <MarketingPlansForm plans={plans} disabledReason={disabledReason} />
       </AdminSection>
     </div>
   );

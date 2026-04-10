@@ -39,7 +39,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-[#fbfbf8]">
       {/* SIDEBAR FIJO (LEFT) - Visible solo en XL+ */}
-      <aside className="hidden h-screen w-[304px] shrink-0 border-r border-white/5 bg-[#111111] xl:block 2xl:w-[320px]">
+      <aside className="hidden h-screen w-[260px] shrink-0 border-r border-white/5 bg-[#111111] xl:block 2xl:w-[280px]">
         <DashboardSidebar />
       </aside>
 
@@ -54,8 +54,8 @@ export default async function DashboardLayout({
               <MobileSidebar />
               
               <div className="hidden sm:block">
-                <p className="font-black text-[9px] uppercase tracking-[0.3em] text-[#d71920]">Mission Control</p>
-                <h1 className="text-xl font-display font-black tracking-tighter text-[#111111] uppercase">Operacion <span className="text-black/20">/</span> Sin Ruido</h1>
+                <p className="font-bold text-[10px] uppercase tracking-widest text-[#d71920]">Mission Control</p>
+                <h1 className="text-xl font-display font-bold tracking-tight text-[#111111] uppercase">Operacion <span className="text-black/20">/</span> Dashboard</h1>
               </div>
             </div>
 
@@ -65,8 +65,8 @@ export default async function DashboardLayout({
                   <ShieldCheck className="h-4 w-4 text-green-600" />
                 </div>
                 <div className="text-right">
-                  <p className="text-[8px] font-black uppercase text-[#7a7f87]">Admin Active</p>
-                  <p className="text-[11px] font-bold text-[#111111]">{user.email}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7a7f87]">Admin Active</p>
+                  <p className="text-xs font-bold text-[#111111]">{user.email}</p>
                 </div>
               </div>
               <div className="h-8 w-px bg-black/5 mx-1 sm:mx-2 hidden lg:block" />

@@ -48,6 +48,7 @@ export default async function DashboardWebPage() {
         <main className="space-y-12 min-w-0">
           
           <AdminSection
+            id="secciones"
             title="CONSTRUCTOR DE SECCIONES"
             description="Ajusta el tono de voz y los mensajes clave que ven tus prospectos."
             icon={LayoutTemplate}
@@ -58,7 +59,7 @@ export default async function DashboardWebPage() {
             </div>
           </AdminSection>
 
-          <section className="space-y-6">
+          <section id="exploracion" className="space-y-6">
              <div className="flex items-center gap-3">
                 <h2 className="font-display text-3xl font-black uppercase tracking-tighter text-[#111111]">Exploracion Visual</h2>
                 <div className="h-px flex-1 bg-black/10" />
