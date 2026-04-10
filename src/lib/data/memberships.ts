@@ -15,6 +15,7 @@ import {
   type MembershipMemberSummary,
   type MembershipPaymentEntry,
   type MembershipPlan,
+  type MembershipPublicStatus,
   type MembershipReceptionScanResult,
   type MembershipRequestAnnotation,
   type MembershipRequestDetail,
@@ -872,7 +873,9 @@ export async function updateMembershipRequestStatus(
   }
 }
 
-export async function getMembershipValidationByToken(token: string) {
+export async function getPublicMembershipStatusByToken(
+  token: string,
+): Promise<MembershipPublicStatus | null> {
   const client = createSupabaseAdminClient();
   const { data: member, error } = await client
     .from("member_profiles")
@@ -932,6 +935,7 @@ export async function getMembershipValidationByToken(token: string) {
   });
 
   return {
+    isCurrentlyValid: validation.status === "al_dia",
     member: {
       fullName: member.full_name,
       memberNumber: member.member_number,
@@ -944,6 +948,10 @@ export async function getMembershipValidationByToken(token: string) {
     requestNumber: currentRequest.data?.request_number ?? null,
     qrUrl: new URL(`/validacion/membresia/${token}`, SITE_URL).toString(),
   };
+}
+
+export async function getMembershipValidationByToken(token: string) {
+  return getPublicMembershipStatusByToken(token);
 }
 
 export function buildMembershipValidationUrl(token: string) {

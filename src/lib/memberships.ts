@@ -105,6 +105,18 @@ export interface MembershipReceptionScanResult {
   validation: MembershipValidation | null;
 }
 
+export interface MembershipPublicStatus {
+  isCurrentlyValid: boolean;
+  member: {
+    fullName: string;
+    memberNumber: string;
+  };
+  planTitle: string;
+  qrUrl: string;
+  requestNumber: string | null;
+  validation: MembershipValidation;
+}
+
 export interface MembershipValidation {
   cycleEndsOn: string | null;
   cycleStartsOn: string | null;

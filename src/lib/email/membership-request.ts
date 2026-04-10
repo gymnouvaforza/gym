@@ -130,7 +130,8 @@ export async function sendMembershipRequestEmail({
               <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;color:#6b7280;">Validacion</div>
               <div style="margin-top:8px;font-size:18px;font-weight:700;">${escapeHtml(membershipValidationStatusLabels[request.validation.status])}</div>
               <p style="margin:10px 0 0;color:#4b5563;line-height:1.8;">
-                Este QR sirve para la validacion ligera en recepcion. La vigencia y los cobros reales siguen controlados por el equipo del gym.
+                Este QR abre una pagina publica con el estado actual de tu membresia. En recepcion,
+                el equipo confirma el ingreso desde su panel interno.
               </p>
             </div>
 
@@ -152,7 +153,7 @@ export async function sendMembershipRequestEmail({
                 Abrir mi membresia
               </a>
               <a href="${qrUrl}" style="display:inline-block;margin-left:12px;border:1px solid #111111;color:#111111;text-decoration:none;padding:12px 18px;font-weight:700;">
-                Abrir QR
+                Abrir estado QR
               </a>
             </div>
           </div>

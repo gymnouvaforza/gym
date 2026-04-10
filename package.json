@@ -38,6 +38,7 @@
     "test:supabase": "node scripts/run-tests-by-path.mjs src/lib/supabase",
     "test:medusa": "node scripts/run-tests-by-path.mjs apps/medusa/src",
     "supabase:qr:doctor": "node scripts/supabase-qr-doctor.mjs",
+    "supabase:qr:rotate": "node scripts/rotate-membership-qr-tokens.mjs",
     "medusa:seed:nova": "npm --prefix apps/medusa run seed:nova",
     "sync:store:medusa": "node scripts/sync-store-supabase-to-medusa.cjs"
   },

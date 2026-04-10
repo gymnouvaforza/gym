@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { ShieldCheck, ShieldAlert, Clock3 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { getMembershipValidationByToken } from "@/lib/data/memberships";
+import { getPublicMembershipStatusByToken } from "@/lib/data/memberships";
 import { membershipValidationStatusLabels } from "@/lib/memberships";
 import { formatMemberAccountDate } from "@/lib/member-account";
 
@@ -20,7 +20,7 @@ export default async function MembershipValidationPage({
   params: Promise<{ token: string }>;
 }>) {
   const { token } = await params;
-  const validation = await getMembershipValidationByToken(token);
+  const validation = await getPublicMembershipStatusByToken(token);
 
   if (!validation) {
     notFound();
@@ -35,7 +35,7 @@ export default async function MembershipValidationPage({
           <div className="flex flex-col gap-6 border-b border-white/10 pb-6 md:flex-row md:items-start md:justify-between">
             <div className="space-y-3">
               <p className="text-[10px] font-black uppercase tracking-[0.38em] text-[#d71920]">
-                Validacion operativa
+                Estado publico
               </p>
               <h1 className="font-display text-4xl font-black uppercase tracking-tight">
                 {validation.member.fullName}
@@ -67,6 +67,10 @@ export default async function MembershipValidationPage({
                   Estado
                 </p>
                 <p className="mt-2 text-lg font-semibold">{validation.validation.label}</p>
+                <p className="mt-2 text-sm text-white/65">
+                  Esta pagina publica solo muestra si la membresia esta vigente o no. El ingreso en
+                  recepcion se confirma desde el panel del equipo.
+                </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="border border-white/10 bg-white/[0.03] p-4">
