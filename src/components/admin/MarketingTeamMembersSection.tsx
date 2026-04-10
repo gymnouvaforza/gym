@@ -279,7 +279,6 @@ export default function MarketingTeamMembersSection({
                         <FormItem>
                           <FormControl>
                             <MarketingTeamImageUpload
-                              memberId={watchedTeamMembers[index]?.id ?? field.id}
                               value={imageField.value ?? ""}
                               onChange={imageField.onChange}
                               disabled={isPending || Boolean(disabledReason)}

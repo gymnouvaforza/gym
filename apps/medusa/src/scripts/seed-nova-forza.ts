@@ -86,7 +86,7 @@ const novaForzaProducts: NovaForzaSeedProduct[] = [
       featured: true,
       pickup_only: true,
       pickup_note: "Recogida rapida en recepcion durante el horario del club.",
-      storefront_images: ["nova-creatina.png"],
+      storefront_images: ["nova-creatina.webp"],
       tags: ["Fuerza", "Recuperacion", "Uso diario"],
       highlights: [
         "300 g de creatina monohidratada micronizada.",
@@ -119,7 +119,7 @@ const novaForzaProducts: NovaForzaSeedProduct[] = [
       pickup_summary: "Recogida en Nova Forza Gym",
       pickup_eta:
         "Tu producto estara listo en recepcion in menos de 24 horas laborables. Presenta tu email de confirmacion.",
-      storefront_images: ["nova-whey.png"],
+      storefront_images: ["nova-whey.webp"],
       tags: ["Recuperacion", "Proteina", "Postentreno"],
       highlights: [
         "25 g de proteina por servicio.",
@@ -168,7 +168,7 @@ const novaForzaProducts: NovaForzaSeedProduct[] = [
       featured: false,
       pickup_only: true,
       pickup_note: "Disponible para recogida inmediata en el club.",
-      storefront_images: ["nova-shaker.png"],
+      storefront_images: ["nova-shaker.webp"],
       tags: ["Hidratacion", "Entreno", "Nova Forza"],
       highlights: [
         "Capacidad of 700 ml.",
@@ -196,7 +196,7 @@ const novaForzaProducts: NovaForzaSeedProduct[] = [
       featured: true,
       pickup_only: true,
       pickup_note: "Recogelos en recepcion y pruebalo el mismo dia en sala.",
-      storefront_images: ["nova-straps.png"],
+      storefront_images: ["nova-straps.webp"],
       tags: ["Fuerza", "Powerlifting", "Agarre"],
       highlights: [
         "Tejido resistente with tacto firme.",
@@ -223,7 +223,7 @@ const novaForzaProducts: NovaForzaSeedProduct[] = [
       featured: false,
       pickup_only: true,
       pickup_note: "Disponibles en varias tallas en el club.",
-      storefront_images: ["nova-guantes.png"],
+      storefront_images: ["nova-guantes.webp"],
       tags: ["Proteccion", "Entreno", "Accesorios"],
       highlights: [
         "Material transpirable de alta calidad.",
@@ -249,7 +249,7 @@ const novaForzaProducts: NovaForzaSeedProduct[] = [
       short_description: "Prenda ligera de corte deportivo with identidad limpia and presencia premium.",
       featured: true,
       pickup_only: true,
-      storefront_images: ["nova-polo.png"],
+      storefront_images: ["nova-polo.webp"],
       tags: ["Merch", "Nova Forza", "Performance"],
       highlights: [
         "Tejido tecnico ligero.",
@@ -275,7 +275,7 @@ const novaForzaProducts: NovaForzaSeedProduct[] = [
       short_description: "Mantiene la temperatura durante todo el entreno con un diseño industrial elegante.",
       featured: false,
       pickup_only: true,
-      storefront_images: ["nova-botella.png"],
+      storefront_images: ["nova-botella.webp"],
       tags: ["Hidratacion", "Premium", "Accesorios"],
       highlights: [
         "Acero inoxidable de grado alimenticio.",
@@ -301,7 +301,7 @@ const novaForzaProducts: NovaForzaSeedProduct[] = [
       short_description: "Resistencia premium sin deslizamientos, ideal para glúteo y pierna.",
       featured: false,
       pickup_only: true,
-      storefront_images: ["nova-banda.png"],
+      storefront_images: ["nova-banda.webp"],
       tags: ["Entrenamiento", "Pierna", "Accesorios"],
       highlights: [
         "Tejido suave que no irrita la piel.",

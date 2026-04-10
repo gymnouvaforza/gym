@@ -102,7 +102,8 @@ export default function StoreProductsTable({ products }: Readonly<StoreProductsT
                           src={mainImage} 
                           alt={product.name} 
                           fill 
-                          className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          sizes="56px" 
                         />
                       ) : (
                         <ImageIcon className="h-5 w-5 text-black/10" />

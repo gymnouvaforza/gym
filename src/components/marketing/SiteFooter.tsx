@@ -70,6 +70,7 @@ export default function SiteFooter({
                   alt={settings.site_name}
                   fill
                   className="object-contain"
+                  sizes="192px"
                 />
               </div>
             </Link>

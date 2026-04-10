@@ -34,6 +34,7 @@ export default function CartLineItems({
                   alt={item.productTitle ?? item.title}
                   fill
                   className="object-cover object-center"
+                  sizes="96px"
                 />
               </div>
             )}

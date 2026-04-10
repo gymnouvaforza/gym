@@ -323,6 +323,7 @@ export default function DashboardSidebar() {
                alt="Nuova Forza Logo" 
                fill 
                className="object-contain"
+               sizes="40px"
              />
           </div>
           <div>

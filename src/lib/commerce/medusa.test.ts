@@ -267,16 +267,16 @@ describe("medusa commerce", () => {
       buildStoreProduct({
         metadata: {
           storefront_images: [
-            "http://localhost:3000/images/products/nova-whey.png",
-            "nova-creatina.png",
+            "http://localhost:3000/images/products/nova-whey.webp",
+            "nova-creatina.webp",
           ],
         },
       }),
     );
 
     expect(product?.images).toEqual([
-      "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/medusa-media/nova-whey.png",
-      "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/medusa-media/nova-creatina.png",
+      "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/medusa-media/nova-whey.webp",
+      "https://nbjkfyjeewprnxxibhwz.supabase.co/storage/v1/object/public/medusa-media/nova-creatina.webp",
     ]);
   });
 

@@ -5,7 +5,7 @@ import { Loader2, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 
 import { normalizeCommerceImageUrl, PRODUCT_IMAGES_BUCKET } from "@/lib/commerce/image-urls";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { uploadAdminMedia } from "@/lib/media/admin-upload";
 import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
@@ -20,38 +20,26 @@ export default function ImageUpload({
   disabled,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const supabase = createSupabaseBrowserClient();
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const onUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
+    setFeedback(null);
     const newUrls = [...value];
 
     try {
       for (const file of Array.from(files)) {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error } = await supabase.storage.from(PRODUCT_IMAGES_BUCKET).upload(filePath, file);
-
-        if (error) {
-          console.error("Upload error:", error);
-          continue;
-        }
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(filePath);
-
-        newUrls.push(publicUrl);
+        const uploadedImage = await uploadAdminMedia(file, "product");
+        newUrls.push(uploadedImage.url);
       }
 
       onChange(newUrls);
     } catch (error) {
       console.error("Error in upload process:", error);
+      setFeedback(error instanceof Error ? error.message : "No se pudo subir la imagen.");
     } finally {
       setIsUploading(false);
       event.target.value = "";
@@ -73,7 +61,13 @@ export default function ImageUpload({
               key={url}
               className="relative aspect-square overflow-hidden border border-black/10 bg-black/[0.02]"
             >
-              <Image src={displayUrl} alt="Producto" fill className="object-cover" unoptimized />
+              <Image
+                src={displayUrl}
+                alt="Producto"
+                fill
+                className="object-cover"
+                sizes="(min-width: 1024px) 12rem, (min-width: 640px) 20vw, 45vw"
+              />
               <button
                 onClick={() => onRemove(url)}
                 disabled={disabled}
@@ -113,9 +107,12 @@ export default function ImageUpload({
 
       {value.length === 0 && !isUploading ? (
         <p className="text-xs text-[#5f6368]">
-          No hay imagenes seleccionadas. Sube al menos una.
+          No hay imagenes seleccionadas. Las nuevas subidas se optimizan antes de guardarse en{" "}
+          <code>{PRODUCT_IMAGES_BUCKET}</code>.
         </p>
       ) : null}
+
+      {feedback ? <p className="text-xs text-[#d71920]">{feedback}</p> : null}
     </div>
   );
 }

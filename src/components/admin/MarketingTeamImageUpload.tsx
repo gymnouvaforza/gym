@@ -5,27 +5,25 @@ import { Loader2, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { uploadAdminMedia } from "@/lib/media/admin-upload";
 import { cn } from "@/lib/utils";
 
 const TEAM_IMAGES_BUCKET = "medusa-media";
 const TEAM_IMAGES_PREFIX = "marketing/team";
 
 interface MarketingTeamImageUploadProps {
-  memberId: string;
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
 }
 
 export default function MarketingTeamImageUpload({
-  memberId,
   value,
   onChange,
   disabled,
 }: Readonly<MarketingTeamImageUploadProps>) {
   const [isUploading, setIsUploading] = useState(false);
-  const supabase = createSupabaseBrowserClient();
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -35,25 +33,14 @@ export default function MarketingTeamImageUpload({
     }
 
     setIsUploading(true);
+    setFeedback(null);
 
     try {
-      const extension = file.name.split(".").pop()?.toLowerCase() ?? "png";
-      const filePath = `${TEAM_IMAGES_PREFIX}/${memberId}.${extension}`;
-      const { error } = await supabase.storage
-        .from(TEAM_IMAGES_BUCKET)
-        .upload(filePath, file, { upsert: true });
-
-      if (error) {
-        throw error;
-      }
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from(TEAM_IMAGES_BUCKET).getPublicUrl(filePath);
-
-      onChange(publicUrl);
+      const uploadedImage = await uploadAdminMedia(file, "team");
+      onChange(uploadedImage.url);
     } catch (error) {
       console.error("[MarketingTeamImageUpload] Upload error:", error);
+      setFeedback(error instanceof Error ? error.message : "No se pudo subir la foto.");
     } finally {
       setIsUploading(false);
       event.target.value = "";
@@ -69,7 +56,13 @@ export default function MarketingTeamImageUpload({
         )}
       >
         {value ? (
-          <Image src={value} alt="Entrenador" fill className="object-cover" unoptimized />
+          <Image
+            src={value}
+            alt="Entrenador"
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 7rem, 28vw"
+          />
         ) : (
           <div className="px-6 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#8c9198]">
             Sin foto subida
@@ -108,8 +101,10 @@ export default function MarketingTeamImageUpload({
       </div>
 
       <p className="text-[11px] text-[#7a7f87]">
-        La imagen se guarda en Supabase Storage dentro de <code>medusa-media/marketing/team</code>.
+        La imagen se optimiza antes de guardarse en Supabase Storage dentro de{" "}
+        <code>{TEAM_IMAGES_BUCKET}/{TEAM_IMAGES_PREFIX}</code>.
       </p>
+      {feedback ? <p className="text-[11px] text-[#d71920]">{feedback}</p> : null}
     </div>
   );
 }

@@ -29,7 +29,7 @@ function buildProduct(overrides: Partial<Product> = {}): Product {
     stock_status: "in_stock",
     pickup_only: true,
     featured: true,
-    images: ["/images/products/nova-whey.png"],
+    images: ["/images/products/nova-whey.webp"],
     tags: ["Proteina"],
     highlights: ["24 g de proteina"],
     cta_label: "Reservar",

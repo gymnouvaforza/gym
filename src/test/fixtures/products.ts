@@ -20,7 +20,7 @@ export const products: Product[] = [
     pickup_summary: "Recogida en Nuova Forza Gym",
     pickup_eta: "Tu bote estará listo en recepción en menos de 24 horas laborables.",
     featured: true,
-    images: ["/images/products/nova-creatina.png"],
+    images: ["/images/products/nova-creatina.webp"],
     tags: ["Fuerza", "Recuperacion", "Uso diario"],
     highlights: [
       "300 g de creatina monohidratada micronizada.",
@@ -67,7 +67,7 @@ export const products: Product[] = [
     pickup_eta:
       "Tu producto estará listo en recepción en menos de 24 horas laborables. Presenta tu email de confirmación.",
     featured: true,
-    images: ["/images/products/nova-whey.png"],
+    images: ["/images/products/nova-whey.webp"],
     tags: ["Recuperacion", "Proteina", "Postentreno"],
     highlights: [
       "25 g de proteína por servicio.",
@@ -115,7 +115,7 @@ export const products: Product[] = [
     pickup_only: true,
     pickup_note: "Disponible para recogida inmediata en el club.",
     featured: false,
-    images: ["/images/products/nova-shaker.png"],
+    images: ["/images/products/nova-shaker.webp"],
     tags: ["Hidratacion", "Entreno", "Nuova Forza"],
     highlights: [
       "Capacidad de 700 ml.",
@@ -142,7 +142,7 @@ export const products: Product[] = [
     pickup_only: true,
     pickup_note: "Recogelos en recepción y pruebalos el mismo dia en sala.",
     featured: true,
-    images: ["/images/products/nova-straps.png"],
+    images: ["/images/products/nova-straps.webp"],
     tags: ["Fuerza", "Powerlifting", "Agarre"],
     highlights: [
       "Tejido resistente con tacto firme.",
@@ -169,7 +169,7 @@ export const products: Product[] = [
     pickup_only: true,
     pickup_note: "Disponibles en varias tallas en el club.",
     featured: false,
-    images: ["/images/products/nova-guantes.png"],
+    images: ["/images/products/nova-guantes.webp"],
     tags: ["Proteccion", "Entreno", "Accesorios"],
     highlights: [
       "Material transpirable de alta calidad.",
@@ -197,7 +197,7 @@ export const products: Product[] = [
     pickup_summary: "Disponible en recepción",
     pickup_eta: "Recogida inmediata según stock.",
     featured: true,
-    images: ["/images/products/nova-polo.png"],
+    images: ["/images/products/nova-polo.webp"],
     tags: ["Merch", "Nuova Forza", "Performance"],
     highlights: [
       "Tejido tecnico ligero.",
@@ -224,7 +224,7 @@ export const products: Product[] = [
     pickup_only: true,
     pickup_note: "Recogida en el club.",
     featured: false,
-    images: ["/images/products/nova-botella.png"],
+    images: ["/images/products/nova-botella.webp"],
     tags: ["Hidratacion", "Premium", "Accesorios"],
     highlights: [
       "Acero inoxidable de grado alimenticio.",
@@ -251,7 +251,7 @@ export const products: Product[] = [
     pickup_only: true,
     pickup_note: "Ideal para sala.",
     featured: false,
-    images: ["/images/products/nova-banda.png"],
+    images: ["/images/products/nova-banda.webp"],
     tags: ["Entrenamiento", "Pierna", "Accesorios"],
     highlights: [
       "Tejido suave que no irrita la piel.",

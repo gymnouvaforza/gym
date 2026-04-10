@@ -25,6 +25,7 @@ export default function SiteHeader({ settings }: Readonly<SiteHeaderProps>) {
               alt={settings.site_name}
               fill
               className="object-contain"
+              sizes="160px"
               priority
             />
           </div>

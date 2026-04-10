@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { SiteSettings } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
-const FALLBACK_IMAGE = "/images/hero/banner-1.png";
+const FALLBACK_IMAGE = "/images/hero/banner-1.webp";
 const DEFAULT_VIDEO_PATH = "/video/video.mp4";
 const DEFAULT_HERO_TITLE = "EL PODER DE TU PROGRESO COMIENZA AQUI";
 
@@ -99,6 +99,7 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
                   alt="Nuova Forza Hero"
                   fill
                   className="object-cover opacity-20 blur-xl"
+                  sizes="(min-width: 1024px) 360px, (min-width: 640px) 320px, 280px"
                   priority
                 />
                 <video

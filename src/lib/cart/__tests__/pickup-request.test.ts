@@ -90,7 +90,7 @@ describe("pickup request mapper", () => {
           id: "line_02",
           title: "Creatina",
           quantity: 1,
-          thumbnail: "http://localhost:3000/images/products/nova-creatina.png",
+          thumbnail: "http://localhost:3000/images/products/nova-creatina.webp",
           unit_price: "99.9",
           total: "99.9",
           selected_options: [],
@@ -100,6 +100,6 @@ describe("pickup request mapper", () => {
 
     expect(pickupRequest.lineItems[0]?.thumbnail).toBeTruthy();
     expect(pickupRequest.lineItems[0]?.thumbnail).not.toContain("localhost");
-    expect(pickupRequest.lineItems[0]?.thumbnail).toContain("nova-creatina.png");
+    expect(pickupRequest.lineItems[0]?.thumbnail).toContain("nova-creatina.webp");
   });
 });
