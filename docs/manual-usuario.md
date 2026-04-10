@@ -1,54 +1,83 @@
 # Manual de Usuario - Nova Forza Gym
 
-Este documento proporciona las instrucciones necesarias para gestionar el sitio web y el panel de administración de **Nova Forza Gym**.
+Este documento es la guía oficial para gestionar el ecosistema digital de **Nova Forza Gym**.
 
-## 1. Acceso al Panel de Administración
+## 1. Acceso al Panel (Backoffice)
 
-El panel de administración (Backoffice) es la herramienta principal para gestionar los leads, la tienda y la configuración del sitio.
+El dashboard es el centro de mando del gimnasio.
 
-- **URL de Acceso:** `https://nuovaforzagym.com/login` (o `/login` en el dominio local).
-- **Credenciales:** Consulte con su administrador de sistemas para obtener su usuario y contraseña personal de Supabase.
-
-## 2. Gestión de Leads (Contactos)
-
-Cada vez que un usuario completa el formulario de contacto en la web pública, se genera un "Lead" en el sistema.
-
-### Pasos para gestionar leads:
-1. Acceda al **Dashboard**.
-2. Diríjase a la sección **Leads** (o Mensajes).
-3. Revise la lista de prospectos:
-   - **Nombre:** Identificación del cliente potencial.
-   - **Email/Teléfono:** Datos de contacto.
-   - **Mensaje:** Consulta específica enviada desde la web.
-4. Puede marcar los leads como "Atendidos" para mantener un control del seguimiento comercial.
-
-## 3. Gestión de la Tienda (Pickup)
-
-El sistema utiliza **Medusa v2** como motor de eCommerce, pero la gestión se realiza íntegramente desde nuestro Dashboard personalizado en la sección **Tienda**.
-
-### Flujo de Pedidos Pickup:
-1. El cliente compra en la web y selecciona "Recogida en tienda" (Pickup).
-2. El pedido aparecerá en el Dashboard -> **Pedidos**.
-3. Una vez que el producto esté listo para ser entregado, cambie el estado a "Listo para recogida".
-4. Cuando el cliente recoja el producto, marque el pedido como "Entregado".
-
-### Actualización del Catálogo:
-- Para añadir o editar productos y categorías, utilice la sección **Tienda** del Dashboard.
-- **Nota Importante:** Los cambios se sincronizan automáticamente con el motor de Medusa y los enlaces de soporte en Supabase. Si nota alguna inconsistencia, puede solicitar una sincronización manual al soporte técnico.
-
-## 4. Configuración del Sitio (CMS)
-
-Algunos textos y configuraciones legales se pueden ajustar desde la sección **Ajustes** o **CMS** del panel.
-
-- **Textos Legales:** Puede actualizar la Política de Privacidad, Términos y Condiciones, y Cookies.
-- **Información de Contacto:** Email de soporte, dirección física en Chiclayo y horarios de atención.
-
-## 5. Soporte Técnico
-
-Si experimenta problemas técnicos o necesita una funcionalidad adicional, por favor contacte a:
-
-- **Email:** soporte@nuovaforzagym.com
-- **Web:** [Nova Forza Gym Support](https://nuovaforzagym.com)
+- **URL:** `https://nuovaforzagym.com/login` (o dominio local `/login`).
+- **Credenciales:** Usa tu cuenta de Supabase autorizada.
+- **Roles:** Solo los usuarios en `ADMIN_ALLOWED_EMAILS` pueden realizar cambios críticos.
 
 ---
-*Ultima actualización: Abril 2026*
+
+## 2. Gestión de Marketing y CMS
+
+Desde la sección **Marketing**, puedes controlar qué ven los usuarios en la web pública.
+
+### Moderación de Reseñas (Testimonios)
+1. Ve a **Marketing** -> **Moderación de Reseñas**.
+![Marketing Dashboard](images/product-snapshot/marketing.png)
+
+2. Los socios pueden enviar reseñas desde su área privada ("Mi Cuenta").
+3. Revisa las reseñas pendientes:
+   - **Aprobar**: La reseña aparecerá en el carrusel de la página de inicio.
+   - **Rechazar**: La reseña se guardará pero no será visible públicamente.
+
+### Planes y Horarios
+- Los planes de precios y los horarios de las clases se editan directamente desde los subapartados de Marketing.
+- Los cambios son instantáneos en las rutas `/planes` y `/horarios`.
+
+---
+
+## 3. Módulo de Miembros
+
+En la sección **Miembros**, gestionas la base de datos de socios del gimnasio.
+![Módulo de Miembros](images/manual/miembros.png)
+
+- **Registro de nuevo socio**: Crea el perfil básico, vincula un correo electrónico (para su acceso privado) y define su estado de membresía.
+- **Búsqueda**: Filtra por nombre, email o estado para encontrar rápidamente a un socio.
+- **Detalle de socio**: Desde aquí puedes ver sus datos de contacto, historial de pagos y rutinas asignadas.
+
+---
+
+## 4. Gestión de Rutinas
+
+El gimnasio permite ofrecer rutinas personalizadas a los socios.
+![Módulo de Rutinas](images/manual/rutinas.png)
+
+1. Ve a **Rutinas**.
+2. **Crear nueva rutina**: Define el nombre, nivel de dificultad y añade los ejercicios con sus series y repeticiones.
+3. **Asignación**: Desde el detalle de un miembro, puedes asignarle una de las rutinas creadas.
+4. El socio podrá ver su rutina desde su App móvil o desde su cuenta web.
+
+---
+
+## 5. Tienda y Pedidos (Pickup)
+
+Operamos con un modelo de **Recogida en tienda**.
+
+![Dashboard Tienda](images/manual/tienda-admin.png)
+
+### Gestión de Pedidos
+1. Cuando un cliente realiza una compra, el pedido aparece en **Tienda** -> **Pedidos**.
+2. **Estados del pedido**:
+   - `Pendiente`: El pago se ha realizado, el personal debe preparar el producto.
+   - `Listo para recogida`: Cambia a este estado para notificar al cliente que puede pasar por el gimnasio.
+   - `Entregado`: Marca el pedido como completado cuando el socio recoja su compra.
+
+### Catálogo
+- Los productos se gestionan en la sección **Catálogo**.
+- Puedes editar descripciones, precios y stock. Los datos se sincronizan automáticamente con el motor de Medusa.
+
+---
+
+## 6. Soporte Técnico
+
+Si encuentras fallos o necesitas ayuda con el panel:
+- **Email:** soporte@nuovaforzagym.com
+- **Runbook Técnico:** Para problemas de sincronización, consulta `docs/architecture.md`.
+
+---
+*Última actualización: Abril 2026*

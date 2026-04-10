@@ -23,7 +23,7 @@ La base se orienta a crecer mas adelante sin duplicar sistemas:
 - pedidos pickup
 - ajustes/CMS
 
-Por ahora esos modulos futuros solo deben estar previstos o documentados, no implementados salvo que una tarea lo pida claramente.
+Por ahora esos modulos ya forman parte del core operativo y deben mantenerse coherentes entre sí.
 
 ## Objetivo actual
 
@@ -50,10 +50,8 @@ En esta fase el alcance real ya incluye:
 
 No se deben introducir aun:
 
-- reservas completas
-- logica de miembros compleja
-- rutinas o backoffice de miembros completo
-- ecommerce completo fuera del flujo de tienda y pickup ya acotado
+- reservas completas (solo en fase de discovery)
+- ecommerce fuera del flujo de tienda y pickup ya acotado
 - automatizaciones AI/LLM
 - i18n
 - integraciones pesadas por adelantado
@@ -159,6 +157,7 @@ La regla actual es:
 - el dashboard oficial es `src/app/(admin)/dashboard`
 - Medusa es la fuente operativa de verdad para categorias y productos
 - Supabase sigue siendo backend principal del gym y capa de soporte/enlace durante la migracion
+- Consulta la guia completa en [docs/architecture.md](docs/architecture.md)
 
 ### Runtime y base de datos
 
