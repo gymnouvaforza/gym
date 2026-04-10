@@ -54,7 +54,7 @@ function buildRequest(): MembershipRequestDetail {
       fullName: "Socio Titan",
       id: "mem_01",
       memberNumber: "M-001",
-      membershipQrToken: "qr_token_123",
+      membershipQrToken: "ff6ae4fd-b470-4db1-8d47-711fb01eb0a2",
       phone: null,
       status: "active",
       supabaseUserId: "user_01",

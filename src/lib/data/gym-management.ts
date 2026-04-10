@@ -59,6 +59,7 @@ import {
   listPersistedUserRoles,
   type PersistedUserRole,
 } from "@/lib/user-roles";
+import { normalizeMembershipQrToken } from "@/lib/membership-qr";
 import { slugify, trimToNull } from "@/lib/utils";
 
 type GymAdminClient = ReturnType<typeof createSupabaseAdminClient>;
@@ -197,6 +198,32 @@ function generateMemberNumber() {
 
 function normalizeMemberEmail(email: string) {
   return email.trim().toLowerCase();
+}
+
+async function ensureMemberProfileQrToken(
+  client: GymAdminClient,
+  member: DBMemberProfile,
+): Promise<DBMemberProfile> {
+  const currentToken = normalizeMembershipQrToken(member.membership_qr_token);
+
+  if (currentToken) {
+    return member;
+  }
+
+  const nextToken = crypto.randomUUID();
+  const { error } = await client
+    .from("member_profiles")
+    .update({ membership_qr_token: nextToken })
+    .eq("id", member.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    ...member,
+    membership_qr_token: nextToken,
+  };
 }
 
 function resolveRoutineTemplateSlug(title: string, existingSlug?: string | null) {
@@ -496,13 +523,13 @@ export async function ensureMemberProfileForUser(user: Pick<User, "app_metadata"
         throw new Error(relinkError.message);
       }
 
-      return {
+      return ensureMemberProfileQrToken(client, {
         ...selectedMember,
         supabase_user_id: user.id,
-      };
+      });
     }
 
-    return selectedMember;
+    return ensureMemberProfileQrToken(client, selectedMember);
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -529,7 +556,7 @@ export async function ensureMemberProfileForUser(user: Pick<User, "app_metadata"
     throw new Error(error.message);
   }
 
-  return data as DBMemberProfile;
+  return ensureMemberProfileQrToken(client, data as DBMemberProfile);
 }
 
 async function listCurrentPlans(client: GymAdminClient, memberIds: string[]) {

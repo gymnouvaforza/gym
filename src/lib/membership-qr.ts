@@ -69,6 +69,11 @@ export interface MembershipQrLookupInput {
 export const MEMBERSHIP_QR_UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+export function normalizeMembershipQrToken(value: string | null | undefined) {
+  const normalized = value?.trim() ?? "";
+  return MEMBERSHIP_QR_UUID_PATTERN.test(normalized) ? normalized : null;
+}
+
 function parseIsoDate(value: string | null) {
   if (!value) {
     return null;
@@ -109,7 +114,7 @@ export function parseMembershipQrScannedValue(input: string) {
     return extractTokenFromPath(normalized);
   }
 
-  return MEMBERSHIP_QR_UUID_PATTERN.test(normalized) ? normalized : null;
+  return normalizeMembershipQrToken(normalized);
 }
 
 export function buildMembershipQrPublicValidationUrl(baseUrl: string, token: string) {

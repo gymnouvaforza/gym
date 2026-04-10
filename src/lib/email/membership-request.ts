@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 
 import { buildMembershipValidationUrl } from "@/lib/data/memberships";
+import { normalizeMembershipQrToken } from "@/lib/membership-qr";
 import {
   membershipManualPaymentStatusLabels,
   membershipRequestStatusLabels,
@@ -63,8 +64,9 @@ export async function sendMembershipRequestEmail({
   siteName,
 }: MembershipRequestEmailContext) {
   const detailUrl = resolveCanonicalUrl(`/mi-cuenta/membresias/${request.id}`);
-  const qrUrl = buildMembershipValidationUrl(request.member.membershipQrToken);
-  const qrMarkup = await buildQrMarkup(qrUrl);
+  const qrToken = normalizeMembershipQrToken(request.member.membershipQrToken);
+  const qrUrl = qrToken ? buildMembershipValidationUrl(qrToken) : null;
+  const qrMarkup = qrUrl ? await buildQrMarkup(qrUrl) : null;
   const customerSubject = `${siteName} | Membresia ${request.requestNumber}`;
   const internalSubject = `${siteName} | Nueva membresia ${request.requestNumber}`;
   const customerText = [
@@ -76,7 +78,7 @@ export async function sendMembershipRequestEmail({
     `Vigencia: ${formatDate(request.cycleStartsOn)} - ${formatDate(request.cycleEndsOn)}`,
     "",
     `Detalle: ${detailUrl}`,
-    `QR: ${qrUrl}`,
+    qrUrl ? `QR: ${qrUrl}` : "QR: pendiente de regeneracion",
   ].join("\n");
   const internalText = [
     `${siteName} - Nueva membresia ${request.requestNumber}`,
@@ -86,7 +88,7 @@ export async function sendMembershipRequestEmail({
     `Fuente: ${request.source}`,
     "",
     `Detalle admin/portal: ${detailUrl}`,
-    `QR: ${qrUrl}`,
+    qrUrl ? `QR: ${qrUrl}` : "QR: pendiente de regeneracion",
   ].join("\n");
 
   await sendSmtpEmail({
@@ -152,9 +154,13 @@ export async function sendMembershipRequestEmail({
               <a href="${detailUrl}" style="display:inline-block;background:#111111;color:#ffffff;text-decoration:none;padding:12px 18px;font-weight:700;">
                 Abrir mi membresia
               </a>
-              <a href="${qrUrl}" style="display:inline-block;margin-left:12px;border:1px solid #111111;color:#111111;text-decoration:none;padding:12px 18px;font-weight:700;">
+              ${
+                qrUrl
+                  ? `<a href="${qrUrl}" style="display:inline-block;margin-left:12px;border:1px solid #111111;color:#111111;text-decoration:none;padding:12px 18px;font-weight:700;">
                 Abrir estado QR
-              </a>
+              </a>`
+                  : ""
+              }
             </div>
           </div>
         </div>

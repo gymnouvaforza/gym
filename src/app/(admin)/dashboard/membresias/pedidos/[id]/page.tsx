@@ -18,6 +18,7 @@ import {
   listMembershipPaymentEntries,
   listMembershipRequestAnnotations,
 } from "@/lib/data/memberships";
+import { normalizeMembershipQrToken } from "@/lib/membership-qr";
 import {
   getMembershipCommerceSyncTone,
   membershipCommerceSyncStatusLabels,
@@ -61,6 +62,10 @@ export default async function DashboardMembershipRequestDetailPage({
   if (!request) {
     notFound();
   }
+
+  const publicValidationUrl = normalizeMembershipQrToken(request.member.membershipQrToken)
+    ? buildMembershipValidationUrl(request.member.membershipQrToken)
+    : null;
 
   const [annotations, paymentEntries] = await Promise.all([
     listMembershipRequestAnnotations(request.id),
@@ -399,15 +404,17 @@ export default async function DashboardMembershipRequestDetailPage({
                         Enlace operativo para recepcion
                       </p>
                       <p className="break-all text-[12px] text-[#5f6368]">
-                        {buildMembershipValidationUrl(request.member.membershipQrToken)}
+                        {publicValidationUrl ?? "QR aun no disponible"}
                       </p>
-                      <Link
-                        href={`/validacion/membresia/${request.member.membershipQrToken}`}
-                        target="_blank"
-                        className="inline-flex h-10 items-center border border-black/10 bg-white px-4 text-[10px] font-black uppercase tracking-[0.14em] text-[#111111] transition-colors hover:bg-[#111111] hover:text-white"
-                      >
-                        Abrir validacion
-                      </Link>
+                      {publicValidationUrl ? (
+                        <Link
+                          href={publicValidationUrl}
+                          target="_blank"
+                          className="inline-flex h-10 items-center border border-black/10 bg-white px-4 text-[10px] font-black uppercase tracking-[0.14em] text-[#111111] transition-colors hover:bg-[#111111] hover:text-white"
+                        >
+                          Abrir validacion
+                        </Link>
+                      ) : null}
                     </div>
                   </div>
                 </AdminSurface>

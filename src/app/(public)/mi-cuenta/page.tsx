@@ -49,6 +49,7 @@ import {
   membershipValidationStatusLabels,
 } from "@/lib/memberships";
 import type { DBMemberProfile } from "@/lib/supabase/database.types";
+import { normalizeMembershipQrToken } from "@/lib/membership-qr";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -228,6 +229,8 @@ export default async function MemberAccountPage({
     latestMembershipRequest && memberProfile
       ? buildMemberAccountTabSectionHref("membresia", "membership-qr")
       : membershipDetailHref;
+  const memberQrToken = normalizeMembershipQrToken(memberProfile?.membership_qr_token);
+  const memberQrUrl = memberQrToken ? buildMembershipValidationUrl(memberQrToken) : null;
 
   return (
     <main className="min-h-screen bg-[#fbfbf8] pb-12">
@@ -532,12 +535,20 @@ export default async function MemberAccountPage({
                   <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
                     {/* Lado QR */}
                     <div id="membership-qr" className="w-full lg:sticky lg:top-40 lg:w-[360px]">
-                      <MembershipQrCard
-                        memberName={account.fullName}
-                        qrUrl={buildMembershipValidationUrl(memberProfile?.membership_qr_token ?? "")}
-                        validation={latestMembershipRequest.validation}
-                        detailHref={membershipDetailHref}
-                      />
+                      {memberQrUrl ? (
+                        <MembershipQrCard
+                          memberName={account.fullName}
+                          qrUrl={memberQrUrl}
+                          validation={latestMembershipRequest.validation}
+                          detailHref={membershipDetailHref}
+                        />
+                      ) : (
+                        <PublicInlineAlert
+                          tone="warning"
+                          title="QR aun no disponible"
+                          message="Estamos regenerando tu identificador QR. Recarga la pagina en unos segundos."
+                        />
+                      )}
                     </div>
 
                     {/* Lado Detalle */}

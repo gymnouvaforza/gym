@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  normalizeMembershipQrToken,
   parseMembershipQrScannedValue,
   resolveMembershipQrValidation,
 } from "@/lib/membership-qr";
@@ -39,6 +40,13 @@ describe("membership QR domain helpers", () => {
   it("rejects non-UUID values as invalid membership QR payloads", () => {
     expect(parseMembershipQrScannedValue("qr_token_legacy")).toBeNull();
     expect(parseMembershipQrScannedValue("https://example.com/otra/ruta")).toBeNull();
+  });
+
+  it("normalizes valid QR tokens and rejects empty values", () => {
+    expect(normalizeMembershipQrToken(" ff6ae4fd-b470-4db1-8d47-711fb01eb0a2 ")).toBe(
+      "ff6ae4fd-b470-4db1-8d47-711fb01eb0a2",
+    );
+    expect(normalizeMembershipQrToken("")).toBeNull();
   });
 
   it("resolves an operational membership as allowed access", () => {

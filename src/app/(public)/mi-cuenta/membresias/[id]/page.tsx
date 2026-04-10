@@ -13,6 +13,7 @@ import {
   getMemberOwnedMembershipRequestById,
   listMembershipPaymentEntries,
 } from "@/lib/data/memberships";
+import { normalizeMembershipQrToken } from "@/lib/membership-qr";
 import {
   membershipCommerceSyncStatusLabels,
   membershipEmailStatusLabels,
@@ -60,6 +61,8 @@ export default async function MemberMembershipRequestDetailPage({
 
   const paymentEntries = await listMembershipPaymentEntries(request.id);
   const created = resolvedSearchParams.created === "1";
+  const qrToken = normalizeMembershipQrToken(request.member.membershipQrToken);
+  const qrUrl = qrToken ? buildMembershipValidationUrl(qrToken) : null;
 
   return (
     <main className="min-h-screen bg-[#fbfbf8] px-6 py-12 lg:px-12">
@@ -291,11 +294,19 @@ export default async function MemberMembershipRequestDetailPage({
           </div>
 
           <div className="space-y-6">
-            <MembershipQrCard
-              memberName={request.member.fullName}
-              qrUrl={buildMembershipValidationUrl(request.member.membershipQrToken)}
-              validation={request.validation}
-            />
+            {qrUrl ? (
+              <MembershipQrCard
+                memberName={request.member.fullName}
+                qrUrl={qrUrl}
+                validation={request.validation}
+              />
+            ) : (
+              <PublicInlineAlert
+                tone="warning"
+                title="QR aun no disponible"
+                message="Todavia no tenemos un identificador QR valido para esta membresia."
+              />
+            )}
 
             <div className="border border-black/10 bg-white p-6 shadow-sm">
               <div className="flex items-start gap-3">
