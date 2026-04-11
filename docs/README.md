@@ -30,7 +30,7 @@ Explicación de cómo se separa la autenticación de usuarios de la gestión de 
 
 - **Tienda y E-commerce**: [Pickup Reconciliation Runbook](archive/store-pickup-reconciliation-runbook.md).
 - **Operaciones de Socios**: [QR & Membership Operations](membership-qr-ops.md).
-- **Infraestructura**: [Dokploy Full Stack](docs/archive/dokploy-full-stack.md), [Local Redis Windows](docs/archive/local-redis-windows.md).
+- **Infraestructura**: [Medusa en Dokploy](medusa-dokploy-vps.md), [Dokploy Full Stack (histórico)](dokploy-full-stack.md), [Local Redis Windows](local-redis-windows.md).
 
 ---
 

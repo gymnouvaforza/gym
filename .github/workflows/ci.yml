@@ -74,19 +74,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Build Web Docker image
-        run: >
-          docker build
-          --build-arg NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}"
-          --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY}"
-          --build-arg NEXT_PUBLIC_COMMERCE_CURRENCY_CODE="${NEXT_PUBLIC_COMMERCE_CURRENCY_CODE}"
-          --build-arg NEXT_PUBLIC_COMMERCE_LOCALE="${NEXT_PUBLIC_COMMERCE_LOCALE}"
-          --build-arg NEXT_PUBLIC_MEDUSA_BACKEND_URL="${NEXT_PUBLIC_MEDUSA_BACKEND_URL}"
-          --build-arg NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}"
-          --build-arg NEXT_PUBLIC_MEDUSA_REGION_ID="${NEXT_PUBLIC_MEDUSA_REGION_ID}"
-          --build-arg NEXT_PUBLIC_PAYPAL_CLIENT_ID="${NEXT_PUBLIC_PAYPAL_CLIENT_ID}"
-          -t gym-web-ci .
-
   verify-medusa:
     name: Verify Medusa
     runs-on: ubuntu-latest

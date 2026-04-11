@@ -54,8 +54,8 @@ El backend puede desplegarse como contenedor usando [Dockerfile](/C:/digitalbits
 
 Supuesto recomendado para este proyecto:
 
-- storefront publico en `https://gym.yampi.eu` desde Vercel
-- backend Medusa en `https://api.gym.yampi.eu` desde tu VPS/Dokploy
+- storefront publico en `https://nuovaforzagym.com` desde Vercel
+- backend Medusa en `https://gym.yampi.eu` desde tu VPS/Dokploy
 
 Variables minimas para produccion:
 
@@ -63,9 +63,9 @@ Variables minimas para produccion:
 PORT=9000
 DATABASE_URL=postgresql://...
 MEDUSA_DB_INSECURE_SSL=true
-STORE_CORS=https://gym.yampi.eu
-ADMIN_CORS=https://gym.yampi.eu,https://api.gym.yampi.eu
-AUTH_CORS=https://gym.yampi.eu,https://api.gym.yampi.eu
+STORE_CORS=https://nuovaforzagym.com,http://localhost:3000,http://localhost:3001
+ADMIN_CORS=https://nuovaforzagym.com,http://localhost:3000,http://localhost:3001
+AUTH_CORS=https://nuovaforzagym.com,http://localhost:3000,http://localhost:3001
 JWT_SECRET=...
 COOKIE_SECRET=...
 ```
@@ -112,6 +112,11 @@ La moneda y region por defecto del seed son `PEN` / `Peru`, pero pueden ajustars
 Guia operativa recomendada para Dokploy/VPS en:
 
 - [docs/medusa-dokploy-vps.md](/C:/digitalbitsolutions/gym/docs/medusa-dokploy-vps.md)
+
+Notas de despliegue:
+
+- `gym.yampi.eu` queda reservado a Medusa HTTP; no sirve el frontend.
+- Los previews de Vercel no requieren abrir CORS wildcard por defecto, porque el storefront actual consume Medusa mayormente desde el servidor Next.js o via rutas internas.
 
 ## Nota sobre Supabase
 

@@ -91,6 +91,16 @@ Más detalles en [docs/architecture.md](docs/architecture.md).
 
 Completa tu archivo `.env.local` usando `.env.example` como referencia. Se requieren claves de Supabase, Medusa Admin API y SMTP para flujos de correo.
 
+## 🌐 Producción
+
+La topología operativa actual es:
+
+- `https://nuovaforzagym.com` -> frontend `Next.js` en Vercel
+- `https://gym.yampi.eu` -> backend `Medusa` en Dokploy/VPS
+- `redis` -> servicio interno del stack `Medusa`, no expuesto públicamente
+
+La app `Next.js` debe apuntar a Medusa usando `NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://gym.yampi.eu` y `MEDUSA_BACKEND_URL=https://gym.yampi.eu`.
+
 ## 📂 Documentación
 
 - [📘 Manual de Usuario](docs/manual-usuario.md) - Guía para el equipo del gimnasio.

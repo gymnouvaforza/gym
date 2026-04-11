@@ -4,23 +4,25 @@
 
 Para este proyecto, la separacion correcta es:
 
-- `https://gym.yampi.eu` -> storefront `Next.js` en Dokploy
-- `https://api.gym.yampi.eu` -> backend `Medusa` en tu VPS con Docker/Dokploy
+- `https://nuovaforzagym.com` -> frontend `Next.js` en Vercel
+- `https://gym.yampi.eu` -> backend `Medusa` en tu VPS con Docker/Dokploy
 
-No intentes usar `gym.yampi.eu` para ambos al mismo tiempo. La web y la API deben vivir en hosts separados aunque compartan el mismo VPS.
+`gym.yampi.eu` queda reservado para Medusa. No lo uses para servir `Next.js` ni como reverse proxy mixto.
 
 ## Archivos preparados
 
-- [Dockerfile](/C:/digitalbitsolutions/gym/apps/medusa/Dockerfile)
-- [.dockerignore](/C:/digitalbitsolutions/gym/apps/medusa/.dockerignore)
+- [apps/medusa/Dockerfile](/C:/digitalbitsolutions/gym/apps/medusa/Dockerfile)
+- [apps/medusa/.dockerignore](/C:/digitalbitsolutions/gym/apps/medusa/.dockerignore)
+- [docker-compose.dokploy.yml](/C:/digitalbitsolutions/gym/docker-compose.dokploy.yml)
 
 ## Configuracion de Dokploy
 
-1. Crea una aplicacion Docker apuntando a `apps/medusa`.
-2. Usa el `Dockerfile` incluido.
+1. Crea una aplicacion Docker apuntando a `apps/medusa`, o importa el compose de referencia con `medusa + redis`.
+2. Usa el `Dockerfile` incluido para `medusa`.
 3. Usa el puerto interno `9000`, pero no lo publiques manualmente en el host si Dokploy va a poner el dominio.
-4. Asigna el dominio `api.gym.yampi.eu`.
-5. Activa HTTPS en Dokploy/Traefik.
+4. Asigna el dominio `gym.yampi.eu` al servicio `medusa`.
+5. Manten `redis` solo en red interna; no expongas `6379`.
+6. Activa HTTPS en Dokploy/Traefik.
 
 ## Variables de entorno de Medusa
 
@@ -31,9 +33,10 @@ NODE_ENV=production
 PORT=9000
 DATABASE_URL=postgresql://...
 MEDUSA_DB_INSECURE_SSL=true
-STORE_CORS=https://gym.yampi.eu
-ADMIN_CORS=https://gym.yampi.eu,https://api.gym.yampi.eu
-AUTH_CORS=https://gym.yampi.eu,https://api.gym.yampi.eu
+REDIS_URL=redis://redis:6379
+STORE_CORS=https://nuovaforzagym.com,http://localhost:3000,http://localhost:3001
+ADMIN_CORS=https://nuovaforzagym.com,http://localhost:3000,http://localhost:3001
+AUTH_CORS=https://nuovaforzagym.com,http://localhost:3000,http://localhost:3001
 JWT_SECRET=pon-un-secreto-largo
 COOKIE_SECRET=pon-otro-secreto-largo
 ```
@@ -55,15 +58,15 @@ La web publica debe apuntar al backend Medusa:
 ```env
 COMMERCE_PROVIDER=medusa
 STORE_ADMIN_PROVIDER=medusa
-NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://api.gym.yampi.eu
-MEDUSA_BACKEND_URL=https://api.gym.yampi.eu
+NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://gym.yampi.eu
+MEDUSA_BACKEND_URL=https://gym.yampi.eu
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_...
 MEDUSA_PUBLISHABLE_KEY=pk_...
 MEDUSA_ADMIN_API_KEY=sk_...
 MEDUSA_REGION_ID=reg_...
 ```
 
-Mantén tambien la configuracion de moneda/region del proyecto:
+Manten tambien la configuracion de moneda/region del proyecto:
 
 ```env
 COMMERCE_CURRENCY_CODE=PEN
@@ -76,13 +79,20 @@ MEDUSA_COUNTRY_CODE=PE
 
 ## DNS recomendado
 
-- `gym.yampi.eu` -> tu servicio `web` en Dokploy
-- `api.gym.yampi.eu` -> IP publica de tu VPS
+- `nuovaforzagym.com` -> Vercel
+- `gym.yampi.eu` -> IP publica de tu VPS / Dokploy (`medusa`)
+
+## Nota sobre previews de Vercel
+
+- Manten previews activas en Vercel.
+- No abras CORS wildcard para `*.vercel.app` por defecto.
+- Si en el futuro aparece un flujo browser -> Medusa que realmente necesite preview cross-origin, usa un dominio estable de staging antes que una lista dinamica de previews.
 
 ## Verificacion despues del deploy
 
 Comprueba:
 
-1. `https://api.gym.yampi.eu/health`
-2. `https://gym.yampi.eu/tienda`
-3. login del dashboard y CRUD de producto
+1. `https://gym.yampi.eu/health`
+2. `https://nuovaforzagym.com`
+3. `https://nuovaforzagym.com/tienda`
+4. login del dashboard y CRUD de producto
