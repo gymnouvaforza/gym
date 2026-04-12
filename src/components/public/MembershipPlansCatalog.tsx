@@ -1,7 +1,9 @@
+"use client";
+
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
 
+import { usePublicAuthState } from "@/components/auth/use-public-auth-state";
 import MembershipReserveButton from "@/components/public/MembershipReserveButton";
 import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Button } from "@/components/ui/button";
@@ -9,7 +11,6 @@ import type { MembershipPlan } from "@/lib/memberships";
 
 interface MembershipPlansCatalogProps {
   membershipPlans: MembershipPlan[];
-  user: User | null;
   whatsappUrl: string | null;
 }
 
@@ -37,9 +38,10 @@ function buildMembershipWhatsAppUrl(
 
 export default function MembershipPlansCatalog({
   membershipPlans,
-  user,
   whatsappUrl,
 }: Readonly<MembershipPlansCatalogProps>) {
+  const { isAuthenticated } = usePublicAuthState();
+
   if (membershipPlans.length === 0) {
     return (
       <div className="border border-white/10 bg-white/5 p-8 text-white">
@@ -125,7 +127,7 @@ export default function MembershipPlansCatalog({
                 <div className={plan.is_featured ? "flex items-center gap-4 text-[15px] text-[#181818]" : "flex items-center gap-4 text-[15px] text-white"}>
                   <ShieldCheck className="h-5 w-5 text-[#d71920]" />
                   <span className="font-medium tracking-tight opacity-90">
-                    {user
+                    {isAuthenticated
                       ? "Se anade a tu cuenta y avisa al admin"
                       : "Atencion directa por WhatsApp si aun no tienes cuenta"}
                   </span>
@@ -133,7 +135,7 @@ export default function MembershipPlansCatalog({
               </div>
 
               <div className="mt-auto space-y-3">
-                {user ? (
+                {isAuthenticated ? (
                   <MembershipReserveButton
                     membershipPlanId={plan.id}
                     label="Reservar membresia"

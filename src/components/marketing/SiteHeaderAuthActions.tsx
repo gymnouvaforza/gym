@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { usePublicAuthState } from "@/components/auth/use-public-auth-state";
 
 type SiteHeaderAuthActionsProps = {
   primaryLabel: string;
@@ -15,43 +14,7 @@ export default function SiteHeaderAuthActions({
   primaryLabel,
   mode = "desktop",
 }: Readonly<SiteHeaderAuthActionsProps>) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-
-    try {
-      const supabase = createSupabaseBrowserClient();
-
-      void supabase.auth.getUser().then(({ data }) => {
-        if (!active) {
-          return;
-        }
-
-        setIsAuthenticated(Boolean(data.user));
-      });
-
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!active) {
-          return;
-        }
-
-        setIsAuthenticated(Boolean(session?.user));
-      });
-
-      return () => {
-        active = false;
-        subscription.unsubscribe();
-      };
-    } catch {}
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
+  const { isAuthenticated } = usePublicAuthState();
   const primaryAction = isAuthenticated
     ? { href: "/#contacto", label: primaryLabel }
     : { href: "/registro", label: "Unirme" };
@@ -61,23 +24,12 @@ export default function SiteHeaderAuthActions({
 
   if (mode === "desktop") {
     return (
-      <div className="hidden lg:flex lg:items-center gap-4 sm:gap-6">
-        <Button
-          asChild
-          variant="outline"
-          className="h-10 px-6 font-semibold"
-        >
-          <Link href={secondaryAction.href}>
-            {secondaryAction.label}
-          </Link>
+      <div className="hidden gap-4 sm:gap-6 lg:flex lg:items-center">
+        <Button asChild variant="outline" className="h-10 px-6 font-semibold">
+          <Link href={secondaryAction.href}>{secondaryAction.label}</Link>
         </Button>
-        <Button
-          asChild
-          className="btn-athletic btn-primary h-10 px-6 font-semibold"
-        >
-          <Link href={primaryAction.href}>
-            {primaryAction.label}
-          </Link>
+        <Button asChild className="btn-athletic btn-primary h-10 px-6 font-semibold">
+          <Link href={primaryAction.href}>{primaryAction.label}</Link>
         </Button>
       </div>
     );

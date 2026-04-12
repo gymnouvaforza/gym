@@ -92,6 +92,27 @@ function normalizeMoneyAmount(value: unknown) {
   return asNumber(value) / 100
 }
 
+function sumLineItemsTotal(lineItems: PickupRequestLineItemSnapshot[]) {
+  return lineItems.reduce((sum, item) => sum + Math.max(item.total, 0), 0)
+}
+
+function resolvePickupRequestTotals(
+  cart: Record<string, unknown>,
+  lineItemsSnapshot: PickupRequestLineItemSnapshot[],
+) {
+  const snapshotSubtotal = sumLineItemsTotal(lineItemsSnapshot)
+  const cartSubtotal = normalizeMoneyAmount(cart.subtotal)
+  const cartTotal = normalizeMoneyAmount(cart.total)
+
+  const subtotal = cartSubtotal > 0 ? cartSubtotal : snapshotSubtotal
+  const total = cartTotal > 0 ? cartTotal : subtotal
+
+  return {
+    subtotal,
+    total,
+  }
+}
+
 function buildRequestNumber(date = new Date()) {
   const year = `${date.getUTCFullYear()}`
   const month = `${date.getUTCMonth() + 1}`.padStart(2, "0")
@@ -118,10 +139,29 @@ function mapLineItemSnapshot(item: Record<string, unknown>): PickupRequestLineIt
     return allOptions
   }, [])
 
+  const quantity = Math.max(asNumber(item.quantity), 0)
+  const directUnitPrice = normalizeMoneyAmount(item.unit_price)
+  const directSubtotal = normalizeMoneyAmount(item.subtotal)
+  const directTotal = normalizeMoneyAmount(item.total)
+  const unitPrice =
+    directUnitPrice > 0
+      ? directUnitPrice
+      : quantity > 0 && directSubtotal > 0
+        ? directSubtotal / quantity
+        : quantity > 0 && directTotal > 0
+          ? directTotal / quantity
+          : 0
+  const total =
+    directTotal > 0
+      ? directTotal
+      : directSubtotal > 0
+        ? directSubtotal
+        : unitPrice * quantity
+
   return {
     id: asString(item.id) ?? ulid(),
     title: asString(item.title) ?? asString(item.product_title) ?? "Producto",
-    quantity: asNumber(item.quantity),
+    quantity,
     thumbnail: asString(item.thumbnail),
     product_id: asString(item.product_id),
     product_title: asString(item.product_title),
@@ -129,8 +169,8 @@ function mapLineItemSnapshot(item: Record<string, unknown>): PickupRequestLineIt
     variant_id: asString(item.variant_id),
     variant_title: asString(item.variant_title),
     variant_sku: asString(item.variant_sku),
-    unit_price: normalizeMoneyAmount(item.unit_price),
-    total: normalizeMoneyAmount(item.total),
+    unit_price: unitPrice,
+    total,
     selected_options: selectedOptions,
   }
 }
@@ -173,44 +213,7 @@ function asPickupRequestRecord(value: unknown): PickupRequestRecord {
 export const createPickupRequestStep = createStep(
   "create-pickup-request",
   async (input: CreatePickupRequestStepInput, { container }) => {
-    const cartModuleService = container.resolve("cart") as any
-    const currentCart = await cartModuleService.retrieveCart(input.cart_id, {
-      select: [
-        "id",
-        "currency_code",
-        "email",
-        "subtotal",
-        "total",
-        "tax_total",
-        "discount_total",
-        "metadata",
-        "customer_id",
-        "items.id",
-        "items.title",
-        "items.thumbnail",
-        "items.quantity",
-        "items.unit_price",
-        "items.subtotal",
-        "items.total",
-        "items.product_id",
-        "items.product_title",
-        "items.product_handle",
-        "items.variant_id",
-        "items.variant_sku",
-        "items.variant_title",
-        "items.variant_option_values",
-      ],
-      relations: ["items"],
-    })
-
-    // CRITICAL: Defensive check before creating the pickup request.
-    // Ensure that if there are items, the total is not 0.
-    if (currentCart.items && currentCart.items.length > 0 && currentCart.total === 0) {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        `Cannot create pickup request for cart ${input.cart_id} because total is 0 despite having items. Data integrity check failed.`,
-      )
-    }
+    let currentCart = await refetchCart(container as Parameters<typeof refetchCart>[0], input.cart_id)
 
     const pickupRequestService = container.resolve(PICKUP_REQUEST_MODULE) as {
       createPickupRequests: (data: Record<string, unknown>) => Promise<unknown>
@@ -221,7 +224,7 @@ export const createPickupRequestStep = createStep(
       ) => Promise<Array<Record<string, unknown>>>
     }
 
-    const currentItems = Array.isArray(currentCart.items) ? currentCart.items : []
+    let currentItems = Array.isArray(currentCart.items) ? currentCart.items : []
 
     if (currentItems.length === 0) {
       throw new MedusaError(
@@ -261,11 +264,26 @@ export const createPickupRequestStep = createStep(
           customer_id: input.customer_id,
         },
       })
+
+      currentCart = await refetchCart(container as Parameters<typeof refetchCart>[0], input.cart_id)
+      currentItems = Array.isArray(currentCart.items) ? currentCart.items : []
     }
 
     const lineItemsSnapshot = currentItems.map((item) =>
       mapLineItemSnapshot(asRecord(item) ?? {})
     )
+    const snapshotTotals = resolvePickupRequestTotals(
+      asRecord(currentCart) ?? {},
+      lineItemsSnapshot,
+    )
+
+    if (currentItems.length > 0 && snapshotTotals.total <= 0) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        `Cannot create pickup request for cart ${input.cart_id} because the resolved total is 0 despite having items. Data integrity check failed.`,
+      )
+    }
+
     const now = new Date()
 
     let createdPickupRequestId: string | null = null
@@ -284,8 +302,8 @@ export const createPickupRequestStep = createStep(
           (total, item) => total + Math.max(item.quantity, 0),
           0
         ),
-        subtotal: normalizeMoneyAmount(currentCart.subtotal),
-        total: normalizeMoneyAmount(currentCart.total),
+        subtotal: snapshotTotals.subtotal,
+        total: snapshotTotals.total,
         line_items_snapshot: lineItemsSnapshot,
         source: "gym-storefront",
         email_status: "pending",
@@ -345,4 +363,5 @@ export const __createPickupRequestStepTestables = {
   asNumber,
   normalizeMoneyAmount,
   mapLineItemSnapshot,
+  resolvePickupRequestTotals,
 }

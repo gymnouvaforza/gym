@@ -10,7 +10,6 @@ import TestimonialsSection from "@/components/marketing/TestimonialsSection";
 import TrainingZonesSection from "@/components/marketing/TrainingZonesSection";
 import ValueSection from "@/components/marketing/ValueSection";
 import MembershipPlansCatalog from "@/components/public/MembershipPlansCatalog";
-import { getCurrentMemberUser } from "@/lib/auth";
 import { listMembershipPlans } from "@/lib/data/memberships";
 import { getMarketingData } from "@/lib/data/site";
 import { buildMarketingMetadata } from "@/lib/seo";
@@ -23,10 +22,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PublicHomePage() {
-  const [{ settings, scheduleRows, teamMembers, testimonials }, membershipPlans, user] = await Promise.all([
+  const [{ settings, scheduleRows, teamMembers, testimonials }, membershipPlans] = await Promise.all([
     getMarketingData(),
     listMembershipPlans({ activeOnly: true }),
-    getCurrentMemberUser(),
   ]);
 
   return (
@@ -38,7 +36,6 @@ export default async function PublicHomePage() {
         <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
           <MembershipPlansCatalog
             membershipPlans={membershipPlans}
-            user={user}
             whatsappUrl={settings.whatsapp_url}
           />
         </div>

@@ -3,6 +3,11 @@ import { cache } from "react";
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
 import {
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CACHE_TAGS,
+  publicDataCache,
+} from "@/lib/cache/public-cache";
+import {
   cmsDocumentKeys,
   getDefaultCmsDocument,
   defaultCmsDocumentList,
@@ -553,7 +558,7 @@ function isMissingTableError(error: PostgrestError | null | undefined) {
   return error?.code === "PGRST205";
 }
 
-export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> => {
+async function loadMarketingSnapshot(): Promise<MarketingSnapshot> {
   if (!hasSupabasePublicEnv()) {
     return {
       settings: defaultSiteSettings,
@@ -642,7 +647,20 @@ export const getMarketingSnapshot = cache(async (): Promise<MarketingSnapshot> =
       warning: "No se pudieron cargar los datos reales de Supabase. Se muestra contenido fallback.",
     };
   }
-});
+}
+
+const getMarketingSnapshotCached = publicDataCache(
+  loadMarketingSnapshot,
+  ["marketing-snapshot"],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS.marketing,
+    tags: [PUBLIC_CACHE_TAGS.marketing],
+  },
+);
+
+export async function getMarketingSnapshot(): Promise<MarketingSnapshot> {
+  return getMarketingSnapshotCached();
+}
 
 export const getDashboardMarketingSnapshot = cache(
   async function getDashboardMarketingSnapshot(): Promise<DashboardMarketingSnapshot> {
@@ -995,7 +1013,7 @@ function toCmsSnapshot(
   };
 }
 
-export const getPublicCmsSnapshot = cache(async (): Promise<CmsSnapshot> => {
+async function loadPublicCmsSnapshot(): Promise<CmsSnapshot> {
   const fallbackDocuments = defaultCmsDocumentList.map((document) => ({ ...document }));
 
   if (!hasSupabasePublicEnv()) {
@@ -1023,7 +1041,20 @@ export const getPublicCmsSnapshot = cache(async (): Promise<CmsSnapshot> => {
       warning: "No se pudo cargar el CMS legal. Se muestran textos fallback.",
     });
   }
-});
+}
+
+const getPublicCmsSnapshotCached = publicDataCache(
+  loadPublicCmsSnapshot,
+  ["public-cms-snapshot"],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS.cms,
+    tags: [PUBLIC_CACHE_TAGS.cms],
+  },
+);
+
+export async function getPublicCmsSnapshot(): Promise<CmsSnapshot> {
+  return getPublicCmsSnapshotCached();
+}
 
 export async function getDashboardCmsSnapshot(): Promise<CmsSnapshot> {
   const fallbackDocuments = defaultCmsDocumentList.map((document) => ({ ...document }));

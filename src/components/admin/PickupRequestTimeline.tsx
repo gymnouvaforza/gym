@@ -49,7 +49,6 @@ interface PickupRequestTimelineProps extends HTMLAttributes<HTMLDivElement> {
 
 export default function PickupRequestTimeline({
   pickupRequest,
-  compact = false,
   className,
   ...props
 }: Readonly<PickupRequestTimelineProps>) {
@@ -58,43 +57,49 @@ export default function PickupRequestTimeline({
   return (
     <div
       className={cn(
-        "grid gap-1.5",
-        compact ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4" : "grid-cols-2 md:grid-cols-4",
+        "space-y-3",
         className,
       )}
       {...props}
     >
-      {steps.map((step) => {
+      {steps.map((step, index) => {
         const styles = stateClasses[step.state];
+        const isLast = index === steps.length - 1;
 
         return (
           <article
             key={step.key}
             className={cn(
-              "relative flex flex-col justify-between border p-5 transition-all duration-300",
+              "relative overflow-hidden border p-4 transition-all duration-300",
               styles.border,
             )}
           >
-            <div className="flex items-start gap-4">
-              <div className="relative flex-shrink-0 pt-1">
-                <span className={cn("block h-2.5 w-2.5 rounded-full ring-2 ring-offset-2 ring-white/10", styles.dot)} />
+            <div className="flex items-start gap-3">
+              <div className="relative flex w-4 shrink-0 flex-col items-center pt-1">
+                <span className={cn("block h-2.5 w-2.5 rounded-full", styles.dot)} />
                 {step.state === "current" && (
-                   <span className="absolute left-0 top-1 h-2.5 w-2.5 animate-ping rounded-full bg-[#d71920]" />
+                  <span className="absolute left-[3px] top-1 h-2.5 w-2.5 animate-ping rounded-full bg-[#d71920]" />
                 )}
+                {!isLast ? <span className="mt-2 h-10 w-px bg-black/10" /> : null}
               </div>
-              <div className="min-w-0 space-y-2">
-                <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] leading-none", styles.label)}>
-                  {step.title}
-                </p>
-                <p className="line-clamp-2 text-[14px] font-bold leading-tight text-[#111111]">
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                  <p
+                    className={cn(
+                      "text-[10px] font-black uppercase leading-none tracking-[0.2em]",
+                      styles.label,
+                    )}
+                  >
+                    {step.title}
+                  </p>
+                  <p className="text-[11px] font-medium text-[#7a7f87] tabular-nums">
+                    {formatDate(step.date)}
+                  </p>
+                </div>
+                <p className="text-[13px] leading-relaxed text-[#111111]">
                   {step.description}
                 </p>
               </div>
-            </div>
-            <div className="mt-6 flex items-center justify-between border-t border-black/5 pt-3">
-               <p className="text-[11px] font-medium text-[#7a7f87] tabular-nums">
-                 {formatDate(step.date)}
-               </p>
             </div>
           </article>
         );

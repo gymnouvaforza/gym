@@ -6,11 +6,7 @@ import SiteHeaderAuthActions from "@/components/marketing/SiteHeaderAuthActions"
 import { novaForzaHomeContent } from "@/lib/data/nova-forza-content";
 import type { SiteSettings } from "@/lib/supabase/database.types";
 
-interface SiteHeaderProps {
-  settings: SiteSettings;
-}
-
-export default function SiteHeader({ settings }: Readonly<SiteHeaderProps>) {
+export default function SiteHeader({ settings }: Readonly<{ settings: SiteSettings }>) {
   return (
     <header className="border-b border-black/5 bg-[#f5f5f0] py-3 sm:py-4 lg:py-7">
       <div className="section-shell flex items-center justify-between gap-2 sm:gap-8">
@@ -25,8 +21,8 @@ export default function SiteHeader({ settings }: Readonly<SiteHeaderProps>) {
               alt={settings.site_name}
               fill
               className="object-contain"
-              sizes="160px"
-              priority
+              sizes="(min-width: 640px) 160px, 105px"
+              quality={52}
             />
           </div>
         </Link>
@@ -45,7 +41,10 @@ export default function SiteHeader({ settings }: Readonly<SiteHeaderProps>) {
 
         <div className="flex items-center gap-1 sm:gap-3 lg:gap-6">
           <CartEntry />
-          <SiteHeaderAuthActions primaryLabel={settings.hero_primary_cta} mode="desktop" />
+          <SiteHeaderAuthActions
+            primaryLabel={settings.hero_primary_cta}
+            mode="desktop"
+          />
 
           <details className="relative lg:hidden">
             <summary className="flex h-9 w-9 sm:h-12 sm:w-12 list-none items-center justify-center bg-black/5 text-foreground [&::-webkit-details-marker]:hidden cursor-pointer">
@@ -66,7 +65,10 @@ export default function SiteHeader({ settings }: Readonly<SiteHeaderProps>) {
                     {item.label}
                   </Link>
                 ))}
-                <SiteHeaderAuthActions primaryLabel={settings.hero_primary_cta} mode="mobile" />
+                <SiteHeaderAuthActions
+                  primaryLabel={settings.hero_primary_cta}
+                  mode="mobile"
+                />
                 <div className="mt-2 border-t border-black/8 pt-4">
                   <Link
                     href="/carrito"

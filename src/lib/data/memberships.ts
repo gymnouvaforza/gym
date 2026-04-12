@@ -1,6 +1,11 @@
 import { cache } from "react";
 import type { User } from "@supabase/supabase-js";
 
+import {
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CACHE_TAGS,
+  publicDataCache,
+} from "@/lib/cache/public-cache";
 import { ensureMemberProfileForUser } from "@/lib/data/gym-management";
 import { syncMembershipRequestToMedusa } from "@/lib/data/membership-commerce";
 import { defaultSiteSettings } from "@/lib/data/default-content";
@@ -452,24 +457,44 @@ async function maybePromoteMembershipRequestToActive(
   }
 }
 
+const listPublicMembershipPlansCached = publicDataCache(
+  async () => {
+    const client = createSupabasePublicClient();
+    const { data, error } = await client
+      .from("membership_plans")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true })
+      .eq("is_active", true);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return (data ?? []).map((row) => mapMembershipPlan(row as DBMembershipPlan));
+  },
+  ["public-membership-plans"],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS.membershipPlans,
+    tags: [PUBLIC_CACHE_TAGS.membershipPlans],
+  },
+);
+
 export const listMembershipPlans = cache(async function listMembershipPlans(options?: {
   activeOnly?: boolean;
 }) {
   const activeOnly = options?.activeOnly ?? true;
-  const client = activeOnly
-    ? createSupabasePublicClient()
-    : createSupabaseAdminClient();
-  let query = client
+
+  if (activeOnly) {
+    return listPublicMembershipPlansCached();
+  }
+
+  const client = createSupabaseAdminClient();
+  const { data, error } = await client
     .from("membership_plans")
     .select("*")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
-
-  if (activeOnly) {
-    query = query.eq("is_active", true);
-  }
-
-  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message);

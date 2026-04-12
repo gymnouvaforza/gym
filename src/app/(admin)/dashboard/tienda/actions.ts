@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminUser } from "@/lib/auth";
+import {
+  PUBLIC_CACHE_TAGS,
+  revalidatePublicCacheTags,
+} from "@/lib/cache/public-cache";
 import { mapPickupRequest } from "@/lib/cart/pickup-request";
 import type { PickupRequestStatus } from "@/lib/cart/types";
 import {
@@ -47,13 +51,18 @@ async function getAuthenticatedStoreAdminRepository() {
   return getStoreAdminRepository();
 }
 
-function revalidateStore() {
+function revalidateStoreDashboard() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/tienda");
   revalidatePath("/dashboard/tienda/categorias");
   revalidatePath("/dashboard/tienda/productos");
   revalidatePath("/dashboard/tienda/pedidos");
+}
+
+function revalidateStoreCatalog() {
+  revalidateStoreDashboard();
   revalidatePath("/tienda");
+  revalidatePublicCacheTags([PUBLIC_CACHE_TAGS.storeCatalog]);
 }
 
 async function assertPickupRequestsAdminReady() {
@@ -79,7 +88,7 @@ export async function saveStoreCategory(values: StoreCategoryInput, categoryId?:
   const parsed = storeCategorySchema.parse(values);
   const repository = await getAuthenticatedStoreAdminRepository();
   const id = await repository.saveCategory(parsed, categoryId);
-  revalidateStore();
+  revalidateStoreCatalog();
   return id;
 }
 
@@ -87,32 +96,32 @@ export async function saveStoreProduct(values: StoreProductInput, productId?: st
   const parsed = storeProductSchema.parse(values);
   const repository = await getAuthenticatedStoreAdminRepository();
   const id = await repository.saveProduct(parsed, productId);
-  revalidateStore();
+  revalidateStoreCatalog();
   return id;
 }
 
 export async function deactivateStoreCategory(id: string) {
   const repository = await getAuthenticatedStoreAdminRepository();
   await repository.deactivateCategory(id);
-  revalidateStore();
+  revalidateStoreCatalog();
 }
 
 export async function deactivateStoreProduct(id: string) {
   const repository = await getAuthenticatedStoreAdminRepository();
   await repository.deactivateProduct(id);
-  revalidateStore();
+  revalidateStoreCatalog();
 }
 
 export async function deleteStoreCategory(id: string) {
   const repository = await getAuthenticatedStoreAdminRepository();
   await repository.deleteCategory(id);
-  revalidateStore();
+  revalidateStoreCatalog();
 }
 
 export async function deleteStoreProduct(id: string) {
   const repository = await getAuthenticatedStoreAdminRepository();
   await repository.deleteProduct(id);
-  revalidateStore();
+  revalidateStoreCatalog();
 }
 
 export async function updateDashboardPickupRequestStatus(
@@ -121,7 +130,7 @@ export async function updateDashboardPickupRequestStatus(
 ) {
   await assertPickupRequestsAdminReady();
   await updatePickupRequestStatus(pickupRequestId, status);
-  revalidateStore();
+  revalidateStoreDashboard();
   revalidatePath(`/dashboard/tienda/pedidos/${pickupRequestId}`);
   revalidatePath("/mi-cuenta");
 }
@@ -254,6 +263,6 @@ export async function syncPickupRequestFromMedusaOrderAction(
     throw new Error(message);
   }
 
-  revalidateStore();
+  revalidateStoreDashboard();
   revalidatePath(`/dashboard/tienda/pedidos/${pickupRequestId}`);
 }

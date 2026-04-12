@@ -1,5 +1,8 @@
-import { cache } from "react";
-
+import {
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CACHE_TAGS,
+  publicDataCache,
+} from "@/lib/cache/public-cache";
 import { getCommerceProvider } from "@/lib/env";
 
 import { getMedusaCommerceProductBySlug, getMedusaCommerceProducts } from "./medusa";
@@ -29,29 +32,40 @@ async function loadMedusaProduct(slug: string): Promise<CommerceProductSnapshot>
   };
 }
 
-export const getCommerceCatalog = cache(async (): Promise<CommerceCatalogSnapshot> => {
-  const provider: CommerceProvider = getCommerceProvider();
+const getCommerceCatalogCached = publicDataCache(
+  async (): Promise<CommerceCatalogSnapshot> => {
+    const provider: CommerceProvider = getCommerceProvider();
 
-  try {
-    if (provider !== "medusa") {
-      throw new Error(`Proveedor de commerce no soportado: ${provider}`);
+    try {
+      if (provider !== "medusa") {
+        throw new Error(`Proveedor de commerce no soportado: ${provider}`);
+      }
+
+      return await loadMedusaCatalog();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "No se pudo consultar el catalogo en Medusa.";
+
+      return {
+        products: [],
+        source: "medusa",
+        status: "unavailable",
+        warning: message,
+      };
     }
+  },
+  ["commerce-catalog"],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS.storeCatalog,
+    tags: [PUBLIC_CACHE_TAGS.storeCatalog],
+  },
+);
 
-    return await loadMedusaCatalog();
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "No se pudo consultar el catalogo en Medusa.";
+export async function getCommerceCatalog(): Promise<CommerceCatalogSnapshot> {
+  return getCommerceCatalogCached();
+}
 
-    return {
-      products: [],
-      source: "medusa",
-      status: "unavailable",
-      warning: message,
-    };
-  }
-});
-
-export const getCommerceProductBySlug = cache(
+const getCommerceProductBySlugCached = publicDataCache(
   async (slug: string): Promise<CommerceProductSnapshot> => {
     const provider: CommerceProvider = getCommerceProvider();
 
@@ -75,4 +89,15 @@ export const getCommerceProductBySlug = cache(
       };
     }
   },
+  ["commerce-product-by-slug"],
+  {
+    revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS.storeCatalog,
+    tags: [PUBLIC_CACHE_TAGS.storeCatalog],
+  },
 );
+
+export async function getCommerceProductBySlug(
+  slug: string,
+): Promise<CommerceProductSnapshot> {
+  return getCommerceProductBySlugCached(slug);
+}

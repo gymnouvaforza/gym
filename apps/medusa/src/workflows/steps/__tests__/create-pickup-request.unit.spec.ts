@@ -46,4 +46,49 @@ describe("create pickup request helpers", () => {
       ],
     })
   })
+
+  it("falls back to subtotal when Medusa omits line total fields", () => {
+    const lineItem = __createPickupRequestStepTestables.mapLineItemSnapshot({
+      id: "cali_02",
+      title: "Creatina Monohidratada 300 g",
+      quantity: 5,
+      unit_price: "2490",
+      subtotal: "12450",
+      total: null,
+    })
+
+    expect(lineItem.unit_price).toBe(24.9)
+    expect(lineItem.total).toBe(124.5)
+  })
+
+  it("prefers cart totals but can rebuild them from the line snapshot", () => {
+    const totals = __createPickupRequestStepTestables.resolvePickupRequestTotals(
+      {
+        subtotal: null,
+        total: null,
+      },
+      [
+        {
+          id: "line_01",
+          title: "Creatina",
+          quantity: 5,
+          thumbnail: null,
+          product_id: null,
+          product_title: null,
+          product_handle: null,
+          variant_id: null,
+          variant_title: null,
+          variant_sku: null,
+          unit_price: 24.9,
+          total: 124.5,
+          selected_options: [],
+        },
+      ],
+    )
+
+    expect(totals).toEqual({
+      subtotal: 124.5,
+      total: 124.5,
+    })
+  })
 })

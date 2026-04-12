@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminUser } from "@/lib/auth";
+import {
+  PUBLIC_CACHE_TAGS,
+  revalidatePublicCacheTags,
+  type PublicCacheTag,
+} from "@/lib/cache/public-cache";
 import { hasSupabaseServiceRole } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import {
@@ -37,7 +42,7 @@ async function getAuthenticatedSupabase() {
   return createSupabaseAdminClient();
 }
 
-function revalidateApp() {
+function revalidateApp(tags: PublicCacheTag[] = []) {
   revalidatePath("/");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/cms");
@@ -56,13 +61,17 @@ function revalidateApp() {
   revalidatePath("/acceso-restringido");
   revalidatePath("/tienda");
   revalidatePath("/carrito");
+
+  if (tags.length > 0) {
+    revalidatePublicCacheTags(tags);
+  }
 }
 
 export async function saveSiteSettings(values: SiteSettingsValues) {
   const parsed = siteSettingsSchema.parse(values);
   const supabase = await getAuthenticatedSupabase();
   await saveSiteSettingsRecord(supabase, parsed);
-  revalidateApp();
+  revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
 }
 
 export type ActionResponse = {
@@ -76,7 +85,7 @@ export async function saveMarketingContent(values: MarketingContentValues): Prom
     const supabase = await getAuthenticatedSupabase();
 
     await saveMarketingContentRecord(supabase, parsed);
-    revalidateApp();
+    revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
 
     return { success: true };
   } catch (error) {
@@ -97,7 +106,7 @@ export async function saveMarketingPlans(plans: MarketingContentValues["plans"])
   try {
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingPlansRecord(supabase, plans);
-    revalidateApp();
+    revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error al guardar los planes.";
@@ -109,7 +118,7 @@ export async function saveMarketingSchedule(rows: MarketingContentValues["schedu
   try {
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingScheduleRowsRecord(supabase, rows);
-    revalidateApp();
+    revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error al guardar los horarios.";
@@ -121,7 +130,7 @@ export async function saveMarketingTeamMembers(members: MarketingContentValues["
   try {
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingTeamMembersRecord(supabase, members);
-    revalidateApp();
+    revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error al guardar el equipo.";
@@ -149,7 +158,7 @@ export async function saveCmsDocument(values: CmsDocumentValues) {
   const parsed = cmsDocumentSchema.parse(values);
   const supabase = await getAuthenticatedSupabase();
   await saveCmsDocumentRecord(supabase, parsed);
-  revalidateApp();
+  revalidateApp([PUBLIC_CACHE_TAGS.cms]);
 }
 
 export async function moderateMarketingTestimonial(
@@ -170,4 +179,5 @@ export async function moderateMarketingTestimonial(
   revalidatePath("/");
   revalidatePath("/mi-cuenta");
   revalidatePath("/dashboard/marketing");
+  revalidatePublicCacheTags([PUBLIC_CACHE_TAGS.marketing]);
 }

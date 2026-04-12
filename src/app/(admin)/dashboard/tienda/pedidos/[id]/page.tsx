@@ -13,6 +13,7 @@ import ResendPickupRequestEmailButton from "@/components/admin/ResendPickupReque
 import SyncPickupRequestFromOrderButton from "@/components/admin/SyncPickupRequestFromOrderButton";
 import { Badge } from "@/components/ui/badge";
 import { formatCartAmount } from "@/lib/cart/format";
+import { retrieveCart } from "@/lib/cart/medusa-store";
 import {
   applyManualPaymentSummaryToPickupRequest,
   getEffectivePickupRequestPaymentLabel,
@@ -25,6 +26,10 @@ import {
   pickupRequestPaymentStatusLabels,
   pickupRequestStatusLabels,
 } from "@/lib/cart/pickup-request";
+import {
+  retrieveOrderByCartId,
+  syncPickupRequestFromOrder,
+} from "@/lib/cart/member-bridge";
 import { getPickupRequestOperationalHint } from "@/lib/data/pickup-request-dashboard";
 import {
   getPickupRequestById,
@@ -33,7 +38,7 @@ import {
   listPickupRequestPaymentEntries,
 } from "@/lib/data/pickup-requests";
 import { cn } from "@/lib/utils";
-import type { PickupRequestDetail } from "@/lib/cart/types";
+import type { Cart, CartLineItem, PickupRequestDetail, PickupRequestLineItem } from "@/lib/cart/types";
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -71,17 +76,153 @@ const manualPaymentStatusToneClasses = {
   overpaid: "border-sky-200 bg-sky-50 text-sky-700",
 } as const;
 
+const hintAccentClasses = {
+  default: "bg-[#d71920]",
+  muted: "bg-black/15",
+  success: "bg-emerald-400",
+  warning: "bg-amber-400",
+} as const;
+
+function pickupSnapshotLooksBroken(pickupRequest: PickupRequestDetail) {
+  if (pickupRequest.total > 0 && pickupRequest.subtotal > 0) {
+    return pickupRequest.lineItems.some(
+      (lineItem) => lineItem.quantity > 0 && lineItem.unitPrice <= 0 && lineItem.total <= 0,
+    );
+  }
+
+  return pickupRequest.lineItems.some((lineItem) => lineItem.quantity > 0);
+}
+
+function mapCartItemToPickupLineItem(item: CartLineItem): PickupRequestLineItem {
+  return {
+    id: item.id,
+    title: item.title,
+    quantity: item.quantity,
+    thumbnail: item.thumbnail,
+    productId: item.productId,
+    productTitle: item.productTitle,
+    productHandle: item.productHandle,
+    variantId: item.variantId,
+    variantTitle: item.variantTitle,
+    variantSku: item.variantSku,
+    unitPrice: item.unitPrice,
+    total: item.total,
+    selectedOptions: item.selectedOptions,
+  };
+}
+
+function hydratePickupRequestFromCart(pickupRequest: PickupRequestDetail, cart: Cart): PickupRequestDetail {
+  const mergedLineItems =
+    pickupRequest.lineItems.length > 0
+      ? pickupRequest.lineItems.map((lineItem) => {
+          const matchingCartItem =
+            cart.items.find((item) => lineItem.variantId && item.variantId === lineItem.variantId) ??
+            cart.items.find((item) => lineItem.productId && item.productId === lineItem.productId) ??
+            cart.items.find((item) => item.id === lineItem.id);
+
+          if (!matchingCartItem) {
+            return lineItem;
+          }
+
+          return {
+            ...lineItem,
+            quantity: lineItem.quantity > 0 ? lineItem.quantity : matchingCartItem.quantity,
+            thumbnail: lineItem.thumbnail ?? matchingCartItem.thumbnail,
+            productTitle: lineItem.productTitle ?? matchingCartItem.productTitle,
+            productHandle: lineItem.productHandle ?? matchingCartItem.productHandle,
+            variantTitle: lineItem.variantTitle ?? matchingCartItem.variantTitle,
+            variantSku: lineItem.variantSku ?? matchingCartItem.variantSku,
+            unitPrice: lineItem.unitPrice > 0 ? lineItem.unitPrice : matchingCartItem.unitPrice,
+            total: lineItem.total > 0 ? lineItem.total : matchingCartItem.total,
+            selectedOptions:
+              lineItem.selectedOptions.length > 0
+                ? lineItem.selectedOptions
+                : matchingCartItem.selectedOptions,
+          };
+        })
+      : cart.items.map((item) => mapCartItemToPickupLineItem(item));
+
+  return {
+    ...pickupRequest,
+    currencyCode: cart.summary.currencyCode,
+    itemCount: pickupRequest.itemCount > 0 ? pickupRequest.itemCount : cart.summary.itemCount,
+    subtotal: pickupRequest.subtotal > 0 ? pickupRequest.subtotal : cart.summary.subtotal,
+    total: pickupRequest.total > 0 ? pickupRequest.total : cart.summary.total,
+    lineItems: mergedLineItems,
+  };
+}
+
+async function resolvePickupRequestDetailSnapshot(pickupRequest: PickupRequestDetail) {
+  let currentPickupRequest = pickupRequest;
+  let resolvedOrderId = pickupRequest.orderId;
+  let recoveredFromLiveCart = false;
+
+  if (!pickupSnapshotLooksBroken(currentPickupRequest)) {
+    return {
+      pickupRequest: currentPickupRequest,
+      resolvedOrderId,
+      recoveredFromLiveCart,
+    };
+  }
+
+  if (!resolvedOrderId && currentPickupRequest.cartId) {
+    try {
+      resolvedOrderId = (await retrieveOrderByCartId(currentPickupRequest.cartId))?.id ?? null;
+    } catch {
+      resolvedOrderId = null;
+    }
+  }
+
+  if (resolvedOrderId && currentPickupRequest.cartId) {
+    try {
+      await syncPickupRequestFromOrder(currentPickupRequest.cartId, {
+        orderId: resolvedOrderId,
+      });
+
+      const syncedPickupRequest = await getPickupRequestById(currentPickupRequest.id);
+
+      if (syncedPickupRequest) {
+        currentPickupRequest = syncedPickupRequest;
+      }
+    } catch {
+      // Keep rendering the original snapshot and try a live cart fallback below.
+    }
+  }
+
+  if (pickupSnapshotLooksBroken(currentPickupRequest) && currentPickupRequest.cartId) {
+    try {
+      const liveCart = await retrieveCart(currentPickupRequest.cartId);
+      currentPickupRequest = hydratePickupRequestFromCart(currentPickupRequest, liveCart);
+      recoveredFromLiveCart = true;
+    } catch {
+      recoveredFromLiveCart = false;
+    }
+  }
+
+  return {
+    pickupRequest: currentPickupRequest,
+    resolvedOrderId,
+    recoveredFromLiveCart,
+  };
+}
+
 export default async function DashboardStorePickupRequestDetailPage({
   params,
 }: Readonly<{
   params: Promise<{ id: string }>;
 }>) {
   const { id } = await params;
-  const pickupRequest = await getPickupRequestById(id);
+  const requestedPickupRequest = await getPickupRequestById(id);
 
-  if (!pickupRequest) {
+  if (!requestedPickupRequest) {
     notFound();
   }
+
+  const {
+    pickupRequest,
+    resolvedOrderId,
+    recoveredFromLiveCart,
+  } = await resolvePickupRequestDetailSnapshot(requestedPickupRequest);
 
   const [annotations, manualPaymentSummary, paymentEntries] = await Promise.all([
     listPickupRequestAnnotations(pickupRequest.id),
@@ -113,6 +254,19 @@ export default async function DashboardStorePickupRequestDetailPage({
               </Badge>
             }
           >
+            {recoveredFromLiveCart ? (
+              <AdminSurface inset className="mb-4 border-amber-200 bg-amber-50 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-amber-800">
+                  Snapshot recuperado
+                </p>
+                <p className="mt-2 text-[13px] leading-relaxed text-amber-900">
+                  El snapshot original del pedido se guardó sin importes. Esta vista está usando
+                  el carrito activo de Medusa para mostrar precios y totales legibles mientras se
+                  completa el flujo operativo.
+                </p>
+              </AdminSurface>
+            ) : null}
+
             <div className="grid gap-1">
               {pickupRequest.lineItems.map((lineItem) => (
                 <AdminSurface
@@ -137,7 +291,7 @@ export default async function DashboardStorePickupRequestDetailPage({
                     </div>
                     <div className="flex flex-1 flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
                       <div className="space-y-1.5">
-                        <p className="leading-tight tracking-tight text-[15px] font-black uppercase text-[#111111]">
+                        <p className="text-[15px] font-semibold leading-tight text-[#111111]">
                           {lineItem.title}
                         </p>
                         {lineItem.selectedOptions.length > 0 ? (
@@ -160,14 +314,12 @@ export default async function DashboardStorePickupRequestDetailPage({
                           </p>
                         ) : null}
                       </div>
-                      <div className="min-w-[140px] border-l border-black/5 pl-6 text-right">
-                        <p className="font-display text-2xl font-black italic tracking-tighter text-[#d71920]">
-                          {lineItem.total > 0
-                            ? formatCartAmount(lineItem.total, pickupRequest.currencyCode)
-                            : "S/ 0.00"}
+                      <div className="min-w-[148px] border-l border-black/5 pl-6 text-right">
+                        <p className="text-2xl font-semibold tracking-tight text-[#111111]">
+                          {formatCartAmount(lineItem.total, pickupRequest.currencyCode)}
                         </p>
                         <div className="mt-1 flex flex-col items-end gap-1">
-                          <span className="bg-black/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-[#111111]">
+                          <span className="bg-black/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#111111]">
                             QTY: {lineItem.quantity}
                           </span>
                           <span className="text-[11px] font-bold text-[#7a7f87]">
@@ -205,7 +357,7 @@ export default async function DashboardStorePickupRequestDetailPage({
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a7f87]">
                   Saldo pendiente
                 </p>
-                <p className="font-display text-2xl font-black italic text-[#111111]">
+                <p className="text-2xl font-semibold text-[#111111]">
                   {formatCartAmount(
                     manualPaymentSummary.balanceDue,
                     pickupRequest.currencyCode,
@@ -426,15 +578,7 @@ export default async function DashboardStorePickupRequestDetailPage({
               </div>
 
               <div className={cn("relative overflow-hidden border p-5", hintToneClasses[hint.tone])}>
-                <div
-                  className={cn(
-                    "absolute left-0 top-0 h-full w-1",
-                    hintToneClasses[hint.tone]
-                      .split(" ")[1]
-                      .replace("text-", "bg-")
-                      .replace("bg-", "bg-"),
-                  )}
-                />
+                <div className={cn("absolute left-0 top-0 h-full w-1", hintAccentClasses[hint.tone])} />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
                   Siguiente foco
                 </p>
@@ -587,7 +731,7 @@ export default async function DashboardStorePickupRequestDetailPage({
                   <SyncPickupRequestFromOrderButton
                     pickupRequestId={pickupRequest.id}
                     cartId={pickupRequest.cartId}
-                    orderId={pickupRequest.orderId}
+                    orderId={resolvedOrderId}
                     size="sm"
                     className="h-11 w-full rounded-none text-[10px] font-bold uppercase tracking-[0.1em]"
                   />

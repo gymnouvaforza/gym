@@ -1,16 +1,8 @@
 import type { Metadata } from "next";
 
-import PublicInlineAlert from "@/components/public/PublicInlineAlert";
-import ProductFilters from "@/components/marketing/ProductFilters";
-import ProductsGrid from "@/components/marketing/ProductsGrid";
-import ProductToolbar from "@/components/marketing/ProductToolbar";
+import ShopCatalogClient from "@/components/marketing/ShopCatalogClient";
 import { getCommerceCatalog } from "@/lib/commerce/catalog";
-import {
-  getActiveProducts,
-  getAllProducts,
-  normalizeProductFilters,
-  type ProductSearchParamsInput,
-} from "@/lib/data/products";
+import { getActiveProducts } from "@/lib/data/products";
 
 export const metadata: Metadata = {
   title: "Tienda del gimnasio",
@@ -20,16 +12,9 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
-interface ShopPageProps {
-  searchParams: Promise<ProductSearchParamsInput>;
-}
-
-export default async function ShopPage({ searchParams }: Readonly<ShopPageProps>) {
-  const resolvedSearchParams = await searchParams;
-  const filters = normalizeProductFilters(resolvedSearchParams);
+export default async function ShopPage() {
   const catalog = await getCommerceCatalog();
   const allProducts = getActiveProducts(catalog.products);
-  const filteredProducts = getAllProducts(catalog.products, filters);
 
   return (
     <>
@@ -56,39 +41,11 @@ export default async function ShopPage({ searchParams }: Readonly<ShopPageProps>
       </section>
 
       <section className="section-shell py-10 md:py-14">
-        {catalog.warning ? (
-          <div className="mb-6">
-            <PublicInlineAlert
-              tone="warning"
-              title="Aviso de catalogo"
-              message={catalog.warning}
-            />
-          </div>
-        ) : null}
-
-        {catalog.status === "unavailable" ? (
-          <div className="rounded-none border border-dashed border-black/12 bg-white px-6 py-12 text-center shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6b7280]">
-              Medusa no disponible
-            </p>
-            <h2 className="mt-4 font-display text-4xl uppercase text-[#111111]">
-              El catalogo no se puede consultar ahora mismo
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#4b5563]">
-              La tienda funciona solo con Medusa. Cuando el servicio vuelva a estar disponible, el
-              catalogo aparecerá aqui sin recurrir a datos locales.
-            </p>
-          </div>
-        ) : (
-          <>
-            <ProductToolbar filters={filters} resultsCount={filteredProducts.length} />
-
-            <div className="mt-6 grid gap-6 lg:grid-cols-[290px_minmax(0,1fr)] lg:items-start">
-              <ProductFilters filters={filters} allProducts={allProducts} />
-              <ProductsGrid products={filteredProducts} />
-            </div>
-          </>
-        )}
+        <ShopCatalogClient
+          products={allProducts}
+          status={catalog.status}
+          warning={catalog.warning}
+        />
       </section>
     </>
   );
