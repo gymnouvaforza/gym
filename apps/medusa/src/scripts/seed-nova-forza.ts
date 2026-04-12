@@ -1,6 +1,4 @@
 import "dotenv/config";
-import fs from "fs";
-import path from "path";
 import type { CreateInventoryLevelInput, ExecArgs } from "@medusajs/framework/types";
 import { ContainerRegistrationKeys, Modules, ProductStatus } from "@medusajs/framework/utils";
 import {
@@ -385,52 +383,32 @@ async function ensurePublishableApiKey(container: ExecArgs["container"], salesCh
   return apiKey.token;
 }
 
-async function uploadProductImages(container: ExecArgs["container"], products: NovaForzaSeedProduct[]) {
-  const fileModuleService = container.resolve(Modules.FILE);
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
-  
-  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const BUCKET_NAME = "medusa-media";
+function buildSupabasePublicImageMap(products: NovaForzaSeedProduct[]) {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || process.env.SUPABASE_URL?.trim() || "";
 
-  // Use absolute path to Next.js public/images/products
-  const imagesDir = path.resolve(process.cwd(), "../../public/images/products");
+  if (!supabaseUrl) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL to build public product image URLs.",
+    );
+  }
+
+  const normalizedSupabaseUrl = supabaseUrl.replace(/\/$/, "");
+  const bucketName = "medusa-media";
   const imageMap = new Map<string, string>();
 
   for (const product of products) {
     for (const imagePath of product.metadata.storefront_images) {
       const fileName = imagePath.split("/").pop();
-      if (!fileName || imageMap.has(fileName)) continue;
 
-      const filePath = path.join(imagesDir, fileName);
-      if (!fs.existsSync(filePath)) {
-        logger.warn(`Image file not found for Medusa seed: ${filePath}`);
+      if (!fileName || imageMap.has(fileName)) {
         continue;
       }
 
-      try {
-        const fileContent = fs.readFileSync(filePath);
-        const file = await fileModuleService.createFiles({
-          filename: fileName,
-          mimeType: "image/png",
-          content: fileContent.toString("base64"),
-          access: "public",
-        });
-        
-        imageMap.set(fileName, file.url);
-        logger.info(`Uploaded image: ${fileName} -> ${file.url}`);
-      } catch (error) {
-        // Fallback: If Medusa upload fails, we use the Supabase public URL directly 
-        // if we have the Supabase URL. This harmonizes with the manual upload/sync scripts.
-        if (SUPABASE_URL) {
-            const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${fileName}`;
-            imageMap.set(fileName, publicUrl);
-            logger.info(`Fallback triggered: Using existing Supabase URL for ${fileName} -> ${publicUrl}`);
-        } else {
-            throw new Error(
-                `Failed to upload image ${fileName} and no NEXT_PUBLIC_SUPABASE_URL for fallback: ${error instanceof Error ? error.message : String(error)}`,
-            );
-        }
-      }
+      imageMap.set(
+        fileName,
+        `${normalizedSupabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`,
+      );
     }
   }
 
@@ -573,8 +551,8 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
   logger.info(`Region ready: ${region?.id ?? "missing"}`);
   logger.info(`Sales channel ready: ${salesChannel?.id ?? "missing"}`);
 
-  logger.info("Uploading product images to storage provider...");
-  const uploadedImageMap = await uploadProductImages(container, novaForzaProducts);
+  logger.info("Resolving product images from Supabase public bucket...");
+  const uploadedImageMap = buildSupabasePublicImageMap(novaForzaProducts);
   
   const { data: existingProducts } = await regionQuery.graph({
     entity: "product",

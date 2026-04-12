@@ -89,6 +89,7 @@ El script `seed:nova` crea una base minima alineada con la tienda actual:
 - stock location `Nova Forza Club`
 - categorias `Suplementos`, `Accesorios`, `Merchandising`
 - productos iniciales con metadata pensada para el storefront actual
+- URLs de imagen apuntando al bucket publico `medusa-media` de Supabase
 
 Ejecucion:
 
