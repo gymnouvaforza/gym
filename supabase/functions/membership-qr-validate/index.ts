@@ -46,6 +46,38 @@ function json(body: unknown, status = 200) {
   });
 }
 
+async function resolveAuthorizedAdminKey(supabaseUrl: string, authorizationHeader: string | null) {
+  const headerValue = authorizationHeader?.trim() ?? "";
+
+  if (!headerValue.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const apiKey = headerValue.slice("Bearer ".length).trim();
+
+  if (!apiKey) {
+    return null;
+  }
+
+  const authProbe = createClient(supabaseUrl, apiKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  const { error } = await authProbe.auth.admin.listUsers({
+    page: 1,
+    perPage: 1,
+  });
+
+  if (error) {
+    return null;
+  }
+
+  return apiKey;
+}
+
 async function sha256(value: string) {
   const digest = await crypto.subtle.digest(
     "SHA-256",
@@ -81,7 +113,12 @@ Deno.serve(async (request) => {
     );
   }
 
-  if (request.headers.get("Authorization") !== `Bearer ${serviceRoleKey}`) {
+  const authorizedAdminKey = await resolveAuthorizedAdminKey(
+    supabaseUrl,
+    request.headers.get("Authorization"),
+  );
+
+  if (!authorizedAdminKey) {
     return json(
       createMembershipQrErrorResponse({
         errorMessage: "Solo el dashboard autenticado puede invocar esta validacion QR.",
