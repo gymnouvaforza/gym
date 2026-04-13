@@ -3,9 +3,9 @@
  * Translation from Supabase Postgres Functions/Triggers
  */
 
-const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
-const { onUserCreated } = require("firebase-functions/v2/auth");
-const admin = require("firebase-admin");
+import { onDocumentUpdated, onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onUserCreated } from "firebase-functions/v2/auth";
+import admin from "firebase-admin";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -13,7 +13,7 @@ const db = admin.firestore();
 /**
  * Equivalent to: handle_updated_at() trigger
  */
-exports.handleUpdatedAt = onDocumentUpdated("*/{docId}", (event) => {
+export const handleUpdatedAt = onDocumentUpdated("*/{docId}", (event) => {
   const newValue = event.data.after.data();
   const previousValue = event.data.before.data();
 
@@ -31,7 +31,7 @@ exports.handleUpdatedAt = onDocumentUpdated("*/{docId}", (event) => {
 /**
  * Equivalent to: on_auth_user_created() trigger
  */
-exports.onAuthUserCreated = onUserCreated(async (user) => {
+export const onAuthUserCreated = onUserCreated(async (user) => {
   const { uid, email } = user;
   
   // Create user_roles record (default: member)
@@ -49,7 +49,7 @@ exports.onAuthUserCreated = onUserCreated(async (user) => {
 /**
  * Logic for CMS Documents (from 202603230004_create_cms_documents.sql)
  */
-exports.onCmsDocumentCreated = onDocumentCreated("cms_documents/{docId}", (event) => {
+export const onCmsDocumentCreated = onDocumentCreated("cms_documents/{docId}", (event) => {
   // Logic for slug generation or content indexing
   const data = event.data.data();
   console.log(`New CMS doc: ${data.title}`);
