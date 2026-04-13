@@ -1,4 +1,6 @@
 import "dotenv/config";
+import path from "node:path";
+import { readFile } from "node:fs/promises";
 import type { CreateInventoryLevelInput, ExecArgs } from "@medusajs/framework/types";
 import { ContainerRegistrationKeys, Modules, ProductStatus } from "@medusajs/framework/utils";
 import {
@@ -415,7 +417,71 @@ function buildSupabasePublicImageMap(products: NovaForzaSeedProduct[]) {
   return imageMap;
 }
 
+function getNovaForzaImageAssetDir() {
+  return path.resolve(__dirname, "../../../../public/images/products");
+}
 
+async function uploadNovaForzaProductImages(
+  logger: { info: (message: string) => void; warn: (message: string) => void },
+  products: NovaForzaSeedProduct[],
+) {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || process.env.SUPABASE_URL?.trim() || "";
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || "";
+  const bucketName = "medusa-media";
+
+  if (!supabaseUrl) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL to upload Nova Forza product images.",
+    );
+  }
+
+  if (!serviceRoleKey) {
+    logger.warn(
+      "[seed:nova] SUPABASE_SERVICE_ROLE_KEY missing. Skipping automatic upload of storefront images to Supabase Storage.",
+    );
+    return;
+  }
+
+  const imageDir = getNovaForzaImageAssetDir();
+  const uploadTargets = Array.from(
+    new Set(
+      products.flatMap((product) =>
+        product.metadata.storefront_images
+          .map((imagePath) => imagePath.split("/").pop())
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ),
+  );
+
+  logger.info(`Uploading ${uploadTargets.length} Nova Forza product images to Supabase bucket ${bucketName}...`);
+
+  for (const fileName of uploadTargets) {
+    const absolutePath = path.join(imageDir, fileName);
+    const fileBuffer = await readFile(absolutePath);
+    const uploadUrl = `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/${bucketName}/${encodeURIComponent(fileName)}`;
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        apikey: serviceRoleKey,
+        "x-upsert": "true",
+        "content-type": "image/webp",
+      },
+      body: fileBuffer,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed uploading ${fileName} to Supabase Storage (${response.status}): ${errorText}`,
+      );
+    }
+  }
+}
+
+ 
 export default async function seedNovaForzaData({ container }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
   const storeModuleService = container.resolve(Modules.STORE);
@@ -551,6 +617,7 @@ export default async function seedNovaForzaData({ container }: ExecArgs) {
   logger.info(`Region ready: ${region?.id ?? "missing"}`);
   logger.info(`Sales channel ready: ${salesChannel?.id ?? "missing"}`);
 
+  await uploadNovaForzaProductImages(logger, novaForzaProducts);
   logger.info("Resolving product images from Supabase public bucket...");
   const uploadedImageMap = buildSupabasePublicImageMap(novaForzaProducts);
   

@@ -1,12 +1,18 @@
+import type { Metadata } from "next";
+import { Clock3, ShieldAlert, ShieldCheck } from "lucide-react";
 import { notFound } from "next/navigation";
-import { ShieldCheck, ShieldAlert, Clock3 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { getPublicMembershipStatusByToken } from "@/lib/data/memberships";
 import { membershipValidationStatusLabels } from "@/lib/memberships";
 import { formatMemberAccountDate } from "@/lib/member-account";
+import { buildNoIndexMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = buildNoIndexMetadata(
+  "Validacion de membresia",
+  "Pagina operativa de validacion publica de membresias.",
+);
 
 const validationIconMap = {
   al_dia: ShieldCheck,

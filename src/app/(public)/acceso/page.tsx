@@ -1,11 +1,17 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import MemberAuthForm from "@/components/auth/MemberAuthForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentMemberUser } from "@/lib/auth";
 import { hasSupabasePublicEnv } from "@/lib/env";
+import { buildNoIndexMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = buildNoIndexMetadata(
+  "Acceso de socios",
+  "Pantalla privada de acceso para socios del gimnasio.",
+);
 
 export default async function MemberLoginPage() {
   const user = await getCurrentMemberUser();

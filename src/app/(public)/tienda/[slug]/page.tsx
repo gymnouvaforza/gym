@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import JsonLdScript from "@/components/marketing/JsonLdScript";
 import ProductCard from "@/components/marketing/ProductCard";
 import ProductDetail from "@/components/marketing/ProductDetail";
 import PublicInlineAlert from "@/components/public/PublicInlineAlert";
@@ -11,6 +12,13 @@ import {
   getRelatedProducts,
   productCategoryLabels,
 } from "@/lib/data/products";
+import { getMarketingData } from "@/lib/data/site";
+import {
+  buildBreadcrumbJsonLd,
+  buildNoIndexMetadata,
+  buildPageMetadata,
+  buildProductJsonLd,
+} from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -27,8 +35,7 @@ export async function generateStaticParams() {
     return [];
   }
 
-  const { products } = snapshot;
-  return getActiveProducts(products).map((product) => ({
+  return getActiveProducts(snapshot.products).map((product) => ({
     slug: product.slug,
   }));
 }
@@ -37,35 +44,34 @@ export async function generateMetadata({
   params,
 }: Readonly<ProductDetailPageProps>): Promise<Metadata> {
   const { slug } = await params;
-  const snapshot = await getCommerceProductBySlug(slug);
+  const [snapshot, { settings }] = await Promise.all([
+    getCommerceProductBySlug(slug),
+    getMarketingData(),
+  ]);
   const product = snapshot.product;
 
   if (snapshot.status === "unavailable") {
-    return {
-      title: "Tienda temporalmente no disponible",
-      description: "El catalogo de Nova Forza no se puede consultar ahora mismo.",
-    };
+    return buildNoIndexMetadata(
+      "Tienda temporalmente no disponible",
+      "El catalogo de Nuova Forza no se puede consultar ahora mismo.",
+    );
   }
 
   if (!product || snapshot.status === "not_found") {
-    return {
-      title: "Producto no encontrado",
-    };
+    return buildNoIndexMetadata("Producto no encontrado");
   }
 
-  return {
-    title: `${product.name} en tienda`,
+  return buildPageMetadata({
     description: product.short_description,
-    alternates: {
-      canonical: `/tienda/${product.slug}`,
+    imageUrl: product.images[0] ?? settings.seo_og_image_url,
+    path: `/tienda/${product.slug}`,
+    robots: {
+      follow: true,
+      index: true,
     },
-    openGraph: {
-      title: `${product.name} | Nova Forza`,
-      description: product.short_description,
-      url: `/tienda/${product.slug}`,
-      images: product.images[0] ? [{ url: product.images[0], alt: product.name }] : undefined,
-    },
-  };
+    siteName: settings.site_name,
+    title: product.name,
+  });
 }
 
 export default async function ProductDetailPage({
@@ -92,7 +98,7 @@ export default async function ProductDetailPage({
             La ficha de producto no se puede cargar ahora mismo
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#4b5563]">
-            La tienda funciona solo con Medusa. Cuando el servicio se recupere, esta ficha volverá
+            La tienda funciona solo con Medusa. Cuando el servicio se recupere, esta ficha volvera
             a estar disponible sin usar datos locales ni fallback silencioso.
           </p>
           <div className="mt-8 flex justify-center">
@@ -116,6 +122,15 @@ export default async function ProductDetailPage({
 
   return (
     <>
+      <JsonLdScript
+        data={buildBreadcrumbJsonLd([
+          { name: "Inicio", path: "/" },
+          { name: "Tienda", path: "/tienda" },
+          { name: product.name, path: `/tienda/${product.slug}` },
+        ])}
+      />
+      <JsonLdScript data={buildProductJsonLd(product)} />
+
       {productSnapshot.warning ? (
         <div className="section-shell pt-8">
           <PublicInlineAlert
@@ -132,22 +147,22 @@ export default async function ProductDetailPage({
         <div className="mb-12 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-               <div className="h-1.5 w-1.5 bg-[#d71920]" />
-               <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">
-                 Completar tu Entrenamiento
-               </p>
+              <div className="h-1.5 w-1.5 bg-[#d71920]" />
+              <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">
+                Completar tu entrenamiento
+              </p>
             </div>
             <h2 className="font-display text-5xl font-black uppercase leading-none text-[#111111] sm:text-6xl italic">
-              Línea <span className="text-black/10">Relacionada</span>
+              Linea <span className="text-black/10">relacionada</span>
             </h2>
-            <p className="max-w-2xl text-sm font-medium leading-7 text-[#5f6368] border-l border-black/5 pl-6">
-              Selección técnica recomendada por nuestros preparadores para maximizar el rendimiento 
-              en la categoría de {productCategoryLabels[product.category]}.
+            <p className="max-w-2xl border-l border-black/5 pl-6 text-sm font-medium leading-7 text-[#5f6368]">
+              Seleccion tecnica recomendada por nuestros preparadores para maximizar el rendimiento
+              en la categoria de {productCategoryLabels[product.category]}.
             </p>
           </div>
           <Link
             href={`/tienda?categoria=${product.category}`}
-            className="h-12 px-8 bg-[#111111] text-white flex items-center justify-center font-black uppercase text-[10px] tracking-[0.2em] hover:bg-[#d71920] transition-all shadow-xl"
+            className="flex h-12 items-center justify-center bg-[#111111] px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-xl transition-all hover:bg-[#d71920]"
           >
             Ver toda la gama
           </Link>

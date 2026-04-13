@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
+import HeroPhoneMedia from "@/components/marketing/HeroPhoneMedia";
 import { Button } from "@/components/ui/button";
 import type { SiteSettings } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
@@ -46,22 +46,22 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
       <div className="section-shell relative z-10 flex min-h-screen flex-col justify-center py-24">
         <div className="grid gap-16 lg:grid-cols-12 lg:items-center">
           <div className="flex flex-col items-center text-center lg:col-span-7 lg:items-start lg:text-left">
-            <div className="animate-slide-up flex items-center gap-3 reveal-1 [animation-fill-mode:forwards]">
+            <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-accent" />
               <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-accent">
-                {settings.hero_badge || "Entrenamiento Premium en Lima"}
+                {settings.hero_badge || "Entrenamiento premium en Chiclayo"}
               </p>
             </div>
 
-            <h1 className="animate-slide-up mt-8 font-display text-[28px] font-extrabold uppercase italic leading-[0.95] tracking-tight reveal-2 xs:text-[40px] sm:text-[56px] lg:text-[82px] [animation-fill-mode:forwards]">
+            <h1 className="mt-8 font-display text-[28px] font-extrabold uppercase italic leading-[0.95] tracking-tight xs:text-[40px] sm:text-[56px] lg:text-[82px]">
               {renderTitleLines([...titleParts.left, ...titleParts.right], true)}
             </h1>
 
-            <p className="animate-slide-up mt-10 max-w-xl text-[16px] leading-relaxed text-white/60 reveal-4 sm:text-[18px] [animation-fill-mode:forwards]">
+            <p className="mt-10 max-w-xl text-[16px] leading-relaxed text-white/60 sm:text-[18px]">
               {settings.hero_description}
             </p>
 
-            <div className="animate-slide-up mt-12 flex flex-col gap-4 reveal-4 sm:flex-row [animation-fill-mode:forwards]">
+            <div className="mt-12 flex flex-col gap-4 sm:flex-row">
               <Button
                 asChild
                 className="btn-athletic bg-accent text-white !h-16 !px-10 hover:bg-white hover:text-black"
@@ -94,25 +94,11 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
               <div className="pointer-events-none absolute inset-0 -z-10 bg-accent/20 blur-[120px]" />
 
               <div className="relative aspect-[9/16] overflow-hidden rounded-[2.5rem] border-[6px] border-[#1a1a1a] shadow-2xl shadow-accent/20">
-                <Image
-                  src={FALLBACK_IMAGE}
-                  alt="Nuova Forza Hero"
-                  fill
-                  className="object-cover opacity-20 blur-xl"
-                  sizes="(min-width: 1024px) 360px, (min-width: 640px) 320px, 280px"
-                  priority
+                <HeroPhoneMedia
+                  imageAlt="Nuova Forza Hero"
+                  imageSrc={FALLBACK_IMAGE}
+                  videoSrc={heroVideoUrl}
                 />
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  poster={FALLBACK_IMAGE}
-                  className="absolute inset-0 h-full w-full object-cover"
-                >
-                  <source src={heroVideoUrl} type="video/mp4" />
-                </video>
               </div>
             </div>
 

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 
 import CartProcessingPageClient from "@/components/cart/CartProcessingPageClient";
+import { buildNoIndexMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Pago recibido",
-  description: "Estamos terminando de registrar tu pedido pickup en Nova Forza.",
-};
+export const metadata: Metadata = buildNoIndexMetadata(
+  "Pago recibido",
+  "Estamos terminando de registrar tu pedido pickup en Nuova Forza.",
+);
 
 export const dynamic = "force-dynamic";
 

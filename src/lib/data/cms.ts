@@ -1,17 +1,14 @@
-import type { Metadata } from "next";
-
 import {
   cmsDocumentKeys,
   getDefaultCmsDocument,
   type CmsDocumentKey,
 } from "@/lib/data/default-cms";
-import { SITE_URL } from "@/lib/seo";
+import { buildCmsDocumentMetadata } from "@/lib/seo";
 import {
   getPublicCmsSnapshot,
   normalizeCmsDocument,
   type CmsSnapshot,
 } from "@/lib/supabase/queries";
-import type { DBCmsDocument } from "@/lib/supabase/database.types";
 
 export async function getPublicCmsData(): Promise<CmsSnapshot> {
   return getPublicCmsSnapshot();
@@ -46,28 +43,4 @@ export function getFallbackCmsDocument(key: CmsDocumentKey) {
   return normalizeCmsDocument(getDefaultCmsDocument(key), key);
 }
 
-export function buildCmsDocumentMetadata(
-  document: DBCmsDocument,
-  canonicalPath?: string,
-): Metadata {
-  const canonical = new URL(canonicalPath ?? `/${document.slug}`, SITE_URL).toString();
-
-  return {
-    title: document.seo_title || document.title,
-    description: document.seo_description || document.summary,
-    alternates: {
-      canonical,
-    },
-    openGraph: {
-      title: document.seo_title || document.title,
-      description: document.seo_description || document.summary,
-      url: canonical,
-      type: "article",
-    },
-    twitter: {
-      card: "summary",
-      title: document.seo_title || document.title,
-      description: document.seo_description || document.summary,
-    },
-  };
-}
+export { buildCmsDocumentMetadata };

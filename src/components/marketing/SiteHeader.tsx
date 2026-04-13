@@ -4,21 +4,24 @@ import Link from "next/link";
 import CartEntry from "@/components/cart/CartEntry";
 import SiteHeaderAuthActions from "@/components/marketing/SiteHeaderAuthActions";
 import { novaForzaHomeContent } from "@/lib/data/nova-forza-content";
+import { normalizeSiteName } from "@/lib/seo";
 import type { SiteSettings } from "@/lib/supabase/database.types";
 
 export default function SiteHeader({ settings }: Readonly<{ settings: SiteSettings }>) {
+  const siteName = normalizeSiteName(settings.site_name);
+
   return (
     <header className="border-b border-black/5 bg-[#f5f5f0] py-3 sm:py-4 lg:py-7">
       <div className="section-shell flex items-center justify-between gap-2 sm:gap-8">
         <Link
           href="/"
           className="group relative flex shrink-0 items-center justify-center transition-transform hover:scale-105"
-          aria-label={settings.site_name}
+          aria-label={siteName}
         >
           <div className="relative h-7 w-20 xs:h-8 xs:w-24 sm:h-12 sm:w-40">
             <Image
               src="/images/logo/logo-trans.webp"
-              alt={settings.site_name}
+              alt={siteName}
               fill
               className="object-contain"
               sizes="(min-width: 640px) 160px, 105px"

@@ -4,13 +4,12 @@ import type { Metadata } from "next";
 import LoginForm from "@/components/auth/LoginForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { hasSupabasePublicEnv } from "@/lib/env";
+import { buildNoIndexMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+export const metadata: Metadata = buildNoIndexMetadata(
+  "Acceso al dashboard",
+  "Pagina privada de acceso al panel del gimnasio.",
+);
 
 export default function LoginPage() {
   return (

@@ -89,6 +89,7 @@ El script `seed:nova` crea una base minima alineada con la tienda actual:
 - stock location `Nova Forza Club`
 - categorias `Suplementos`, `Accesorios`, `Merchandising`
 - productos iniciales con metadata pensada para el storefront actual
+- subida automatica de las imagenes locales de `public/images/products` al bucket publico `medusa-media` de Supabase cuando existe `SUPABASE_SERVICE_ROLE_KEY`
 - URLs de imagen apuntando al bucket publico `medusa-media` de Supabase
 
 Ejecucion:
@@ -96,6 +97,13 @@ Ejecucion:
 ```bash
 npm run medusa:seed:nova
 ```
+
+Para que el seed deje las imagenes realmente disponibles en storefront, ejecutalo con:
+
+- `NEXT_PUBLIC_SUPABASE_URL` o `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Si falta `SUPABASE_SERVICE_ROLE_KEY`, el seed dejara las URLs publicas en Medusa pero avisara en logs que ha omitido la subida automatica al bucket.
 
 Al terminar, Medusa deja dos datos clave en logs:
 

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -9,8 +10,13 @@ import {
   pickupRequestPaymentStatusLabels,
 } from "@/lib/cart/pickup-request";
 import { getPickupRequestById } from "@/lib/data/pickup-requests";
+import { buildNoIndexMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = buildNoIndexMetadata(
+  "Pedido confirmado",
+  "Pantalla operativa de confirmacion de un pedido pickup.",
+);
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -46,7 +52,7 @@ export default async function CartConfirmationPage({
           Reserva confirmada
         </p>
         <h1 className="mt-4 font-display text-4xl uppercase text-[#111111]">
-          Tu pedido para recogida ya está registrado
+          Tu pedido para recogida ya esta registrado
         </h1>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-[#4b5563]">
           Referencia <strong>{pickupRequest.requestNumber}</strong>. Ya puedes seguir la gestion
@@ -108,8 +114,8 @@ export default async function CartConfirmationPage({
         ) : null}
 
         <div className="mt-8 border border-black/8 bg-[#fbfbf8] p-5 text-sm leading-7 text-[#4b5563]">
-          Tu pedido queda en modalidad <strong>recogida local</strong>. No hace falta dirección de
-          envío. El equipo de Nova Forza te avisará cuando esté listo para pasar por el club.
+          Tu pedido queda en modalidad <strong>recogida local</strong>. No hace falta direccion de
+          envio. El equipo de Nuova Forza te avisara cuando este listo para pasar por el club.
         </div>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">

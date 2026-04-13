@@ -3,12 +3,19 @@ import type { Metadata } from "next";
 import ShopCatalogClient from "@/components/marketing/ShopCatalogClient";
 import { getCommerceCatalog } from "@/lib/commerce/catalog";
 import { getActiveProducts } from "@/lib/data/products";
+import { getMarketingData } from "@/lib/data/site";
+import { buildMarketingMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Tienda del gimnasio",
-  description:
-    "Catalogo de suplementos, accesorios y merchandising de Nuova Forza. Consulta productos destacados, disponibilidad y recogida en local.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { settings } = await getMarketingData();
+
+  return buildMarketingMetadata(settings, {
+    description:
+      "Catalogo de suplementos, accesorios de fuerza y merchandising con recogida local en Chiclayo.",
+    path: "/tienda",
+    title: "Tienda pickup de suplementos y accesorios",
+  });
+}
 
 export const revalidate = 60;
 
@@ -26,7 +33,7 @@ export default async function ShopPage() {
 
           <div className="relative max-w-4xl">
             <p className="inline-block rounded-none bg-[#d71920] px-3 py-1 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-              Nuova Forza Equipt.
+              Nuova Forza Equip
             </p>
             <h1 className="mt-8 font-display text-5xl font-extrabold uppercase leading-[0.9] tracking-[0.02em] sm:text-7xl lg:text-9xl italic">
               Potencia tu <br />
