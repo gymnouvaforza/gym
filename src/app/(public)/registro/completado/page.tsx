@@ -4,19 +4,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface MemberRegisterCompletePageProps {
   searchParams: Promise<{
+    confirmed?: string;
     email?: string;
+    error?: string;
+    pending?: string;
+    resent?: string;
   }>;
 }
 
 export default async function MemberRegisterCompletePage({
   searchParams,
 }: Readonly<MemberRegisterCompletePageProps>) {
-  const { email } = await searchParams;
+  const { confirmed, email, error, pending, resent } = await searchParams;
+  const status =
+    error ? "error" : confirmed === "1" ? "confirmed" : pending === "1" || email ? "pending" : "pending";
 
   return (
     <div className="section-shell flex min-h-screen items-center justify-center py-16">
       {hasSupabasePublicEnv() ? (
-        <RegistrationSuccessCard email={email} />
+        <RegistrationSuccessCard email={email} resent={resent === "1"} status={status} />
       ) : (
         <Card className="max-w-xl">
           <CardHeader>

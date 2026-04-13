@@ -10,13 +10,14 @@ const pushMock = vi.fn();
 const refreshMock = vi.fn();
 const signInWithPasswordMock = vi.fn();
 const signUpMock = vi.fn();
+let currentSearchParams = "next=/mi-cuenta";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
     refresh: refreshMock,
   }),
-  useSearchParams: () => new URLSearchParams("next=/mi-cuenta"),
+  useSearchParams: () => new URLSearchParams(currentSearchParams),
 }));
 
 vi.mock("@/lib/supabase/client", () => ({
@@ -30,6 +31,8 @@ vi.mock("@/lib/supabase/client", () => ({
 
 describe("MemberAuthForm", () => {
   beforeEach(() => {
+    window.history.replaceState({}, "", "http://localhost:3000/registro");
+    currentSearchParams = "next=/mi-cuenta";
     pushMock.mockReset();
     refreshMock.mockReset();
     signInWithPasswordMock.mockReset();
@@ -68,8 +71,25 @@ describe("MemberAuthForm", () => {
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith("/registro/completado?email=nuevo%40gym.com");
+      expect(signUpMock).toHaveBeenCalledWith({
+        email: "nuevo@gym.com",
+        password: "secret12",
+        options: {
+          emailRedirectTo:
+            "http://localhost:3000/auth/confirm?next=%2Fregistro%2Fcompletado%3Fconfirmed%3D1",
+        },
+      });
+      expect(pushMock).toHaveBeenCalledWith("/registro/completado?pending=1&email=nuevo%40gym.com");
     });
+  });
+
+  it("shows a friendly confirmation message on the login screen", async () => {
+    currentSearchParams = "confirmed=1&email=socio@gym.com&next=/mi-cuenta";
+
+    render(<MemberAuthForm mode="login" />);
+
+    expect(await screen.findByText("Correo confirmado")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("socio@gym.com")).toBeInTheDocument();
   });
 
   it("blocks register when the repeated password does not match", async () => {

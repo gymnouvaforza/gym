@@ -20,6 +20,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { AuthBlockingState, PendingButtonLabel } from "@/components/ui/loading-state";
+import {
+  buildMemberConfirmRedirectUrl,
+  buildMemberRegistrationCompleteUrl,
+} from "@/lib/member-auth-flow";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface MemberAuthFormProps {
@@ -56,6 +60,7 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/mi-cuenta";
   const initialEmail = searchParams.get("email") || "";
+  const isConfirmed = searchParams.get("confirmed") === "1";
   const isRegister = mode === "register";
 
   const form = useForm<MemberAuthValues>({
@@ -88,9 +93,13 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
     const supabase = createSupabaseBrowserClient();
 
     if (mode === "register") {
+      const emailRedirectTo = buildMemberConfirmRedirectUrl(window.location.origin);
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
+        options: {
+          emailRedirectTo,
+        },
       });
 
       if (signUpError) {
@@ -101,9 +110,12 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
       if (!data.session) {
         triggerWelcomeEmail(values.email);
         setIsNavigating(true);
-        const completeParams = new URLSearchParams();
-        completeParams.set("email", values.email);
-        router.push(`/registro/completado?${completeParams.toString()}`);
+        router.push(
+          buildMemberRegistrationCompleteUrl({
+            email: values.email,
+            pending: true,
+          }),
+        );
         return;
       }
 
@@ -214,6 +226,15 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
                 tone="error"
                 title={isRegister ? "No pudimos crear tu cuenta" : "No pudimos iniciar sesion"}
                 message={error}
+                compact
+              />
+            ) : null}
+
+            {!isRegister && isConfirmed ? (
+              <PublicInlineAlert
+                tone="success"
+                title="Correo confirmado"
+                message="Tu cuenta ya quedo verificada. Entra con tu email y contrasena para abrir tu espacio privado."
                 compact
               />
             ) : null}
