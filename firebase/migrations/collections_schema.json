@@ -1,0 +1,98 @@
+{
+  "collections": {
+    "site_settings": {
+      "description": "Configuracion global del sitio y CMS mini",
+      "documents": {
+        "global": {
+          "site_name": "string",
+          "site_tagline": "string",
+          "hero_badge": "string",
+          "hero_title": "string",
+          "hero_description": "string",
+          "hero_primary_cta": "string",
+          "hero_secondary_cta": "string",
+          "hero_video_url": "string",
+          "topbar_enabled": "boolean",
+          "topbar_variant": "string (announcement|promotion|notice)",
+          "contact_email": "string",
+          "updated_at": "timestamp"
+        }
+      }
+    },
+    "leads": {
+      "description": "Prospectos capturados desde la web",
+      "fields": {
+        "name": "string",
+        "email": "string",
+        "phone": "string",
+        "message": "string",
+        "source": "string",
+        "status": "string (new|contacted|closed)",
+        "metadata": "map",
+        "created_at": "timestamp"
+      }
+    },
+    "trainer_profiles": {
+      "description": "Perfiles de entrenadores",
+      "fields": {
+        "display_name": "string",
+        "branch_name": "string",
+        "bio": "string",
+        "is_active": "boolean",
+        "created_at": "timestamp",
+        "updated_at": "timestamp"
+      }
+    },
+    "member_profiles": {
+      "description": "Perfiles maestros de socios",
+      "fields": {
+        "supabase_user_id": "string (Auth UID)",
+        "trainer_user_id": "string (Auth UID)",
+        "member_number": "string",
+        "full_name": "string",
+        "email": "string",
+        "status": "string (prospect|active|paused|cancelled|former)",
+        "branch_name": "string",
+        "join_date": "timestamp",
+        "created_at": "timestamp"
+      }
+    },
+    "member_plan_snapshots": {
+      "description": "Historico de planes de socios",
+      "fields": {
+        "member_id": "string (ref:member_profiles)",
+        "label": "string",
+        "status": "string",
+        "is_current": "boolean",
+        "started_at": "timestamp",
+        "ends_at": "timestamp"
+      }
+    },
+    "marketing_testimonials": {
+      "description": "Testimonios para la web",
+      "fields": {
+        "author_name": "string",
+        "content": "string",
+        "rating": "number",
+        "is_published": "boolean"
+      }
+    },
+    "user_roles": {
+      "description": "Roles y permisos (RBAC)",
+      "fields": {
+        "user_id": "string (Auth UID)",
+        "role": "string (admin|trainer|member)",
+        "created_at": "timestamp"
+      }
+    },
+    "pickup_requests": {
+      "description": "Solicitudes de recogida (Medusa)",
+      "fields": {
+        "medusa_order_id": "string",
+        "status": "string",
+        "ledger": "array<map>",
+        "created_at": "timestamp"
+      }
+    }
+  }
+}

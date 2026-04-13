@@ -65,6 +65,7 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
 
   const form = useForm<MemberAuthValues>({
     resolver: zodResolver(createMemberAuthSchema(mode)),
+    mode: "onTouched",
     defaultValues: {
       email: initialEmail,
       password: "",
@@ -199,6 +200,17 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
                 </FormItem>
               )}
             />
+
+            {!isRegister ? (
+              <div className="flex justify-end">
+                <Link
+                  href="/recuperar-contrasena"
+                  className="text-sm font-semibold text-[#d71920]"
+                >
+                  ¿Has olvidado tu contraseña?
+                </Link>
+              </div>
+            ) : null}
 
             {isRegister ? (
               <FormField
