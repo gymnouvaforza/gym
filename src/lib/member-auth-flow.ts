@@ -50,17 +50,7 @@ export function buildMemberConfirmRedirectUrl(origin: string) {
   return url.toString();
 }
 
-export function buildMemberPasswordUpdateRedirectUrl(origin: string) {
-  const url = new URL("/auth/confirm", origin);
-  url.searchParams.set("next", "/actualizar-contrasena");
-  return url.toString();
-}
-
 export function sanitizeMemberRedirectPath(next: string | null | undefined) {
-  if (next === "/actualizar-contrasena") {
-    return next;
-  }
-
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
     return MEMBER_REGISTRATION_CONFIRMED_PATH;
   }
