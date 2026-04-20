@@ -1,4 +1,4 @@
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser as User } from "@/lib/auth-user";
 
 import { mapPickupRequest } from "@/lib/cart/pickup-request";
 import type { Cart, PickupRequestDetail } from "@/lib/cart/types";

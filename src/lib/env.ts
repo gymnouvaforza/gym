@@ -6,6 +6,19 @@ function emptyStringToUndefined(value: unknown) {
   return typeof value === "string" && value.trim() === "" ? undefined : value;
 }
 
+function stripWrappingQuotes(value: string) {
+  const trimmed = value.trim();
+
+  if (
+    (trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+}
+
 function looksLikeTemplatePlaceholder(value: string) {
   const normalized = value.trim().toUpperCase();
 
@@ -20,7 +33,7 @@ function optionalString(schema: z.ZodString) {
       return undefined;
     }
 
-    return normalized;
+    return typeof normalized === "string" ? stripWrappingQuotes(normalized) : normalized;
   }, schema.optional());
 }
 
@@ -31,6 +44,10 @@ function optionalEnum<T extends [string, ...string[]]>(values: T) {
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_COMMERCE_CURRENCY_CODE: optionalString(z.string().length(3)),
   NEXT_PUBLIC_COMMERCE_LOCALE: optionalString(z.string().min(2)),
+  NEXT_PUBLIC_FIREBASE_API_KEY: optionalString(z.string().min(1)),
+  NEXT_PUBLIC_FIREBASE_APP_ID: optionalString(z.string().min(1)),
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: optionalString(z.string().min(1)),
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: optionalString(z.string().min(1)),
   NEXT_PUBLIC_MEDUSA_BACKEND_URL: optionalString(z.string().url()),
   NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: optionalString(z.string().min(1)),
   NEXT_PUBLIC_MEDUSA_REGION_ID: optionalString(z.string().min(1)),
@@ -46,6 +63,9 @@ const serverEnvSchema = publicEnvSchema.extend({
   COMMERCE_CURRENCY_CODE: optionalString(z.string().length(3)),
   COMMERCE_LOCALE: optionalString(z.string().min(2)),
   COMMERCE_PROVIDER: z.literal("medusa").optional(),
+  FIREBASE_CLIENT_EMAIL: optionalString(z.string().email()),
+  FIREBASE_PRIVATE_KEY: optionalString(z.string().min(1)),
+  FIREBASE_PROJECT_ID: optionalString(z.string().min(1)),
   STORE_ADMIN_PROVIDER: z.literal("medusa").optional(),
   MEDUSA_BACKEND_URL: optionalString(z.string().url()),
   MEDUSA_ADMIN_API_KEY: optionalString(z.string().min(1)),
@@ -86,6 +106,10 @@ const serverEnvSchema = publicEnvSchema.extend({
 const publicEnv = publicEnvSchema.parse({
   NEXT_PUBLIC_COMMERCE_CURRENCY_CODE: process.env.NEXT_PUBLIC_COMMERCE_CURRENCY_CODE,
   NEXT_PUBLIC_COMMERCE_LOCALE: process.env.NEXT_PUBLIC_COMMERCE_LOCALE,
+  NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   NEXT_PUBLIC_MEDUSA_BACKEND_URL: process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL,
   NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
   NEXT_PUBLIC_MEDUSA_REGION_ID: process.env.NEXT_PUBLIC_MEDUSA_REGION_ID,
@@ -105,6 +129,9 @@ const serverEnv = serverEnvSchema.parse({
   COMMERCE_CURRENCY_CODE: process.env.COMMERCE_CURRENCY_CODE,
   COMMERCE_LOCALE: process.env.COMMERCE_LOCALE,
   COMMERCE_PROVIDER: process.env.COMMERCE_PROVIDER,
+  FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
+  FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
   STORE_ADMIN_PROVIDER: process.env.STORE_ADMIN_PROVIDER,
   MEDUSA_BACKEND_URL: process.env.MEDUSA_BACKEND_URL,
   MEDUSA_ADMIN_API_KEY: process.env.MEDUSA_ADMIN_API_KEY,
@@ -176,6 +203,23 @@ export function hasSupabasePublicEnv() {
   return Boolean(resolvePublicSupabaseUrl() && resolvePublicSupabaseKey());
 }
 
+export function hasFirebasePublicEnv() {
+  return Boolean(
+    publicEnv.NEXT_PUBLIC_FIREBASE_API_KEY &&
+      publicEnv.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
+      publicEnv.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+      publicEnv.NEXT_PUBLIC_FIREBASE_APP_ID,
+  );
+}
+
+export function hasFirebaseAdminEnv() {
+  return Boolean(
+    serverEnv.FIREBASE_PROJECT_ID &&
+      serverEnv.FIREBASE_CLIENT_EMAIL &&
+      serverEnv.FIREBASE_PRIVATE_KEY,
+  );
+}
+
 export function hasMedusaEnv() {
   return Boolean(resolveMedusaBackendUrl() && resolveMedusaPublishableKey());
 }
@@ -237,6 +281,35 @@ export function getPublicSupabaseEnv() {
   return {
     url,
     anonKey,
+  };
+}
+
+export function getFirebasePublicEnv() {
+  if (!hasFirebasePublicEnv()) {
+    throw new Error(
+      "Missing Firebase public environment variables. Set NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, NEXT_PUBLIC_FIREBASE_PROJECT_ID and NEXT_PUBLIC_FIREBASE_APP_ID.",
+    );
+  }
+
+  return {
+    apiKey: publicEnv.NEXT_PUBLIC_FIREBASE_API_KEY!,
+    appId: publicEnv.NEXT_PUBLIC_FIREBASE_APP_ID!,
+    authDomain: publicEnv.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+    projectId: publicEnv.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  };
+}
+
+export function getFirebaseAdminEnv() {
+  if (!hasFirebaseAdminEnv()) {
+    throw new Error(
+      "Missing Firebase Admin environment variables. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.",
+    );
+  }
+
+  return {
+    clientEmail: serverEnv.FIREBASE_CLIENT_EMAIL!,
+    privateKey: serverEnv.FIREBASE_PRIVATE_KEY!,
+    projectId: serverEnv.FIREBASE_PROJECT_ID!,
   };
 }
 

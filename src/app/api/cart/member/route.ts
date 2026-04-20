@@ -10,7 +10,7 @@ import {
   resolveOrCreateMemberCommerceCustomer,
 } from "@/lib/cart/member-bridge";
 import { isMissingCartMessage, STALE_CART_MESSAGE } from "@/lib/cart/runtime";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentMemberUser } from "@/lib/auth";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "No se pudo sincronizar el carrito del miembro.";
@@ -64,10 +64,7 @@ function clearCartCookie(response: NextResponse) {
 }
 
 export async function POST(request: Request) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentMemberUser();
 
   if (!user?.email) {
     return NextResponse.json(

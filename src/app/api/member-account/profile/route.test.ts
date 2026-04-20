@@ -39,11 +39,16 @@ describe("PATCH /api/member-account/profile", () => {
     const payload = await response.json();
 
     expect(response.status).toBe(200);
-    expect(routeMocks.updateAuthenticatedMemberAccount).toHaveBeenCalledWith({
-      email: "member@novaforza.com",
-      fullName: "Nova Tester",
-      phone: "600123123",
-    });
+    expect(routeMocks.updateAuthenticatedMemberAccount).toHaveBeenCalledWith(
+      {
+        email: "member@novaforza.com",
+        fullName: "Nova Tester",
+        phone: "600123123",
+      },
+      {
+        absoluteOrigin: "http://localhost",
+      },
+    );
     expect(payload.account.fullName).toBe("Nova Tester");
   });
 });

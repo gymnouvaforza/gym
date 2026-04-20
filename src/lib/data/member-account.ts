@@ -1,8 +1,13 @@
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser as User } from "@/lib/auth-user";
 
 import { getCurrentMemberUser } from "@/lib/auth";
 import type { MarketingTestimonial } from "@/lib/data/marketing-content";
 import { ensureMemberProfileForUser } from "@/lib/data/gym-management";
+import { sendFirebaseVerifyAndChangeEmail } from "@/lib/firebase/email-actions";
+import {
+  getFirebaseAdminAuth,
+  verifyFirebasePassword,
+} from "@/lib/firebase/server";
 import {
   getMemberAuthProviderLabel,
   getMemberDisplayName,
@@ -26,7 +31,6 @@ import {
 } from "@/lib/validators/marketing-testimonial";
 import {
   createSupabaseAdminClient,
-  createSupabasePublicClient,
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
 
@@ -48,6 +52,10 @@ type MemberProfileRow = {
   supabase_user_id: string | null;
 };
 
+type AuthenticatedMemberUser = User & {
+  email: string;
+};
+
 async function getLinkedMemberProfile(userId: string) {
   const client = createSupabaseAdminClient();
   const { data, error } = await client
@@ -63,7 +71,7 @@ async function getLinkedMemberProfile(userId: string) {
   return (data ?? null) as MemberProfileRow | null;
 }
 
-function assertSelfUser(user: User | null): asserts user is User {
+function assertSelfUser(user: User | null): asserts user is AuthenticatedMemberUser {
   if (!user?.id || !user.email) {
     throw new Error("Necesitas iniciar sesion para gestionar tu cuenta.");
   }
@@ -98,13 +106,9 @@ async function reauthenticatePasswordUser(user: User, password: string) {
     throw new Error("Esta cuenta no permite verificar contrasena desde este flujo.");
   }
 
-  const publicClient = createSupabasePublicClient();
-  const { error } = await publicClient.auth.signInWithPassword({
-    email: user.email!,
-    password,
-  });
+  const isValid = await verifyFirebasePassword(user.email!, password);
 
-  if (error) {
+  if (!isValid) {
     throw new Error("La contrasena actual no es valida.");
   }
 }
@@ -155,28 +159,28 @@ export async function upsertAuthenticatedMemberTestimonial(values: unknown) {
   };
 }
 
-export async function updateAuthenticatedMemberAccount(values: unknown) {
+export async function updateAuthenticatedMemberAccount(
+  values: unknown,
+  options?: {
+    absoluteOrigin?: string;
+  },
+) {
   const user = await getCurrentMemberUser();
   assertSelfUser(user);
   const parsed = memberAccountProfileSchema.parse(values) as MemberAccountProfileValues;
-  const serverClient = await createSupabaseServerClient();
   const adminClient = createSupabaseAdminClient();
   const profile = await getLinkedMemberProfile(user.id);
+  const normalizedEmail = parsed.email.trim().toLowerCase();
 
-  const { error: authError } = await serverClient.auth.updateUser({
-    data: { full_name: parsed.fullName },
-    email: parsed.email,
+  await getFirebaseAdminAuth().updateUser(user.id, {
+    displayName: parsed.fullName,
   });
-
-  if (authError) {
-    throw new Error(authError.message);
-  }
 
   if (profile) {
     const { error: profileError } = await adminClient
       .from("member_profiles")
       .update({
-        email: parsed.email,
+        email: normalizedEmail,
         full_name: parsed.fullName,
         phone: parsed.phone?.trim() ? parsed.phone.trim() : null,
       })
@@ -188,9 +192,22 @@ export async function updateAuthenticatedMemberAccount(values: unknown) {
     }
   }
 
+  if (normalizedEmail !== user.email) {
+    if (!options?.absoluteOrigin) {
+      throw new Error("Falta el origen absoluto para confirmar el cambio de email.");
+    }
+
+    await sendFirebaseVerifyAndChangeEmail({
+      absoluteOrigin: options.absoluteOrigin,
+      currentEmail: user.email,
+      newEmail: normalizedEmail,
+      nextPath: "/mi-cuenta",
+    });
+  }
+
   return getMemberAccountViewModel({
     ...user,
-    email: parsed.email,
+    email: normalizedEmail,
     user_metadata: {
       ...(user.user_metadata ?? {}),
       full_name: parsed.fullName,
@@ -208,14 +225,9 @@ export async function changeAuthenticatedMemberPassword(values: unknown) {
   }
 
   await reauthenticatePasswordUser(user, parsed.currentPassword);
-  const serverClient = await createSupabaseServerClient();
-  const { error } = await serverClient.auth.updateUser({
+  await getFirebaseAdminAuth().updateUser(user.id, {
     password: parsed.newPassword,
   });
-
-  if (error) {
-    throw new Error(error.message);
-  }
 }
 
 export async function deleteAuthenticatedMemberAccount(values: unknown) {
@@ -282,9 +294,5 @@ export async function deleteAuthenticatedMemberAccount(values: unknown) {
     throw new Error(trainerProfileError.message);
   }
 
-  const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
-
-  if (deleteError) {
-    throw new Error(deleteError.message);
-  }
+  await getFirebaseAdminAuth().deleteUser(user.id);
 }

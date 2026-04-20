@@ -34,10 +34,41 @@ export type DBTrainerProfile = Database["public"]["Tables"]["trainer_profiles"][
 export type DBMemberCommerceCustomer = Database["public"]["Tables"]["member_commerce_customers"]["Row"];
 export type DBProduct = Database["public"]["Tables"]["product"]["Row"];
 export type DBStoreCategory = Database["public"]["Tables"]["product_category"]["Row"];
+export type DBFormDraft = Database["public"]["Tables"]["form_drafts"]["Row"];
 
 export type Database = {
   public: {
     Tables: {
+      form_drafts: {
+        Row: {
+          id: string
+          user_id: string
+          form_key: string
+          record_id: string
+          payload: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          form_key: string
+          record_id: string
+          payload: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          form_key?: string
+          record_id?: string
+          payload?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       account_holder: {
         Row: {
           created_at: string

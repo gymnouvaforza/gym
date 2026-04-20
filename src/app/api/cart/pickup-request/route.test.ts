@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pickupRequestRouteMocks = vi.hoisted(() => ({
   createPickupRequest: vi.fn(),
+  getCurrentMemberUser: vi.fn(),
   listPickupRequests: vi.fn(),
   resolveCartIdFromRequest: vi.fn(),
   resolveOrCreateMemberCommerceCustomer: vi.fn(),
   createSupabasePublicClient: vi.fn(),
-  createSupabaseServerClient: vi.fn(),
 }));
 
 vi.mock("@/lib/cart/member-bridge", () => ({
@@ -18,7 +18,10 @@ vi.mock("@/lib/cart/member-bridge", () => ({
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabasePublicClient: pickupRequestRouteMocks.createSupabasePublicClient,
-  createSupabaseServerClient: pickupRequestRouteMocks.createSupabaseServerClient,
+}));
+
+vi.mock("@/lib/auth", () => ({
+  getCurrentMemberUser: pickupRequestRouteMocks.getCurrentMemberUser,
 }));
 
 import { GYM_CART_COOKIE } from "@/lib/cart/cookie";
@@ -69,15 +72,7 @@ describe("POST /api/cart/pickup-request", () => {
       limit: 1,
       offset: 0,
     });
-    pickupRequestRouteMocks.createSupabaseServerClient.mockResolvedValue({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: {
-            user: null,
-          },
-        }),
-      },
-    });
+    pickupRequestRouteMocks.getCurrentMemberUser.mockResolvedValue(null);
     pickupRequestRouteMocks.createSupabasePublicClient.mockReturnValue(buildPublicClient());
   });
 

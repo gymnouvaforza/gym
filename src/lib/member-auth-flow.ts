@@ -1,5 +1,7 @@
 const MEMBER_REGISTRATION_COMPLETE_PATH = "/registro/completado";
 const MEMBER_REGISTRATION_CONFIRMED_QUERY = "confirmed=1";
+const MEMBER_PASSWORD_UPDATE_PATH = "/actualizar-contrasena";
+const MEMBER_PASSWORD_RECOVERY_COMPLETE_PATH = "/acceso?confirmed=1";
 
 export const MEMBER_REGISTRATION_CONFIRMED_PATH = `${MEMBER_REGISTRATION_COMPLETE_PATH}?${MEMBER_REGISTRATION_CONFIRMED_QUERY}`;
 export const MEMBER_REGISTRATION_CONFIRM_ERROR = "confirm-link-invalid";
@@ -47,6 +49,12 @@ export function buildMemberRegistrationCompleteUrl({
 export function buildMemberConfirmRedirectUrl(origin: string) {
   const url = new URL("/auth/confirm", origin);
   url.searchParams.set("next", MEMBER_REGISTRATION_CONFIRMED_PATH);
+  return url.toString();
+}
+
+export function buildMemberPasswordUpdateRedirectUrl(origin: string) {
+  const url = new URL(MEMBER_PASSWORD_UPDATE_PATH, origin);
+  url.searchParams.set("next", MEMBER_PASSWORD_RECOVERY_COMPLETE_PATH);
   return url.toString();
 }
 

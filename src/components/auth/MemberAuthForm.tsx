@@ -6,6 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 
 import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Button } from "@/components/ui/button";
@@ -21,10 +26,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { AuthBlockingState, PendingButtonLabel } from "@/components/ui/loading-state";
 import {
-  buildMemberConfirmRedirectUrl,
   buildMemberRegistrationCompleteUrl,
 } from "@/lib/member-auth-flow";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { clearFirebaseBrowserSession, syncFirebaseBrowserSession } from "@/lib/firebase/browser-session";
+import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 
 interface MemberAuthFormProps {
   mode: "login" | "register";
@@ -90,25 +95,60 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
     setError(null);
     setIsNavigating(false);
 
-    const supabase = createSupabaseBrowserClient();
+    const auth = await getFirebaseBrowserAuth();
+
+    if (!auth) {
+      setError("Firebase Auth no esta configurado.");
+      return;
+    }
 
     if (mode === "register") {
-      const emailRedirectTo = buildMemberConfirmRedirectUrl(window.location.origin);
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: {
-          emailRedirectTo,
-        },
-      });
-
-      if (signUpError) {
-        setError(signUpError.message);
+      try {
+        await createUserWithEmailAndPassword(auth, values.email, values.password);
+        await syncFirebaseBrowserSession(auth);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "No pudimos crear tu cuenta.");
         return;
       }
 
-      if (!data.session) {
+      try {
+        await fetch("/api/auth/email-verification", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            email: values.email,
+            next: buildMemberRegistrationCompleteUrl({
+              confirmed: true,
+            }),
+          }),
+        });
         triggerWelcomeEmail(values.email);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "No pudimos enviar el correo de confirmacion.");
+        return;
+      }
+
+      await signOut(auth).catch(() => undefined);
+      await clearFirebaseBrowserSession();
+      setIsNavigating(true);
+      router.push(
+        buildMemberRegistrationCompleteUrl({
+          email: values.email,
+          pending: true,
+        }),
+      );
+      return;
+    }
+
+    try {
+      const credential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      await syncFirebaseBrowserSession(auth);
+
+      if (!credential.user.emailVerified) {
+        await signOut(auth).catch(() => undefined);
+        await clearFirebaseBrowserSession();
         setIsNavigating(true);
         router.push(
           buildMemberRegistrationCompleteUrl({
@@ -118,22 +158,8 @@ export default function MemberAuthForm({ mode }: Readonly<MemberAuthFormProps>) 
         );
         return;
       }
-
-      triggerWelcomeEmail(values.email);
-      const welcomeUrl = `${next}${next.includes("?") ? "&" : "?"}welcome=1`;
-      setIsNavigating(true);
-      router.push(welcomeUrl);
-      router.refresh();
-      return;
-    }
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: values.email,
-      password: values.password,
-    });
-
-    if (signInError) {
-      setError(signInError.message);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "No pudimos iniciar sesion.");
       return;
     }
 

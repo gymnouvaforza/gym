@@ -9,8 +9,9 @@ import {
 } from "@/lib/cart/member-bridge";
 import { mapPickupRequest } from "@/lib/cart/pickup-request";
 import { isMissingCartMessage, STALE_CART_MESSAGE } from "@/lib/cart/runtime";
+import { getCurrentMemberUser } from "@/lib/auth";
 import { defaultSiteSettings } from "@/lib/data/default-content";
-import { createSupabasePublicClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/server";
 
 function clearCartCookie(response: NextResponse) {
   response.cookies.set(GYM_CART_COOKIE, "", {
@@ -82,10 +83,7 @@ export async function POST(request: Request) {
   const requestedEmail = body.email?.trim().toLowerCase() ?? "";
   const notes = body.notes?.trim() || undefined;
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentMemberUser();
 
   try {
     let pickupRequest = null;

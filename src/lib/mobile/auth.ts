@@ -1,7 +1,7 @@
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser as User } from "@/lib/auth-user";
 import { NextResponse } from "next/server";
 
-import { createSupabasePublicClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentFirebaseUserFromCookies, getFirebaseUserFromIdToken } from "@/lib/firebase/server";
 import {
   DASHBOARD_ACCESS_ROLES,
   hasAnyUserRoleForAccessToken,
@@ -23,20 +23,10 @@ export async function resolveMobileRequestUser(request: Request): Promise<User |
   const accessToken = parseBearerToken(request);
 
   if (accessToken) {
-    const supabase = createSupabasePublicClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(accessToken);
-
-    return user;
+    return getFirebaseUserFromIdToken(accessToken);
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  return user;
+  return getCurrentFirebaseUserFromCookies();
 }
 
 async function resolveMobileBaseRole(request: Request, user: User): Promise<MobileRole> {

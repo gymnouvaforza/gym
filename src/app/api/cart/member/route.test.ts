@@ -5,11 +5,11 @@ import { STALE_CART_MESSAGE } from "@/lib/cart/runtime";
 
 const memberRouteMocks = vi.hoisted(() => ({
   attachCartToMember: vi.fn(),
+  getCurrentMemberUser: vi.fn(),
   revalidateMemberCommerceCustomer: vi.fn(),
   retrieveActiveCartForMember: vi.fn(),
   resolveCartIdFromRequest: vi.fn(),
   resolveOrCreateMemberCommerceCustomer: vi.fn(),
-  createSupabaseServerClient: vi.fn(),
   mapMedusaCart: vi.fn(),
   retrieveCart: vi.fn(),
 }));
@@ -27,8 +27,8 @@ vi.mock("@/lib/cart/medusa", () => ({
   retrieveCart: memberRouteMocks.retrieveCart,
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseServerClient: memberRouteMocks.createSupabaseServerClient,
+vi.mock("@/lib/auth", () => ({
+  getCurrentMemberUser: memberRouteMocks.getCurrentMemberUser,
 }));
 
 import { POST } from "@/app/api/cart/member/route";
@@ -47,17 +47,13 @@ describe("POST /api/cart/member", () => {
     memberRouteMocks.retrieveActiveCartForMember.mockResolvedValue({
       cart: null,
     });
-    memberRouteMocks.createSupabaseServerClient.mockResolvedValue({
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: {
-            user: {
-              id: "user_01",
-              email: "socio@gym.com",
-            },
-          },
-        }),
-      },
+    memberRouteMocks.getCurrentMemberUser.mockResolvedValue({
+      id: "user_01",
+      email: "socio@gym.com",
+      emailVerified: true,
+      app_metadata: { provider: "password" },
+      user_metadata: {},
+      identities: [{ provider: "password" }],
     });
   });
 

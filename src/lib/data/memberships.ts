@@ -1,5 +1,5 @@
 import { cache } from "react";
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser as User } from "@/lib/auth-user";
 
 import {
   PUBLIC_CACHE_REVALIDATE_SECONDS,

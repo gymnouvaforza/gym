@@ -31,7 +31,8 @@ Mantener una base limpia, minima y coherente para:
 
 - web publica del gimnasio
 - mini backoffice propio
-- backend principal en Supabase
+- Firebase Auth para identidad
+- Supabase como runtime principal de datos
 - futura app movil reutilizando el mismo backend
 
 ## Limites del core actual
@@ -45,7 +46,8 @@ En esta fase el alcance real ya incluye:
 - tienda publica y detalle de producto
 - carrito y checkout pickup
 - registro y mi-cuenta
-- Supabase para auth, settings, leads y dominio propio
+- Firebase Auth para login, registro y recuperacion de cuenta
+- Supabase para settings, leads, storage, edge y dominio propio
 - Medusa para catalogo operativo y pedidos pickup vinculados
 
 No se deben introducir aun:
@@ -125,9 +127,29 @@ src/
 - No enlaces esos artefactos desde codigo de produccion.
 - Si el artefacto era solo para una sesion puntual, eliminalo al terminar.
 
+## Firebase Auth
+
+Firebase Auth es la fuente unica de identidad para socios y backoffice.
+
+Variables esperadas:
+
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
+
+Notas operativas:
+
+- la sesion SSR se replica en cookie HTTP-only desde Next.js
+- los emails de verify/reset/email-change salen por SMTP propio
+- `public.user_roles` en Supabase sigue siendo la fuente de verdad para `admin` y `trainer`
+
 ## Supabase
 
-Supabase es el backend principal previsto para este proyecto.
+Supabase es el runtime principal de datos, storage, edge y soporte de Medusa.
 
 Variables esperadas:
 
@@ -274,10 +296,9 @@ Este es el flujo correcto despues del cambio de integracion:
 6. Si Medusa falla, se muestra error explicito; no se cae a Supabase legacy ni a mock local.
 7. Los datos locales del catalogo quedan reservados para seed/tests, no para servir la tienda.
 8. Supabase sigue siendo backend principal para:
-   - auth
+   - roles, storage y dominio no-auth
    - leads
    - settings
-   - dominio no-commerce
    - persistencia de IDs puente y soporte de sync/migracion
 
 ### Workflow de cambios en tienda
@@ -330,7 +351,7 @@ Antes de tocar la integracion de tienda, recuerda siempre:
   - `store_categories.medusa_category_id`
   - `products.medusa_product_id`
 - no meter dependencias nuevas que empujen al equipo a usar el admin de Medusa
-- no olvidar que auth, leads, settings y el resto del dominio gym siguen en Supabase
+- no olvidar que Firebase Auth resuelve identidad, pero leads, settings y el resto del dominio gym siguen en Supabase
 - no asumir EUR/Espana ni hardcodear moneda/region; usar variables de entorno
 - no volver a meter `mock`, `supabase` o `auto` como proveedores runtime de commerce
 - si cambias sync, CRUD o mapping de tienda, revisa tambien el impacto en:

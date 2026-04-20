@@ -6,7 +6,8 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { PendingButtonLabel } from "@/components/ui/loading-state";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { clearFirebaseBrowserSession } from "@/lib/firebase/browser-session";
+import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 
 export default function MemberSignOutButton() {
   return <MemberSignOutButtonWithRedirect />;
@@ -26,9 +27,10 @@ export function MemberSignOutButtonWithRedirect({
     setIsPending(true);
 
     try {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
+      const auth = await getFirebaseBrowserAuth();
+      await auth?.signOut();
     } finally {
+      await clearFirebaseBrowserSession();
       router.push(redirectTo);
       router.refresh();
       setIsPending(false);

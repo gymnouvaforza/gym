@@ -1,4 +1,4 @@
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser as User } from "@/lib/auth-user";
 
 import {
   AssignRoutineInputSchema,
@@ -36,6 +36,8 @@ import {
   type MemberFormValues,
   type MemberMobilePatchValues,
 } from "@/lib/validators/gym-members";
+import { buildAuthUser } from "@/lib/auth-user";
+import { getFirebaseAdminAuth, listAllFirebaseUsers } from "@/lib/firebase/server";
 import {
   assignRoutineFormSchema,
   routineTemplateFormSchema,
@@ -63,8 +65,6 @@ import { normalizeMembershipQrToken } from "@/lib/membership-qr";
 import { slugify, trimToNull } from "@/lib/utils";
 
 type GymAdminClient = ReturnType<typeof createSupabaseAdminClient>;
-
-const AUTH_USERS_PAGE_SIZE = 200;
 
 type AuthDashboardUser = {
   createdAt: string | null;
@@ -236,47 +236,40 @@ function resolveRoutineTemplateSlug(title: string, existingSlug?: string | null)
   return slugify(title) || `rutina-${crypto.randomUUID().slice(0, 8)}`;
 }
 
-async function listAllAuthUsers(client: GymAdminClient) {
-  const users: User[] = [];
-  let page = 1;
+async function listAllAuthUsers() {
+  const firebaseUsers = await listAllFirebaseUsers();
 
-  while (true) {
-    const {
-      data: { users: pageUsers },
-      error,
-    } = await client.auth.admin.listUsers({
-      page,
-      perPage: AUTH_USERS_PAGE_SIZE,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    users.push(...pageUsers);
-
-    if (pageUsers.length < AUTH_USERS_PAGE_SIZE) {
-      break;
-    }
-
-    page += 1;
-  }
-
-  return users;
+  return firebaseUsers.map((user) =>
+    Object.assign(
+      buildAuthUser({
+        id: user.uid,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        fullName: user.displayName,
+        provider: user.providerData[0]?.providerId ?? "password",
+      }),
+      {
+        created_at: user.metadata.creationTime ?? null,
+        last_sign_in_at: user.metadata.lastSignInTime ?? null,
+      },
+    ),
+  ) as Array<User & { created_at: string | null; last_sign_in_at: string | null }>;
 }
 
-async function getAuthUserById(client: GymAdminClient, userId: string) {
-  const { data, error } = await client.auth.admin.getUserById(userId);
+async function getAuthUserById(userId: string) {
+  const user = await getFirebaseAdminAuth().getUser(userId);
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data.user;
+  return buildAuthUser({
+    id: user.uid,
+    email: user.email,
+    emailVerified: user.emailVerified,
+    fullName: user.displayName,
+    provider: user.providerData[0]?.providerId ?? "password",
+  });
 }
 
-async function listAuthUsersWithRoles(client: GymAdminClient): Promise<AuthDashboardUser[]> {
-  const [users, roleRows] = await Promise.all([listAllAuthUsers(client), listPersistedUserRoles()]);
+async function listAuthUsersWithRoles(): Promise<AuthDashboardUser[]> {
+  const [users, roleRows] = await Promise.all([listAllAuthUsers(), listPersistedUserRoles()]);
   const rolesByUserId = new Map<string, PersistedUserRole[]>();
 
   for (const row of roleRows) {
@@ -985,7 +978,7 @@ async function buildSharedDomainContext(memberIds: string[]) {
     listAssignments(client, memberIds),
     listTemplates(client),
     listTrainerProfiles(client),
-    listAuthUsersWithRoles(client),
+    listAuthUsersWithRoles(),
   ]);
 
   return {
@@ -1030,8 +1023,7 @@ function buildTrainerMaps(
 }
 
 export async function listDashboardAuthLinkOptions() {
-  const client = createSupabaseAdminClient();
-  const authUsers = await listAuthUsersWithRoles(client);
+  const authUsers = await listAuthUsersWithRoles();
 
   return authUsers
     .filter((user) => Boolean(user.email))
@@ -1046,7 +1038,7 @@ export async function listDashboardAuthLinkOptions() {
 export async function listDashboardTrainerOptions() {
   const client = createSupabaseAdminClient();
   const [authUsers, trainerProfiles] = await Promise.all([
-    listAuthUsersWithRoles(client),
+    listAuthUsersWithRoles(),
     listTrainerProfiles(client),
   ]);
 
@@ -1173,7 +1165,7 @@ export async function createMemberProfile(values: MemberFormValues) {
   const parsed = memberFormSchema.parse(values);
 
   if (parsed.linkedUserId) {
-    await getAuthUserById(client, parsed.linkedUserId);
+    await getAuthUserById(parsed.linkedUserId);
   }
 
   const memberInsert: Database["public"]["Tables"]["member_profiles"]["Insert"] = {
@@ -1654,7 +1646,7 @@ export async function promoteUserToTrainer(
   note = "Promocion irreversible a trainer desde dashboard mobile.",
 ) {
   const client = createSupabaseAdminClient();
-  const user = await getAuthUserById(client, userId);
+  const user = await getAuthUserById(userId);
 
   if (!user.email) {
     throw new Error("El usuario no tiene email valido para asignar trainer.");

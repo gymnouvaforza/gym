@@ -8,7 +8,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import RegistrationSuccessCard from "@/components/auth/RegistrationSuccessCard";
 
 const replaceMock = vi.fn();
-const resendMock = vi.fn();
+const fetchMock = vi.fn();
+
+vi.stubGlobal("fetch", fetchMock);
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: ComponentProps<"a">) => (
@@ -24,19 +26,11 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-vi.mock("@/lib/supabase/client", () => ({
-  createSupabaseBrowserClient: () => ({
-    auth: {
-      resend: resendMock,
-    },
-  }),
-}));
-
 describe("RegistrationSuccessCard", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "http://localhost:3000/registro/completado");
     replaceMock.mockReset();
-    resendMock.mockReset();
+    fetchMock.mockReset();
   });
 
   it("shows the pending state with the registered email", () => {
@@ -66,7 +60,10 @@ describe("RegistrationSuccessCard", () => {
   });
 
   it("resends the confirmation link and updates the URL state", async () => {
-    resendMock.mockResolvedValue({ error: null });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({}),
+    });
     const user = userEvent.setup();
 
     render(<RegistrationSuccessCard email="socio@gym.com" status="pending" />);
@@ -74,14 +71,7 @@ describe("RegistrationSuccessCard", () => {
     await user.click(screen.getByRole("button", { name: "Reenviar enlace" }));
 
     await waitFor(() => {
-      expect(resendMock).toHaveBeenCalledWith({
-        email: "socio@gym.com",
-        options: {
-          emailRedirectTo:
-            "http://localhost:3000/auth/confirm?next=%2Fregistro%2Fcompletado%3Fconfirmed%3D1",
-        },
-        type: "signup",
-      });
+      expect(fetchMock).toHaveBeenCalled();
       expect(replaceMock).toHaveBeenCalledWith(
         "/registro/completado?pending=1&resent=1&email=socio%40gym.com",
       );

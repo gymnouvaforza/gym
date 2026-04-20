@@ -1,16 +1,15 @@
-import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { ADMIN_LOGIN_PATH } from "@/lib/admin";
+import type { AuthUser } from "@/lib/auth-user";
+import { getCurrentFirebaseUserFromCookies } from "@/lib/firebase/server";
 import {
   getLocalAdminEnv,
   hasLocalAdminEnv,
-  hasSupabasePublicEnv,
   hasSupabaseServiceRole,
 } from "@/lib/env";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   countUsersWithRole,
   DASHBOARD_ADMIN_ROLE,
@@ -33,20 +32,7 @@ export type DashboardAccessMode = "admin" | "trainer" | "bootstrap" | "local";
 export interface DashboardAccessState {
   accessMode: DashboardAccessMode | null;
   accessWarning: string | null;
-  user: User | LocalAdminUser | null;
-}
-
-function isSupabaseAuthApiError(error: unknown) {
-  if (!error || typeof error !== "object") {
-    return false;
-  }
-
-  const candidate = error as {
-    __isAuthError?: boolean;
-    status?: number;
-  };
-
-  return candidate.__isAuthError === true || candidate.status === 401;
+  user: AuthUser | LocalAdminUser | null;
 }
 
 export const isLocalAdminSession = cache(async function isLocalAdminSession() {
@@ -61,33 +47,12 @@ export const isLocalAdminSession = cache(async function isLocalAdminSession() {
   return Boolean(adminEnv && localSession === adminEnv.user);
 });
 
-export const getSupabaseUser = cache(async function getSupabaseUser() {
-  if (!hasSupabasePublicEnv()) {
-    return null;
-  }
-
-  try {
-    const supabase = await createSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    return user;
-  } catch (error) {
-    if (!isSupabaseAuthApiError(error)) {
-      throw error;
-    }
-
-    console.warn(
-      "Supabase auth could not be resolved while determining the current user.",
-      error instanceof Error ? error.message : String(error),
-    );
-    return null;
-  }
+export const getAuthenticatedUser = cache(async function getAuthenticatedUser() {
+  return getCurrentFirebaseUserFromCookies();
 });
 
 export async function getCurrentMemberUser() {
-  return getSupabaseUser();
+  return getAuthenticatedUser();
 }
 
 async function canBootstrapDashboardAccess() {
@@ -113,17 +78,17 @@ async function canBootstrapDashboardAccess() {
 
 export const getDashboardAccessState = cache(
   async function getDashboardAccessState(): Promise<DashboardAccessState> {
-  const supabaseUser = await getSupabaseUser();
+  const authenticatedUser = await getAuthenticatedUser();
 
-  if (supabaseUser?.id) {
+  if (authenticatedUser?.id) {
     try {
-      const roles = await listUserRolesForServerSession(supabaseUser.id);
+      const roles = await listUserRolesForServerSession(authenticatedUser.id);
 
       if (roles.includes(DASHBOARD_ADMIN_ROLE) || roles.includes(TRAINER_ROLE)) {
         const accessMode = roles.includes(DASHBOARD_ADMIN_ROLE) ? "admin" : "trainer";
 
         return {
-          user: supabaseUser,
+          user: authenticatedUser,
           accessMode,
           accessWarning: null,
         };
@@ -131,7 +96,7 @@ export const getDashboardAccessState = cache(
 
       if (await canBootstrapDashboardAccess()) {
         return {
-          user: supabaseUser,
+          user: authenticatedUser,
           accessMode: "bootstrap",
           accessWarning:
             "El dashboard esta en modo bootstrap: todavia no existe ningun admin persistente en Supabase. Crea el rol `admin` en `public.user_roles` para cerrar este acceso provisional.",
@@ -140,7 +105,7 @@ export const getDashboardAccessState = cache(
     } catch (error) {
       if (isUserRolesSchemaError(error)) {
         return {
-          user: supabaseUser,
+          user: authenticatedUser,
           accessMode: "bootstrap",
           accessWarning:
             "La tabla `public.user_roles` aun no esta disponible para el dashboard. Se habilita acceso provisional mientras terminas la migracion de roles.",
@@ -177,7 +142,7 @@ export const getDashboardAccessState = cache(
   },
 );
 
-export async function getCurrentAdminUser(): Promise<User | LocalAdminUser | null> {
+export async function getCurrentAdminUser(): Promise<AuthUser | LocalAdminUser | null> {
   const accessState = await getDashboardAccessState();
   return accessState.user;
 }

@@ -4,6 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Save } from "lucide-react";
 import { useDeferredValue, useMemo, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { RotateCcw } from "lucide-react";
+
+import { useFormDraft } from "@/hooks/admin/use-form-draft";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { saveStoreProduct } from "@/app/(admin)/dashboard/tienda/actions";
 import { productStockStatusLabels } from "@/lib/data/products";
@@ -50,6 +54,12 @@ export default function StoreProductForm({
     defaultValues: toStoreProductFormValues(product),
   });
 
+  const draft = useFormDraft<StoreProductInput>({
+    formKey: "store-product",
+    recordId: product?.id ?? "new",
+    form,
+  });
+
   const categoryOptions = flattenStoreCategoryOptions(categories);
   const watchedValues = useWatch({ control: form.control }) as StoreProductInput;
   const previewValues = watchedValues ?? toStoreProductFormValues(product);
@@ -64,6 +74,7 @@ export default function StoreProductForm({
     startTransition(async () => {
       try {
         await saveStoreProduct(values, product?.id);
+        await draft.clearDraft();
         setFeedback(product ? "Producto actualizado." : "Producto creado.");
       } catch (error) {
         setFeedback(error instanceof Error ? error.message : "Error al guardar.");
@@ -78,6 +89,36 @@ export default function StoreProductForm({
         className="grid gap-6 xl:grid-cols-[minmax(0,1.32fr)_minmax(360px,0.95fr)]"
       >
         <div className="space-y-6">
+          {draft.hasDraft && (
+            <Alert className="border-amber-200 bg-amber-50">
+              <RotateCcw className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="flex items-center justify-between gap-4">
+                <span className="text-xs font-bold text-amber-900 uppercase tracking-tight">
+                  Tienes un borrador guardado para este producto.
+                </span>
+                <div className="flex gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={draft.applyDraft}
+                    className="h-7 text-[10px] font-black uppercase border-amber-300 hover:bg-amber-100"
+                  >
+                    Restaurar
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={draft.clearDraft}
+                    className="h-7 text-[10px] font-black uppercase text-amber-700 hover:bg-amber-100"
+                  >
+                    Descartar
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="grid gap-5 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -528,10 +569,21 @@ export default function StoreProductForm({
         <AdminSurface className="sticky bottom-4 z-10 border-black/10 bg-white/95 p-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-[#5f6368]">{feedback ?? disabledReason}</p>
-            <Button type="submit" disabled={isPending || Boolean(disabledReason)}>
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Guardar producto
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={draft.isSaving || isPending}
+                onClick={draft.saveDraft}
+                className="h-10 px-4 border-black/10 font-bold uppercase tracking-widest text-[#7a7f87] hover:bg-black/5"
+              >
+                {draft.isSaving ? "Guardando..." : "Guardar Borrador"}
+              </Button>
+              <Button type="submit" disabled={isPending || draft.isSaving || Boolean(disabledReason)}>
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Guardar producto
+              </Button>
+            </div>
           </div>
         </AdminSurface>
         </div>

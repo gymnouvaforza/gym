@@ -4,7 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { GripVertical, Plus, Smartphone, Trash2, Eye, Layout } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { RotateCcw, Save as SaveIcon } from "lucide-react";
 
+import { useFormDraft } from "@/hooks/admin/use-form-draft";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { saveRoutineTemplateAction } from "@/app/(admin)/dashboard/rutinas/actions";
 import type { DashboardRoutineTemplateDetail } from "@/lib/data/gym-management";
 import { routineTemplateFormSchema, type RoutineTemplateFormValues } from "@/lib/validators/gym-routines";
@@ -341,6 +344,12 @@ export default function RoutineTemplateForm({
     resolver: zodResolver(routineTemplateFormSchema),
     defaultValues: toFormValues(detail),
   });
+
+  const draft = useFormDraft<RoutineTemplateFormValues>({
+    formKey: "routine-template",
+    recordId: detail?.template.id ?? "new",
+    form,
+  });
   const blocks = useFieldArray({
     control: form.control,
     name: "blocks",
@@ -387,6 +396,7 @@ export default function RoutineTemplateForm({
     startTransition(async () => {
       try {
         await saveRoutineTemplateAction(values, detail?.template.id);
+        await draft.clearDraft();
         setFeedback("Cambios guardados con exito.");
       } catch (error) {
         setFeedback(error instanceof Error ? error.message : "Error al guardar.");
@@ -397,6 +407,38 @@ export default function RoutineTemplateForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        
+        {draft.hasDraft && (
+          <Alert className="border-amber-200 bg-amber-50 rounded-none shadow-sm">
+            <RotateCcw className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="flex items-center justify-between gap-4">
+              <span className="text-xs font-bold text-amber-900 uppercase tracking-tight">
+                Tienes un borrador guardado para esta rutina.
+              </span>
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={draft.applyDraft}
+                  className="h-7 text-[10px] font-black uppercase border-amber-300 hover:bg-amber-100"
+                >
+                  Restaurar
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={draft.clearDraft}
+                  className="h-7 text-[10px] font-black uppercase text-amber-700 hover:bg-amber-100"
+                >
+                  Descartar
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* BARRA DE HERRAMIENTAS SUPERIOR */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-black/10 bg-[#fbfbf8] p-4 shadow-sm sticky top-0 z-10">
            <div className="flex items-center gap-2 rounded-none border border-black/10 p-1 bg-white">
@@ -424,14 +466,26 @@ export default function RoutineTemplateForm({
               </button>
            </div>
            
-           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
               {feedback ? (
                 <p className="text-[10px] font-bold uppercase text-[#d71920] animate-pulse">{feedback}</p>
               ) : null}
-              <Button type="submit" disabled={isPending} className="bg-[#111111] h-10 px-8 font-black uppercase tracking-widest hover:bg-[#d71920]">
-                {isPending ? "Guardando..." : "Guardar Rutina"}
-              </Button>
-           </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={draft.isSaving || isPending}
+                  onClick={draft.saveDraft}
+                  className="h-10 px-4 border-black/10 font-bold uppercase tracking-widest text-[#7a7f87] hover:bg-black/5"
+                >
+                  <SaveIcon className="mr-2 h-4 w-4" />
+                  {draft.isSaving ? "Guardando..." : "Borrador"}
+                </Button>
+                <Button type="submit" disabled={isPending || draft.isSaving} className="bg-[#111111] h-10 px-8 font-black uppercase tracking-widest hover:bg-[#d71920]">
+                  {isPending ? "Guardando..." : "Guardar Rutina"}
+                </Button>
+              </div>
+            </div>
         </div>
 
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1fr_360px]">

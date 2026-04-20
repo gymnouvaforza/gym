@@ -1,8 +1,8 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 import { getPublicSupabaseEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -14,6 +14,15 @@ export function createSupabaseBrowserClient() {
   }
 
   const { url, anonKey } = getPublicSupabaseEnv();
-  browserClient = createBrowserClient<Database>(url, anonKey);
+  browserClient = createClient<Database>(url, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+    accessToken: async () => {
+      const auth = await getFirebaseBrowserAuth();
+      return auth?.currentUser ? auth.currentUser.getIdToken() : null;
+    },
+  });
   return browserClient;
 }

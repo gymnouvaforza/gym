@@ -1,24 +1,10 @@
-import { createServerClient } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getPublicSupabaseEnv, hasSupabasePublicEnv } from "@/lib/env";
+import { FIREBASE_SESSION_COOKIE, verifyFirebaseSessionToken } from "@/lib/firebase/server";
 
 const ADMIN_ROUTES = ["/dashboard"];
 const LOGIN_PATH = "/login";
-
-function isSupabaseAuthApiError(error: unknown) {
-  if (!error || typeof error !== "object") {
-    return false;
-  }
-
-  const candidate = error as {
-    __isAuthError?: boolean;
-    status?: number;
-  };
-
-  return candidate.__isAuthError === true || candidate.status === 401;
-}
 
 function isAdminRoute(pathname: string) {
   return ADMIN_ROUTES.some(
@@ -29,43 +15,21 @@ function isAdminRoute(pathname: string) {
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
 
-  if (!hasSupabasePublicEnv()) {
-    return response;
-  }
-
-  const { url: supabaseUrl, anonKey: supabaseAnonKey } = getPublicSupabaseEnv();
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options),
-        );
-      },
-    },
-  });
-
   let user = null;
+  const firebaseSession = request.cookies.get(FIREBASE_SESSION_COOKIE)?.value;
 
-  try {
-    const {
-      data: { user: resolvedUser },
-    } = await supabase.auth.getUser();
-
-    user = resolvedUser;
-  } catch (error) {
-    if (!isSupabaseAuthApiError(error)) {
-      throw error;
+  if (firebaseSession) {
+    try {
+      user = await verifyFirebaseSessionToken(firebaseSession);
+    } catch {
+      response.cookies.set(FIREBASE_SESSION_COOKIE, "", {
+        httpOnly: true,
+        maxAge: 0,
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
     }
-
-    console.warn(
-      "Supabase auth could not be resolved in proxy.",
-      error instanceof Error ? error.message : String(error),
-    );
   }
 
   if (isAdminRoute(request.nextUrl.pathname) && !user) {

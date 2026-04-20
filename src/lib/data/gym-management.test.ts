@@ -5,10 +5,17 @@ type TableState = Record<string, TableRow[]>;
 
 const serverMocks = vi.hoisted(() => ({
   createSupabaseAdminClient: vi.fn(),
+  getFirebaseAdminAuth: vi.fn(),
+  listAllFirebaseUsers: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseAdminClient: serverMocks.createSupabaseAdminClient,
+}));
+
+vi.mock("@/lib/firebase/server", () => ({
+  getFirebaseAdminAuth: serverMocks.getFirebaseAdminAuth,
+  listAllFirebaseUsers: serverMocks.listAllFirebaseUsers,
 }));
 
 vi.mock("@/lib/user-roles", async () => {
@@ -184,6 +191,20 @@ function createFakeClient(initialState: Partial<TableState>) {
 describe("gym-management live mobile helpers", () => {
   beforeEach(() => {
     vi.resetModules();
+    serverMocks.listAllFirebaseUsers.mockResolvedValue([]);
+    serverMocks.getFirebaseAdminAuth.mockReturnValue({
+      getUser: vi.fn(async (userId: string) => ({
+        uid: userId,
+        email: `${userId}@novaforza.com`,
+        emailVerified: true,
+        displayName: userId,
+        metadata: {
+          creationTime: null,
+          lastSignInTime: null,
+        },
+        providerData: [],
+      })),
+    });
   });
 
   it("bootstraps a member profile when the auth user has no profile yet", async () => {
@@ -829,18 +850,19 @@ describe("gym-management live mobile helpers", () => {
         },
       ],
     });
-    client.auth.admin.listUsers.mockResolvedValue({
-      data: {
-        users: [
-          {
-            email: "coach@novaforza.com",
-            id: "trainer-1",
-            user_metadata: { full_name: "Coach Nova" },
-          },
-        ],
+    serverMocks.listAllFirebaseUsers.mockResolvedValue([
+      {
+        uid: "trainer-1",
+        email: "coach@novaforza.com",
+        emailVerified: true,
+        displayName: "Coach Nova",
+        metadata: {
+          creationTime: "2026-04-01T10:00:00.000Z",
+          lastSignInTime: "2026-04-01T10:00:00.000Z",
+        },
+        providerData: [{ providerId: "password" }],
       },
-      error: null,
-    } as never);
+    ]);
     serverMocks.createSupabaseAdminClient.mockReturnValue(client);
 
     const { listPersistedUserRoles } = await import("@/lib/user-roles");

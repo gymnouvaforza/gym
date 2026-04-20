@@ -4,108 +4,116 @@
 ![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?logo=firebase&logoColor=black)
+![Supabase](https://img.shields.io/badge/Supabase-Runtime-3ECF8E?logo=supabase&logoColor=white)
 ![Medusa](https://img.shields.io/badge/Medusa-v2-111827)
 
-Ecosistema integral para gimnasios locales que combina una web pública comercial de alto impacto, un panel de gestión operativo personalizado y una infraestructura escalable basada en Supabase y Medusa v2.
+Ecosistema integral para gimnasios locales que combina una web publica comercial, un panel operativo propio y una infraestructura escalable basada en Firebase Auth, Supabase y Medusa v2.
 
-## 🚀 Lo que incluye hoy
+## Lo que incluye hoy
 
-### Web Pública y Marketing
-- **Home Comercial**: Diseño premium con secciones de testimonios, zonas y equipo.
-- **CMS de Marketing**: Planes, horarios y reseñas editables desde el dashboard.
-- **Rutas Propias**: `/planes` y `/horarios` dinámicos desde Supabase.
-- **Leads**: Captura de prospectos y flujo comercial.
+### Web publica y marketing
+- **Home comercial** con secciones de testimonios, zonas y equipo.
+- **CMS de marketing** para planes, horarios y resenas.
+- **Leads** y formularios comerciales.
 
-### E-commerce Operativo (Pickup First)
-- **Tienda Pública**: Catálogo gestionado por Medusa v2 con categorías y búsqueda.
-- **Flujo de Compra**: Carrito, checkout integrado con PayPal y pedidos tipo "Pickup" (Recojo en tienda).
-- **Cuenta de Socio**: Historial de pedidos y gestión de perfil.
+### E-commerce operativo
+- **Tienda publica** gestionada por Medusa v2.
+- **Carrito y checkout pickup** con PayPal.
+- **Cuenta de socio** con historial y perfil.
 
-### Gestión Administrativa (Backoffice)
-- **Dashboard Propio**: Interfaz única que orquesta Supabase y Medusa.
-- **Módulo de Miembros**: Registro, control de suscripciones y perfiles de socios.
-- **Módulo de Rutinas**: Creación y asignación de rutinas personalizadas.
-- **Módulo de Tienda**: Gestión de catálogo, pedidos y sincronización.
+### Backoffice
+- **Dashboard propio** que orquesta Firebase Auth, Supabase y Medusa.
+- **Miembros, rutinas y CMS** desde la misma interfaz.
+- **CRUD de tienda** via Medusa Admin API con puentes persistidos en Supabase.
 
-### App Móvil
-- **Nova Forza Mobile**: App nativa (Expo) para socios (actualmente en `apps/mobile`).
+### App movil
+- **Nova Forza Mobile** en `apps/mobile`, consumiendo el mismo backend.
 
-## 🖼️ Vistas del Producto
+## Vistas del producto
 
-### Web Pública y Tienda
-| Portada (Desktop) | Tienda / Catálogo | Checkout / Carrito |
+### Web publica y tienda
+| Portada (Desktop) | Tienda / Catalogo | Checkout / Carrito |
 | --- | --- | --- |
 | ![Home publica](.github/assets/readme/home-public.png) | ![Tienda publica](.github/assets/readme/storefront-shop.png) | ![Checkout pickup](.github/assets/readme/pickup-checkout.png) |
 
-### Panel de Administración
-| Dashboard Overview | Gestión de Leads | Gestión de Tienda |
+### Panel de administracion
+| Dashboard Overview | Gestion de Leads | Gestion de Tienda |
 | --- | --- | --- |
 | ![Dashboard overview](.github/assets/readme/dashboard-overview.png) | ![Dashboard leads](.github/assets/readme/dashboard-leads.png) | ![Dashboard tienda](.github/assets/readme/dashboard-store.png) |
 
-### Área del Socio y Móvil
+### Area del socio y movil
 | Mi Cuenta | Home (Mobile) |
 | --- | --- |
 | ![Mi cuenta](.github/assets/readme/account.png) | ![Home mobile](.github/assets/readme/home-mobile.png) |
 
-## 🏗️ Arquitectura
+## Arquitectura
 
-El proyecto separa responsabilidades para maximizar la flexibilidad:
+- **Next.js 16 + React 19**: UI principal, RSC, rutas y server actions.
+- **Firebase Auth**: identidad unica para socios y backoffice, con cookie HTTP-only replicada para SSR.
+- **Supabase**: PostgreSQL, Storage, Edge Functions y datos de dominio.
+- **Medusa v2**: catalogo, pedidos y flujo de tienda.
+- **Tailwind CSS v4**: estilos y sistema visual.
 
-- **Next.js 16 + React 19**: Interfaz principal y lógica de servidor (RSC).
-- **Supabase**: Auth, base de datos de infraestructura (leads, rutinas, miembros) y settings.
-- **Medusa v2**: Motor de comercio, catálogo y transacciones (operando sobre el mismo Postgres de Supabase).
-- **Tailwind CSS v4**: Estilos modernos y performance optimizada.
+Mas detalle en [docs/architecture.md](docs/architecture.md).
 
-Más detalles en [docs/architecture.md](docs/architecture.md).
+## Desarrollo local
 
-## 🛠️ Desarrollo Local
-
-### Requisitos previos
+### Requisitos
 - Node.js 20+
-- Docker (para servicios de backend)
+- Docker para Medusa y Redis
 
-### Configuración rápida
+### Puesta en marcha
 
-1. **Clonar e instalar**:
+1. Instalar dependencias:
    ```bash
    npm install
    ```
-
-2. **Backend (Medusa + Redis)**:
+2. Levantar backend commerce:
    ```bash
    npm run dev:backend
    ```
-
-3. **Frontend y Dashboard**:
+3. Levantar Next.js:
    ```bash
    npm run dev
    ```
-
-4. **App Móvil (Opcional)**:
+4. App movil opcional:
    ```bash
    npm run dev:mobile
    ```
 
-## 🔐 Variables de Entorno
+## Variables de entorno
 
-Completa tu archivo `.env.local` usando `.env.example` como referencia. Se requieren claves de Supabase, Medusa Admin API y SMTP para flujos de correo.
+Usa `.env.example` como plantilla para `.env.local`. La app requiere:
 
-## 🌐 Producción
+- Firebase Auth publico y admin
+- Supabase runtime y service role
+- Medusa publishable key y admin API key
+- SMTP propio para verify email, reset password y verify-and-change-email
 
-La topología operativa actual es:
+Migracion de usuarios:
 
-- `https://nuovaforzagym.com` -> frontend `Next.js` en Vercel
-- `https://gym.yampi.eu` -> backend `Medusa` en Dokploy/VPS
-- `redis` -> servicio interno del stack `Medusa`, no expuesto públicamente
+```bash
+npm run auth:migrate:firebase
+```
 
-La app `Next.js` debe apuntar a Medusa usando `NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://gym.yampi.eu` y `MEDUSA_BACKEND_URL=https://gym.yampi.eu`.
+Ese script crea o empareja usuarios en Firebase, conserva `emailVerified` cuando es posible y reescribe referencias enlazadas en Supabase hacia el nuevo `uid`.
 
-## 📂 Documentación
+## Produccion
 
-- [📘 Manual de Usuario](docs/manual-usuario.md) - Guía para el equipo del gimnasio.
-- [🏗️ Arquitectura del Sistema](docs/architecture.md) - Detalles técnicos y flujo de datos.
-- [🔗 Runbook de Reconciliación](docs/archive/store-pickup-reconciliation-runbook.md) - Cómo manejar la sync Supabase-Medusa.
+Topologia actual:
+
+- `https://nuovaforzagym.com` -> frontend Next.js en Vercel
+- `https://gym.yampi.eu` -> backend Medusa en Dokploy/VPS
+- `redis` -> servicio interno de Medusa
+
+Next.js debe apuntar a Medusa usando `NEXT_PUBLIC_MEDUSA_BACKEND_URL` y `MEDUSA_BACKEND_URL`.
+
+## Documentacion
+
+- [Manual de usuario](docs/manual-usuario.md)
+- [Arquitectura del sistema](docs/architecture.md)
+- [Runbook de reconciliacion](docs/archive/store-pickup-reconciliation-runbook.md)
 
 ---
-*Construido por Digitalbit Solutions para un fitness más digital.*
+Construido por Digitalbit Solutions para un fitness mas digital.

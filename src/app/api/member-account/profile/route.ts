@@ -13,7 +13,9 @@ export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
 
   try {
-    const account = await updateAuthenticatedMemberAccount(body);
+    const account = await updateAuthenticatedMemberAccount(body, {
+      absoluteOrigin: new URL(request.url).origin,
+    });
     return NextResponse.json({ account });
   } catch (error) {
     return NextResponse.json(

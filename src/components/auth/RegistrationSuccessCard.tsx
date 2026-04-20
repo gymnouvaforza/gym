@@ -8,10 +8,8 @@ import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  buildMemberConfirmRedirectUrl,
   buildMemberRegistrationCompleteUrl,
 } from "@/lib/member-auth-flow";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const RESEND_COOLDOWN_SECONDS = 45;
 
@@ -85,18 +83,22 @@ export default function RegistrationSuccessCard({
     setIsResending(true);
 
     try {
-      const supabase = createSupabaseBrowserClient();
-      const emailRedirectTo = buildMemberConfirmRedirectUrl(window.location.origin);
-      const { error: resendError } = await supabase.auth.resend({
-        email,
-        options: {
-          emailRedirectTo,
+      const response = await fetch("/api/auth/email-verification", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
         },
-        type: "signup",
+        body: JSON.stringify({
+          email,
+          next: buildMemberRegistrationCompleteUrl({
+            confirmed: true,
+          }),
+        }),
       });
+      const payload = (await response.json().catch(() => ({}))) as { error?: string };
 
-      if (resendError) {
-        setError(resendError.message);
+      if (!response.ok) {
+        setError(payload.error ?? "No pudimos reenviar el enlace.");
         return;
       }
 

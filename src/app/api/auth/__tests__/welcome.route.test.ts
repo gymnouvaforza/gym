@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const welcomeRouteMocks = vi.hoisted(() => ({
   hasResendEnv: vi.fn(),
   getResendEnv: vi.fn(),
-  createSupabaseAdminClient: vi.fn(),
+  getFirebaseAdminAuth: vi.fn(),
   getMarketingData: vi.fn(),
   sendMemberWelcomeEmail: vi.fn(),
 }));
@@ -13,8 +13,8 @@ vi.mock("@/lib/env", () => ({
   getResendEnv: welcomeRouteMocks.getResendEnv,
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseAdminClient: welcomeRouteMocks.createSupabaseAdminClient,
+vi.mock("@/lib/firebase/server", () => ({
+  getFirebaseAdminAuth: welcomeRouteMocks.getFirebaseAdminAuth,
 }));
 
 vi.mock("@/lib/data/site", () => ({
@@ -33,21 +33,11 @@ describe("POST /api/auth/welcome", () => {
     welcomeRouteMocks.getResendEnv.mockReturnValue({
       fromEmail: "Nuova Forza <onboarding@resend.dev>",
     });
-    welcomeRouteMocks.createSupabaseAdminClient.mockReturnValue({
-      auth: {
-        admin: {
-          listUsers: vi.fn().mockResolvedValue({
-            data: {
-              users: [
-                {
-                  email: "member@gym.com",
-                },
-              ],
-            },
-            error: null,
-          }),
-        },
-      },
+    welcomeRouteMocks.getFirebaseAdminAuth.mockReturnValue({
+      getUserByEmail: vi.fn().mockResolvedValue({
+        email: "member@gym.com",
+        uid: "user-1",
+      }),
     });
     welcomeRouteMocks.getMarketingData.mockResolvedValue({
       settings: {

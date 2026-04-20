@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { UserCheck, ShieldCheck, ClipboardList, Info, Lock } from "lucide-react";
@@ -12,7 +13,10 @@ import type {
   TrainerOption,
 } from "@/lib/data/gym-management";
 import { memberFormSchema, type MemberFormValues } from "@/lib/validators/gym-members";
+import { useFormDraft } from "@/hooks/admin/use-form-draft";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Save, RotateCcw } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -54,11 +58,18 @@ export default function MemberProfileForm({
   detail,
   trainerOptions,
 }: Readonly<MemberProfileFormProps>) {
+  const router = useRouter();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberFormSchema),
     defaultValues: toFormValues(detail),
+  });
+
+  const draft = useFormDraft<MemberFormValues>({
+    formKey: "member-profile",
+    recordId: detail?.member.id ?? "new",
+    form,
   });
 
   const linkedUser = authOptions.find(o => o.id === form.getValues("linkedUserId"));
@@ -68,7 +79,14 @@ export default function MemberProfileForm({
     startTransition(async () => {
       try {
         await saveMemberProfileAction(values, detail?.member.id);
-        setFeedback(detail ? "Ficha actualizada con exito." : "Miembro registrado correctamente.");
+        await draft.clearDraft();
+
+        if (!detail) {
+          router.push("/dashboard/miembros");
+          router.refresh();
+        } else {
+          setFeedback("Ficha actualizada con exito.");
+        }
       } catch (error) {
         setFeedback(error instanceof Error ? error.message : "Error al procesar la ficha.");
       }
@@ -79,6 +97,37 @@ export default function MemberProfileForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
         
+        {draft.hasDraft && (
+          <Alert className="border-amber-200 bg-amber-50">
+            <RotateCcw className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="flex items-center justify-between gap-4">
+              <span className="text-xs font-bold text-amber-900 uppercase tracking-tight">
+                Tienes un borrador guardado para este formulario.
+              </span>
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={draft.applyDraft}
+                  className="h-7 text-[10px] font-black uppercase border-amber-300 hover:bg-amber-100"
+                >
+                  Restaurar
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={draft.clearDraft}
+                  className="h-7 text-[10px] font-black uppercase text-amber-700 hover:bg-amber-100"
+                >
+                  Descartar
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid grid-cols-1 gap-10 xl:grid-cols-[1fr_360px]">
           
           {/* COLUMNA PRINCIPAL: DATOS DE IDENTIDAD Y PLAN */}
@@ -388,13 +437,25 @@ export default function MemberProfileForm({
               </div>
             ) : null}
           </div>
-          <Button 
-            type="submit" 
-            disabled={isPending}
-            className="h-14 px-12 bg-[#111111] text-white font-black uppercase tracking-[0.2em] hover:bg-[#d71920] transition-all shadow-xl rounded-none"
-          >
-            {detail ? "Actualizar Registro" : "Crear Ficha Oficial"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={draft.isSaving || isPending}
+              onClick={draft.saveDraft}
+              className="h-14 px-8 border-black/10 font-bold uppercase tracking-widest text-[#7a7f87] hover:bg-black/5 rounded-none"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {draft.isSaving ? "Guardando..." : "Guardar Borrador"}
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isPending || draft.isSaving}
+              className="h-14 px-12 bg-[#111111] text-white font-black uppercase tracking-[0.2em] hover:bg-[#d71920] transition-all shadow-xl rounded-none"
+            >
+              {detail ? "Actualizar Registro" : "Crear Ficha Oficial"}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

@@ -1,13 +1,14 @@
 "use client";
 
-import type { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
+import type { AuthUser } from "@/lib/auth-user";
+import { buildAuthUser } from "@/lib/auth-user";
+import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 import { hasSupabasePublicEnv } from "@/lib/env";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function usePublicAuthState() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isReady, setIsReady] = useState(() => !hasSupabasePublicEnv());
 
   useEffect(() => {
@@ -18,31 +19,37 @@ export function usePublicAuthState() {
     let active = true;
 
     try {
-      const supabase = createSupabaseBrowserClient();
+      let unsubscribe: (() => void) | undefined;
 
-      void supabase.auth.getUser().then(({ data }) => {
-        if (!active) {
+      void getFirebaseBrowserAuth().then((auth) => {
+        if (!auth || !active) {
+          setIsReady(true);
           return;
         }
 
-        setUser(data.user ?? null);
-        setIsReady(true);
-      });
+        unsubscribe = auth.onAuthStateChanged((nextUser) => {
+          if (!active) {
+            return;
+          }
 
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!active) {
-          return;
-        }
-
-        setUser(session?.user ?? null);
-        setIsReady(true);
+          setUser(
+            nextUser
+              ? buildAuthUser({
+                  id: nextUser.uid,
+                  email: nextUser.email,
+                  emailVerified: nextUser.emailVerified,
+                  fullName: nextUser.displayName,
+                  provider: nextUser.providerData[0]?.providerId ?? "password",
+                })
+              : null,
+          );
+          setIsReady(true);
+        });
       });
 
       return () => {
         active = false;
-        subscription.unsubscribe();
+        unsubscribe?.();
       };
     } catch {}
 

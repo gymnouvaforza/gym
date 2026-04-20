@@ -6,7 +6,8 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { PendingButtonLabel } from "@/components/ui/loading-state";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { clearFirebaseBrowserSession } from "@/lib/firebase/browser-session";
+import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 
 export default function SignOutButton() {
   const [isPending, setIsPending] = useState(false);
@@ -18,11 +19,13 @@ export default function SignOutButton() {
     await fetch("/api/dev-logout", { method: "POST" }).catch(() => null);
 
     try {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
+      const auth = await getFirebaseBrowserAuth();
+      await auth?.signOut();
     } catch {
-      // Local admin flow does not always have a browser client available.
+      // Local admin flow does not always have Firebase available.
     }
+
+    await clearFirebaseBrowserSession();
 
     router.push("/login");
     router.refresh();

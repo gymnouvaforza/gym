@@ -39,6 +39,7 @@
     "test:medusa": "node scripts/run-tests-by-path.mjs apps/medusa/src",
     "supabase:qr:doctor": "node scripts/supabase-qr-doctor.mjs",
     "supabase:qr:rotate": "node scripts/rotate-membership-qr-tokens.mjs",
+    "auth:migrate:firebase": "node scripts/migrate-supabase-users-to-firebase.mjs",
     "seed:marketing:team": "node scripts/seed-marketing-team.mjs",
     "medusa:seed:nova": "npm --prefix apps/medusa run seed:nova",
     "sync:store:medusa": "node scripts/sync-store-supabase-to-medusa.cjs"
@@ -55,6 +56,8 @@
     "@types/qrcode": "^1.5.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase": "^12.4.0",
+    "firebase-admin": "^13.5.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "html5-qrcode": "^2.3.8",

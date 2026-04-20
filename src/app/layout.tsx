@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Oswald } from "next/font/google";
 import type { ReactNode } from "react";
 
+import AuthSessionSync from "@/components/auth/AuthSessionSync";
 import { DEFAULT_SITE_NAME, SITE_URL, resolveOgImageUrl } from "@/lib/seo";
 
 import "./globals.css";
@@ -57,6 +58,7 @@ export default function RootLayout({
         className={`${inter.variable} ${oswald.variable} bg-background text-foreground antialiased`}
         suppressHydrationWarning
       >
+        <AuthSessionSync />
         {children}
       </body>
     </html>

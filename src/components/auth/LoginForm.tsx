@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { AuthBlockingState, PendingButtonLabel } from "@/components/ui/loading-state";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
+import { syncFirebaseBrowserSession } from "@/lib/firebase/browser-session";
 
 const loginSchema = z.object({
   identity: z.string().trim().min(2, "Introduce un email o usuario valido."),
@@ -73,14 +75,18 @@ export default function LoginForm() {
       return;
     }
 
-    const supabase = createSupabaseBrowserClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: values.identity,
-      password: values.password,
-    });
+    const auth = await getFirebaseBrowserAuth();
 
-    if (signInError) {
-      setError(signInError.message);
+    if (!auth) {
+      setError("Firebase Auth no esta configurado.");
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, values.identity, values.password);
+      await syncFirebaseBrowserSession(auth);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "No se pudo iniciar sesion.");
       return;
     }
 

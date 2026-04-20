@@ -1,6 +1,8 @@
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser as User } from "@/lib/auth-user";
 
 import { hasSupabaseServiceRole } from "@/lib/env";
+import { buildAuthUser } from "@/lib/auth-user";
+import { listAllFirebaseUsers } from "@/lib/firebase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 import {
@@ -11,8 +13,6 @@ import {
   type PersistedUserRole,
   TRAINER_ROLE,
 } from "@/lib/user-roles";
-
-const AUTH_USERS_PAGE_SIZE = 200;
 
 type MemberBridgeRecord = Pick<
   Database["public"]["Tables"]["member_commerce_customers"]["Row"],
@@ -53,33 +53,23 @@ export type MobileAdminSnapshot = {
 };
 
 async function listAllAuthUsers() {
-  const supabase = createSupabaseAdminClient();
-  const users: User[] = [];
-  let page = 1;
+  const firebaseUsers = await listAllFirebaseUsers();
 
-  while (true) {
-    const {
-      data: { users: pageUsers },
-      error,
-    } = await supabase.auth.admin.listUsers({
-      page,
-      perPage: AUTH_USERS_PAGE_SIZE,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    users.push(...pageUsers);
-
-    if (pageUsers.length < AUTH_USERS_PAGE_SIZE) {
-      break;
-    }
-
-    page += 1;
-  }
-
-  return users;
+  return firebaseUsers.map((user) =>
+    Object.assign(
+      buildAuthUser({
+        id: user.uid,
+        email: user.email,
+        emailVerified: user.emailVerified,
+        fullName: user.displayName,
+        provider: user.providerData[0]?.providerId ?? "password",
+      }),
+      {
+        created_at: user.metadata.creationTime ?? null,
+        last_sign_in_at: user.metadata.lastSignInTime ?? null,
+      },
+    ),
+  ) as Array<User & { created_at: string | null; last_sign_in_at: string | null }>;
 }
 
 async function listMemberBridgeRecords() {
@@ -155,7 +145,7 @@ export async function getMobileAdminSnapshot(): Promise<MobileAdminSnapshot> {
       trainerUsers: [],
       users: [],
       warnings: [
-        `No se pudieron leer los usuarios de Supabase Auth: ${authUsersResult.reason instanceof Error ? authUsersResult.reason.message : String(authUsersResult.reason)}`,
+        `No se pudieron leer los usuarios de Firebase Auth: ${authUsersResult.reason instanceof Error ? authUsersResult.reason.message : String(authUsersResult.reason)}`,
       ],
     };
   }

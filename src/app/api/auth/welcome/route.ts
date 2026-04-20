@@ -4,8 +4,8 @@ import { z } from "zod";
 import { getResendEnv, hasResendEnv } from "@/lib/env";
 import { sendMemberWelcomeEmail } from "@/lib/email/welcome-member";
 import { resolveTransactionalSender } from "@/lib/email/policy";
+import { getFirebaseAdminAuth } from "@/lib/firebase/server";
 import { getMarketingData } from "@/lib/data/site";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const WelcomeBodySchema = z.object({
   email: z.string().trim().email(),
@@ -24,21 +24,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const supabase = createSupabaseAdminClient();
-    const {
-      data: { users },
-      error,
-    } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 200,
-    });
-
-    if (error) {
-      throw error;
-    }
-
     const normalizedEmail = parsed.data.email.toLowerCase();
-    const userExists = users.some((user) => user.email?.toLowerCase() === normalizedEmail);
+    const userExists = await getFirebaseAdminAuth()
+      .getUserByEmail(normalizedEmail)
+      .then(() => true)
+      .catch(() => false);
 
     if (!userExists) {
       return NextResponse.json({ queued: false, skipped: true }, { status: 202 });

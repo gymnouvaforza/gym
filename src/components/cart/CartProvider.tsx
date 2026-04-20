@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 
 import { postJson } from "@/lib/cart/browser-api";
 import {
@@ -26,7 +27,7 @@ import {
   updateCartLineItem,
 } from "@/lib/cart/medusa";
 import { getErrorMessage, isMissingCartMessage, STALE_CART_MESSAGE } from "@/lib/cart/runtime";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
 
 export interface CartContextValue {
@@ -94,35 +95,33 @@ export function CartProvider({
     let active = true;
 
     try {
-      const supabase = createSupabaseBrowserClient();
+      let unsubscribe: (() => void) | undefined;
 
-      void supabase.auth.getUser().then(({ data }) => {
-        if (!active) {
+      void getFirebaseBrowserAuth().then((auth) => {
+        if (!auth || !active) {
           return;
         }
 
-        setResolvedMemberEmail((currentEmail) => data.user?.email ?? currentEmail ?? memberEmail);
-      });
+        setResolvedMemberEmail((currentEmail) => auth.currentUser?.email ?? currentEmail ?? memberEmail);
 
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((event, session) => {
-        if (!active) {
-          return;
-        }
-
-        setResolvedMemberEmail((currentEmail) => {
-          if (event === "SIGNED_OUT") {
-            return null;
+        unsubscribe = onAuthStateChanged(auth, (nextUser) => {
+          if (!active) {
+            return;
           }
 
-          return session?.user?.email ?? currentEmail ?? memberEmail;
+          setResolvedMemberEmail((currentEmail) => {
+            if (!nextUser) {
+              return null;
+            }
+
+            return nextUser.email ?? currentEmail ?? memberEmail;
+          });
         });
       });
 
       return () => {
         active = false;
-        subscription.unsubscribe();
+        unsubscribe?.();
       };
     } catch {
       setResolvedMemberEmail(memberEmail);

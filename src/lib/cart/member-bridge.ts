@@ -1,4 +1,4 @@
-import type { User } from "@supabase/supabase-js";
+import type { AuthUser as User } from "@/lib/auth-user";
 
 import { getMedusaAdminSdk } from "@/lib/medusa/admin-sdk";
 import type { MedusaCart } from "@/lib/cart/medusa";

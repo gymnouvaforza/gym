@@ -37,7 +37,8 @@ import {
   type MemberAccountPasswordValues,
   type MemberAccountProfileValues,
 } from "@/lib/validators/member-account";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { clearFirebaseBrowserSession } from "@/lib/firebase/browser-session";
+import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 
 interface MemberAccountSettingsProps {
   initialAccount: {
@@ -176,8 +177,9 @@ export default function MemberAccountSettings({
         return;
       }
 
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut().catch(() => undefined);
+      const auth = await getFirebaseBrowserAuth();
+      await auth?.signOut().catch(() => undefined);
+      await clearFirebaseBrowserSession();
       router.push("/cuenta-eliminada");
       router.refresh();
     } finally {

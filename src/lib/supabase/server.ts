@@ -1,7 +1,6 @@
-import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
 
+import { getFirebaseSessionBearerHeader } from "@/lib/firebase/server";
 import { getPublicSupabaseEnv, getServerSupabaseEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -17,24 +16,21 @@ export function createSupabasePublicClient() {
 }
 
 export async function createSupabaseServerClient() {
-  const cookieStore = await cookies();
   const { url, anonKey } = getPublicSupabaseEnv();
+  const authorization = await getFirebaseSessionBearerHeader();
 
-  return createServerClient<Database>(url, anonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        } catch {
-          // Server Components cannot always mutate cookies.
-        }
-      },
+  return createClient<Database>(url, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
+    global: authorization
+      ? {
+          headers: {
+            Authorization: authorization,
+          },
+        }
+      : undefined,
   });
 }
 
