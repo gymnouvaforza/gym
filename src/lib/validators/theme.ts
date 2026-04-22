@@ -5,7 +5,7 @@ export const themeConfigSchema = z.object({
     primary: z.string().min(4),
     background: z.string().min(4),
   }).passthrough(),
-  custom_css: z.string().optional().default(""),
+  custom_css: z.string(),
 }).passthrough();
 
 export type ThemeConfig = z.infer<typeof themeConfigSchema>;

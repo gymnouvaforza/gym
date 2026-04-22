@@ -1,4 +1,5 @@
 import type { Lead, SiteSettings } from "@/lib/supabase/database.types";
+import { defaultThemeConfig } from "@/lib/validators/theme";
 
 const fallbackContactPhone = process.env.NEXT_PUBLIC_GYM_CONTACT_PHONE ?? "+34 654 19 47 88";
 const fallbackWhatsAppUrl =
@@ -44,6 +45,13 @@ export const defaultSiteSettings: SiteSettings = {
   seo_og_image_url: null,
   seo_canonical_url: "https://nuovaforzagym.com",
   footer_text: "Nuova Forza es un gimnasio local orientado a fuerza, progreso real y una experiencia seria y cercana.",
+  logo_url: null,
+  favicon_url: null,
+  primary_color: "#d71920",
+  secondary_color: "#111111",
+  slogan: "Precision y poder.",
+  custom_css: defaultThemeConfig.custom_css,
+  theme_config: defaultThemeConfig,
   updated_at: new Date().toISOString(),
 };
 

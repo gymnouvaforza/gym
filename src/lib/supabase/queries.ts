@@ -41,6 +41,7 @@ import type {
   DBCmsDocument,
   DBMarketingPlan,
   DBMarketingScheduleRow,
+  DBSiteSettingsRow,
   DBMarketingTeamMember,
   DBMarketingTestimonial,
   Json,
@@ -305,7 +306,9 @@ export function normalizeCmsDocuments(rows: Partial<DBCmsDocument>[] | null | un
   return cmsDocumentKeys.map((key) => byKey[key]);
 }
 
-export function normalizeSiteSettings(row: Partial<SiteSettings> | null | undefined): SiteSettings {
+export function normalizeSiteSettings(
+  row: Partial<DBSiteSettingsRow> | null | undefined,
+): SiteSettings {
   const normalizedKeywords = safeStringArray(row?.seo_keywords);
 
   return {

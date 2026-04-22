@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { updateThemeAction } from "@/app/(admin)/dashboard/actions";
 import AdminSurface from "@/components/admin/AdminSurface";
+import { AdminSection } from "@/components/admin/shared/layout/AdminSection";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -66,7 +67,7 @@ export default function ThemeEditorForm({ initialConfig, isReadOnly }: ThemeEdit
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
         
-        <AdminSurface title="Variables de Color" icon={Palette}>
+        <AdminSection title="Variables de Color" icon={Palette}>
           <div className="grid gap-8 md:grid-cols-2">
             <ColorField 
               name="colors.primary" 
@@ -79,9 +80,9 @@ export default function ThemeEditorForm({ initialConfig, isReadOnly }: ThemeEdit
               tooltip="Color de fondo (--surface-background)."
             />
           </div>
-        </AdminSurface>
+        </AdminSection>
 
-        <AdminSurface 
+        <AdminSection 
           title="Hoja de Estilos Personalizada" 
           icon={FileCode} 
           description="Escribe reglas CSS puras."
@@ -93,7 +94,7 @@ export default function ThemeEditorForm({ initialConfig, isReadOnly }: ThemeEdit
             </div>
             <AdminCodeEditor name="custom_css" />
           </div>
-        </AdminSurface>
+        </AdminSection>
 
         <div className="flex justify-end gap-4 border-t border-black/5 pt-8">
           <Button
@@ -137,11 +138,13 @@ function ColorField({ name, label, tooltip }: { name: Path<ThemeConfig>; label: 
             <div className="flex gap-3">
               <Input 
                 type="color" 
-                {...field} 
+                {...field}
+                value={typeof field.value === "string" ? field.value : ""}
                 className="w-16 h-12 p-1 cursor-pointer border-black/10 rounded-none bg-white" 
               />
               <Input 
-                {...field} 
+                {...field}
+                value={typeof field.value === "string" ? field.value : ""}
                 placeholder="#000000" 
                 className="flex-1 font-mono uppercase border-black/10 rounded-none"
               />

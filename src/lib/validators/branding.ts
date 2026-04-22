@@ -23,13 +23,11 @@ export const brandingSchema = z.object({
   primary_color: z
     .string()
     .trim()
-    .regex(hexColorRegex, "Formato de color hexadecimal invalido (ej: #d71920).")
-    .default("#d71920"),
+    .regex(hexColorRegex, "Formato de color hexadecimal invalido (ej: #d71920)."),
   secondary_color: z
     .string()
     .trim()
-    .regex(hexColorRegex, "Formato de color hexadecimal invalido (ej: #111111).")
-    .default("#111111"),
+    .regex(hexColorRegex, "Formato de color hexadecimal invalido (ej: #111111)."),
   logo_url: z.string().url("URL de logo invalida.").nullable().optional(),
   favicon_url: z.string().url("URL de favicon invalida.").nullable().optional(),
 });

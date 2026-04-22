@@ -7,6 +7,15 @@ export type Json =
   | Json[]
 
 export type DatabaseUserRole = "superadmin" | "admin" | "trainer" | "app_blocked";
+export type DBThemeConfig = {
+  colors: {
+    primary: string
+    background: string
+    [key: string]: unknown
+  }
+  custom_css: string
+  [key: string]: unknown
+}
 
 export type DBCmsDocument = Database["public"]["Tables"]["cms_documents"]["Row"];
 export type DBMarketingPlan = Database["public"]["Tables"]["marketing_plans"]["Row"];
@@ -15,7 +24,10 @@ export type DBMarketingTeamMember = Database["public"]["Tables"]["marketing_team
 export type DBMarketingTestimonial = Database["public"]["Tables"]["marketing_testimonials"]["Row"];
 export type Lead = Database["public"]["Tables"]["leads"]["Row"];
 export type LeadStatus = Database["public"]["Enums"]["lead_status"];
-export type SiteSettings = Database["public"]["Tables"]["site_settings"]["Row"];
+export type DBSiteSettingsRow = Database["public"]["Tables"]["site_settings"]["Row"];
+export type SiteSettings = Omit<Database["public"]["Tables"]["site_settings"]["Row"], "theme_config"> & {
+  theme_config: DBThemeConfig
+};
 export type DBSystemModule = Database["public"]["Tables"]["system_modules"]["Row"];
 
 export type DBMemberPlanSnapshot = Database["public"]["Tables"]["member_plan_snapshots"]["Row"];
@@ -6931,6 +6943,7 @@ export type Database = {
           address: string | null
           contact_email: string
           contact_phone: string | null
+          custom_css: string | null
           footer_text: string
           hero_badge: string
           hero_description: string
@@ -6965,11 +6978,13 @@ export type Database = {
           primary_color: string | null
           secondary_color: string | null
           slogan: string | null
+          theme_config: Json | null
         }
         Insert: {
           address?: string | null
           contact_email: string
           contact_phone?: string | null
+          custom_css?: string | null
           footer_text: string
           hero_badge: string
           hero_description: string
@@ -7004,11 +7019,13 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           slogan?: string | null
+          theme_config?: Json | null
         }
         Update: {
           address?: string | null
           contact_email?: string
           contact_phone?: string | null
+          custom_css?: string | null
           footer_text?: string
           hero_badge?: string
           hero_description?: string
@@ -7043,6 +7060,7 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           slogan?: string | null
+          theme_config?: Json | null
         }
         Relationships: []
       }

@@ -19,6 +19,7 @@ interface AdminFormTextareaProps {
   rows?: number;
   className?: string;
   inputClassName?: string;
+  textareaClassName?: string;
   disabled?: boolean;
 }
 
@@ -30,6 +31,7 @@ export function AdminFormTextarea({
   rows = 4,
   className,
   inputClassName,
+  textareaClassName,
   disabled,
 }: AdminFormTextareaProps) {
   const { control } = useFormContext();
@@ -66,7 +68,8 @@ export function AdminFormTextarea({
               value={field.value ?? ""}
               className={cn(
                 "min-h-[120px] border-black/10 focus:ring-1 focus:ring-[#d71920]/20",
-                inputClassName
+                inputClassName,
+                textareaClassName,
               )}
             />
           </FormControl>
