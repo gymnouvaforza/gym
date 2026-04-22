@@ -8,6 +8,8 @@ import PickupRequestPaymentForm from "@/components/admin/PickupRequestPaymentFor
 
 const addPickupRequestPaymentEntryActionMock = vi.fn();
 const refreshMock = vi.fn();
+const toastSuccessMock = vi.fn();
+const toastErrorMock = vi.fn();
 
 vi.mock("@/app/(admin)/dashboard/tienda/actions", () => ({
   addPickupRequestPaymentEntryAction: (...args: unknown[]) =>
@@ -20,10 +22,19 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+vi.mock("sonner", () => ({
+  toast: {
+    success: (...args: unknown[]) => toastSuccessMock(...args),
+    error: (...args: unknown[]) => toastErrorMock(...args),
+  },
+}));
+
 describe("PickupRequestPaymentForm", () => {
   beforeEach(() => {
     addPickupRequestPaymentEntryActionMock.mockReset();
     refreshMock.mockReset();
+    toastSuccessMock.mockReset();
+    toastErrorMock.mockReset();
   });
 
   it("keeps the partial payment button disabled until the amount is valid", async () => {
@@ -38,7 +49,7 @@ describe("PickupRequestPaymentForm", () => {
     );
 
     const partialButton = screen.getByRole("button", {
-      name: /Registrar abono parcial/i,
+      name: /Abono parcial/i,
     });
     expect(partialButton).toBeDisabled();
 
@@ -60,8 +71,8 @@ describe("PickupRequestPaymentForm", () => {
     );
 
     await user.type(screen.getByLabelText("Importe del abono"), "20.5");
-    await user.type(screen.getByLabelText("Nota del cobro"), "Abono en efectivo");
-    await user.click(screen.getByRole("button", { name: /Registrar abono parcial/i }));
+    await user.type(screen.getByLabelText(/Nota del cobro/i), "Abono en efectivo");
+    await user.click(screen.getByRole("button", { name: /Abono parcial/i }));
 
     await waitFor(() => {
       expect(addPickupRequestPaymentEntryActionMock).toHaveBeenCalledWith("pick_01", "PEN", {
@@ -73,9 +84,10 @@ describe("PickupRequestPaymentForm", () => {
     await waitFor(() => {
       expect(refreshMock).toHaveBeenCalled();
     });
-    expect(
-      await screen.findByText("Abono parcial registrado en la bitacora de pagos."),
-    ).toBeInTheDocument();
+
+    expect(toastSuccessMock).toHaveBeenCalledWith(
+      "Abono parcial registrado en la bitácora de pagos.",
+    );
   });
 
   it("submits the full remaining balance when marking the payment as complete", async () => {
@@ -90,7 +102,7 @@ describe("PickupRequestPaymentForm", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /Marcar pago completo/i }));
+    await user.click(screen.getByRole("button", { name: /Pago completo/i }));
 
     await waitFor(() => {
       expect(addPickupRequestPaymentEntryActionMock).toHaveBeenCalledWith("pick_02", "PEN", {
@@ -115,13 +127,13 @@ describe("PickupRequestPaymentForm", () => {
     );
 
     await user.type(screen.getByLabelText("Importe del abono"), "10");
-    await user.type(screen.getByLabelText("Nota del cobro"), "Intento duplicado");
-    await user.click(screen.getByRole("button", { name: /Registrar abono parcial/i }));
+    await user.type(screen.getByLabelText(/Nota del cobro/i), "Intento duplicado");
+    await user.click(screen.getByRole("button", { name: /Abono parcial/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Este pedido ya figura como cobrado manualmente al completo."),
-      ).toBeInTheDocument();
+      expect(toastErrorMock).toHaveBeenCalledWith(
+        "Este pedido ya figura como cobrado manualmente al completo.",
+      );
     });
 
     expect(screen.getByDisplayValue("10")).toBeInTheDocument();
@@ -137,6 +149,6 @@ describe("PickupRequestPaymentForm", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /Marcar pago completo/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Pago completo/i })).toBeDisabled();
   });
 });

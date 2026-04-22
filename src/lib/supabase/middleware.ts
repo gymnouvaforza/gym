@@ -10,11 +10,9 @@ export function updateSession(request: NextRequest, initialResponse?: NextRespon
   }
 
   const { url, anonKey } = getPublicSupabaseEnv();
-  let response =
-    initialResponse ??
-    NextResponse.next({
-      request,
-    });
+  
+  // Creamos una respuesta base si no existe
+  let response = initialResponse ?? NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(url, anonKey, {
     cookies: {
@@ -22,10 +20,12 @@ export function updateSession(request: NextRequest, initialResponse?: NextRespon
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
+        // Actualizamos tanto la petición como la respuesta para mantener sincronía
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({
-          request,
-        });
+        
+        // Regeneramos la respuesta solo si es necesario para inyectar cookies
+        response = NextResponse.next({ request });
+        
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
         );
@@ -33,7 +33,11 @@ export function updateSession(request: NextRequest, initialResponse?: NextRespon
     },
   });
 
-  void supabase.auth.getUser().catch(() => undefined);
+  // Ejecutamos getUser() para refrescar el token si es necesario, 
+  // pero lo hacemos de forma que no bloquee críticamente si falla
+  void supabase.auth.getUser().catch((error) => {
+    console.error("Middleware Auth Error:", error);
+  });
 
   return response;
 }

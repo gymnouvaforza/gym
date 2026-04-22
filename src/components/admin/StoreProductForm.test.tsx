@@ -9,9 +9,29 @@ import StoreProductForm from "@/components/admin/StoreProductForm";
 import type { StoreCategory, StoreDashboardProduct } from "@/lib/data/store";
 
 const saveStoreProductMock = vi.fn();
+const clearDraftMock = vi.fn();
+
+vi.mock("@/lib/auth", () => ({
+  requireAdminUser: vi.fn().mockResolvedValue({ id: "admin-1", email: "admin@test.com" }),
+  getDashboardAccessState: vi.fn().mockResolvedValue({
+    user: { id: "admin-1", email: "admin@test.com" },
+    accessMode: "admin",
+    accessWarning: null,
+  }),
+}));
 
 vi.mock("@/app/(admin)/dashboard/tienda/actions", () => ({
   saveStoreProduct: (...args: unknown[]) => saveStoreProductMock(...args),
+}));
+
+vi.mock("@/hooks/admin/use-form-draft", () => ({
+  useFormDraft: () => ({
+    hasDraft: false,
+    isSaving: false,
+    saveDraft: vi.fn(),
+    clearDraft: (...args: unknown[]) => clearDraftMock(...args),
+    applyDraft: vi.fn(),
+  }),
 }));
 
 vi.mock("next/link", () => ({
@@ -32,12 +52,14 @@ vi.mock("@/components/admin/ImageUpload", () => ({
   default: ({
     value,
     onChange,
+    ...props
   }: {
     value: string[];
     onChange: (value: string[]) => void;
   }) => (
     <textarea
-      aria-label="Imagenes (una por linea)"
+      {...props}
+      aria-label="Imagenes del producto"
       value={value.join("\n")}
       onChange={(event) => onChange(event.target.value.split("\n").filter(Boolean))}
     />
@@ -107,6 +129,7 @@ const existingProduct: StoreDashboardProduct = {
 describe("StoreProductForm", () => {
   beforeEach(() => {
     saveStoreProductMock.mockReset();
+    clearDraftMock.mockReset();
   });
 
   it("renders subcategory options from the taxonomy", () => {
@@ -130,11 +153,11 @@ describe("StoreProductForm", () => {
     );
     await user.clear(screen.getByLabelText("Precio real"));
     await user.type(screen.getByLabelText("Precio real"), "49.99");
-    await user.type(screen.getByLabelText("Referencia cobro manual (USD, opcional)"), "13.95");
-    await user.type(screen.getByLabelText("Imagenes (una por linea)"), "/img/whey.png");
+    await user.type(screen.getByLabelText("Referencia USD"), "13.95");
+    await user.type(screen.getByLabelText("Imagenes del producto"), "/img/whey.png");
     await user.clear(screen.getByLabelText("CTA"));
     await user.type(screen.getByLabelText("CTA"), "Reservar");
-    await user.click(screen.getByRole("button", { name: /Guardar producto/i }));
+    await user.click(screen.getByRole("button", { name: /Publicar/i }));
 
     await waitFor(() => {
       expect(saveStoreProductMock).toHaveBeenCalledWith(
@@ -147,6 +170,8 @@ describe("StoreProductForm", () => {
         undefined,
       );
     });
+
+    expect(clearDraftMock).toHaveBeenCalled();
   }, 10000);
 
   it("renders the preview rail and switches between card and PDP modes", async () => {

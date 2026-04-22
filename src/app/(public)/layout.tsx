@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 
-import { CartProvider } from "@/components/cart/CartProvider";
+import { CartProvider } from "@/features/checkout";
 import PublicPageShell from "@/components/marketing/PublicPageShell";
 import { getCmsDocumentByKey, getFooterLegalLinks } from "@/lib/data/cms";
 import { getMarketingData } from "@/lib/data/site";
+import { PageTransition } from "@/components/ui/page-transition";
 
 export default async function MarketingLayout({
   children,
@@ -23,7 +24,7 @@ export default async function MarketingLayout({
         cookieDocument={cookieDocument}
         legalLinks={legalLinks}
       >
-        {children}
+        <PageTransition>{children}</PageTransition>
       </PublicPageShell>
     </CartProvider>
   );

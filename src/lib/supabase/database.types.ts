@@ -16,7 +16,10 @@ export type LeadStatus = Database["public"]["Enums"]["lead_status"];
 export type SiteSettings = Database["public"]["Tables"]["site_settings"]["Row"];
 
 export type DBMemberPlanSnapshot = Database["public"]["Tables"]["member_plan_snapshots"]["Row"];
+export type DBMemberMeasurement = Database["public"]["Tables"]["member_measurements"]["Row"];
+export type DBMemberPayment = Database["public"]["Tables"]["member_payments"]["Row"];
 export type DBMemberProfile = Database["public"]["Tables"]["member_profiles"]["Row"];
+export type DBMembership = Database["public"]["Tables"]["memberships"]["Row"];
 export type DBMembershipPaymentEntry =
   Database["public"]["Tables"]["membership_payment_entries"]["Row"];
 export type DBMembershipPlan = Database["public"]["Tables"]["membership_plans"]["Row"];
@@ -2187,6 +2190,145 @@ export type Database = {
           {
             foreignKeyName: "member_profiles_membership_plan_id_fkey"
             columns: ["membership_plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_measurements: {
+        Row: {
+          created_at: string
+          fat_percentage: number | null
+          id: string
+          member_id: string
+          perimeters: Json | null
+          recorded_at: string
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          fat_percentage?: number | null
+          id?: string
+          member_id: string
+          perimeters?: Json | null
+          recorded_at?: string
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          fat_percentage?: number | null
+          id?: string
+          member_id?: string
+          perimeters?: Json | null
+          recorded_at?: string
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_measurements_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_payments: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          id: string
+          membership_id: string
+          payment_method: string
+          recorded_at: string
+          recorded_by: string | null
+          reference_code: string | null
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          id?: string
+          membership_id: string
+          payment_method: string
+          recorded_at?: string
+          recorded_by?: string | null
+          reference_code?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          membership_id?: string
+          payment_method?: string
+          recorded_at?: string
+          recorded_by?: string | null
+          reference_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_payments_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memberships: {
+        Row: {
+          balance_due: number
+          created_at: string
+          end_date: string | null
+          id: string
+          manual_activation_status: "pending" | "active" | "expired"
+          member_id: string
+          notes: string | null
+          plan_id: string | null
+          start_date: string | null
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          balance_due?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          manual_activation_status?: "pending" | "active" | "expired"
+          member_id: string
+          notes?: string | null
+          plan_id?: string | null
+          start_date?: string | null
+          total_price?: number
+          updated_at?: string
+        }
+        Update: {
+          balance_due?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          manual_activation_status?: "pending" | "active" | "expired"
+          member_id?: string
+          notes?: string | null
+          plan_id?: string | null
+          start_date?: string | null
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memberships_plan_id_fkey"
+            columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "membership_plans"
             referencedColumns: ["id"]

@@ -1,6 +1,10 @@
+"use client";
+
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -17,6 +21,7 @@ const buttonVariants = cva(
           "border border-black/12 bg-white text-[#111111] hover:border-[#d71920]/35 hover:bg-[#fff7f7] hover:text-[#111111] hover:-translate-y-0.5",
         ghost: "border border-transparent text-[#4b5563] hover:bg-black/[0.04] hover:text-[#111111]",
         destructive: "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+        success: "bg-green-600 text-white shadow-[0_18px_40px_-22px_rgba(22,163,74,0.55)] hover:bg-green-700",
       },
       size: {
         default: "h-12 px-6 py-2",
@@ -36,17 +41,67 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  loading?: boolean;
+  success?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+  ({ className, variant, size, asChild = false, loading, success, children, ...props }, ref) => {
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+
+    const currentVariant = success ? "success" : variant;
+
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+      <button
+        className={cn(buttonVariants({ variant: currentVariant, size, className }))}
         ref={ref}
+        disabled={loading || success || props.disabled}
         {...props}
-      />
+      >
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-2"
+            >
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="sr-only">Cargando</span>
+            </motion.div>
+          ) : success ? (
+            <motion.div
+              key="success"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex items-center gap-2"
+            >
+              <Check className="h-4 w-4" />
+              <span>Completado</span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-2"
+            >
+              {children}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </button>
     );
   },
 );

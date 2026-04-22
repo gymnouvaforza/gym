@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { CheckCircle2, FileText, Store, TimerReset } from "lucide-react";
 
-import ProductPurchasePanel from "@/components/cart/ProductPurchasePanel";
+import { ProductPurchasePanel } from "@/features/checkout";
 import ProductGallery from "@/components/marketing/ProductGallery";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/data/types";

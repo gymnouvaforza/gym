@@ -172,6 +172,32 @@ export function AuthBlockingState({
   );
 }
 
+export function MembersTableSkeleton() {
+  return (
+    <div className="bg-white border border-black/10 shadow-sm overflow-hidden">
+      <div className="h-10 bg-black/5 flex items-center px-4 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonBlock key={i} className="h-2 flex-1" />
+        ))}
+      </div>
+      <div className="divide-y divide-black/5">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-4 p-4">
+            <SkeletonBlock className="h-10 w-10 shrink-0" />
+            <div className="flex-1 space-y-2">
+              <SkeletonBlock className="h-3 w-1/3" />
+              <SkeletonBlock className="h-2 w-1/4" />
+            </div>
+            <SkeletonBlock className="h-4 w-20" />
+            <SkeletonBlock className="h-4 w-24" />
+            <SkeletonBlock className="h-8 w-16" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type PendingButtonLabelProps = {
   children: string;
   className?: string;

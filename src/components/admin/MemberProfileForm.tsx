@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { UserCheck, ShieldCheck, ClipboardList, Info, Lock } from "lucide-react";
+import { Save, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 
 import { saveMemberProfileAction } from "@/app/(admin)/dashboard/miembros/actions";
 import type {
@@ -16,36 +17,16 @@ import { memberFormSchema, type MemberFormValues } from "@/lib/validators/gym-me
 import { useFormDraft } from "@/hooks/admin/use-form-draft";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Save, RotateCcw } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Form } from "@/components/ui/form";
+import { cn } from "@/lib/utils";
 
-function toFormValues(detail?: DashboardMemberDetail | null): MemberFormValues {
-  return {
-    linkedUserId: detail?.member.linkedUserId ?? null,
-    trainerUserId: detail?.member.trainerUserId ?? null,
-    fullName: detail?.member.fullName ?? "",
-    email: detail?.member.email ?? "",
-    phone: detail?.member.phone ?? null,
-    status: detail?.member.status ?? "prospect",
-    branchName: detail?.member.branchName ?? null,
-    notes: detail?.notes ?? null,
-    joinDate: detail?.member.joinDate ?? new Date().toISOString().slice(0, 10),
-    planLabel: detail?.plan?.label ?? "",
-    planStatus: detail?.plan?.status ?? "active",
-    planStartedAt: detail?.plan?.startedAt ?? null,
-    planEndsAt: detail?.plan?.endsAt ?? null,
-    planNotes: detail?.plan?.notes ?? null,
-  };
-}
+// Domain Specific Imports
+import { toMemberFormValues } from "@/features/admin/members/services/member-mappers";
+import { MemberIdentitySection } from "@/features/admin/members/components/MemberIdentitySection";
+import { MemberInternalSummarySection } from "@/features/admin/members/components/MemberInternalSummarySection";
+import { MemberAuthSecurity } from "@/features/admin/members/components/MemberAuthSecurity";
+import { MemberStaffAssignment } from "@/features/admin/members/components/MemberStaffAssignment";
+import { MemberManagementTips } from "@/features/admin/members/components/MemberManagementTips";
 
 interface MemberProfileFormProps {
   authOptions: AuthLinkOption[];
@@ -59,11 +40,11 @@ export default function MemberProfileForm({
   trainerOptions,
 }: Readonly<MemberProfileFormProps>) {
   const router = useRouter();
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberFormSchema),
-    defaultValues: toFormValues(detail),
+    defaultValues: toMemberFormValues(detail),
   });
 
   const draft = useFormDraft<MemberFormValues>({
@@ -72,23 +53,22 @@ export default function MemberProfileForm({
     form,
   });
 
-  const linkedUser = authOptions.find(o => o.id === form.getValues("linkedUserId"));
-
   function onSubmit(values: MemberFormValues) {
-    setFeedback(null);
     startTransition(async () => {
       try {
         await saveMemberProfileAction(values, detail?.member.id);
         await draft.clearDraft();
 
         if (!detail) {
+          toast.success("Socio registrado oficialmente.");
           router.push("/dashboard/miembros");
           router.refresh();
         } else {
-          setFeedback("Ficha actualizada con exito.");
+          toast.success("Ficha actualizada con éxito.");
+          router.refresh();
         }
       } catch (error) {
-        setFeedback(error instanceof Error ? error.message : "Error al procesar la ficha.");
+        toast.error(error instanceof Error ? error.message : "Error al procesar la ficha.");
       }
     });
   }
@@ -96,31 +76,19 @@ export default function MemberProfileForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
-        
+        {/* Banner de Borradores */}
         {draft.hasDraft && (
-          <Alert className="border-amber-200 bg-amber-50">
-            <RotateCcw className="h-4 w-4 text-amber-600" />
+          <Alert className="border-amber-200 bg-amber-50 shadow-sm">
+            <RotateCcw className="h-4 w-4 text-amber-600 animate-in spin-in-180 duration-500" />
             <AlertDescription className="flex items-center justify-between gap-4">
-              <span className="text-xs font-bold text-amber-900 uppercase tracking-tight">
-                Tienes un borrador guardado para este formulario.
+              <span className="text-[10px] font-black text-amber-900 uppercase tracking-widest">
+                Recuperación: Tienes cambios sin guardar de una sesión previa.
               </span>
               <div className="flex gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={draft.applyDraft}
-                  className="h-7 text-[10px] font-black uppercase border-amber-300 hover:bg-amber-100"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={draft.applyDraft} className="h-7 border-amber-200 text-[9px] font-black uppercase tracking-wider bg-white hover:bg-amber-100">
                   Restaurar
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={draft.clearDraft}
-                  className="h-7 text-[10px] font-black uppercase text-amber-700 hover:bg-amber-100"
-                >
+                <Button type="button" variant="ghost" size="sm" onClick={draft.clearDraft} className="h-7 text-[9px] font-black uppercase tracking-wider text-amber-700">
                   Descartar
                 </Button>
               </div>
@@ -129,321 +97,35 @@ export default function MemberProfileForm({
         )}
 
         <div className="grid grid-cols-1 gap-10 xl:grid-cols-[1fr_360px]">
-          
-          {/* COLUMNA PRINCIPAL: DATOS DE IDENTIDAD Y PLAN */}
+          {/* COLUMNA PRINCIPAL */}
           <div className="space-y-10">
-            
-            {/* SECCION 1: IDENTIDAD */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-black/5 pb-4">
-                 <UserCheck className="h-5 w-5 text-[#d71920]" />
-                 <h3 className="font-display text-xl font-black uppercase tracking-tighter text-[#111111]">Identidad del Socio</h3>
-              </div>
-              
-              <div className="grid gap-6 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Nombre Completo</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-12 font-bold text-lg border-black/10 focus:ring-1 focus:ring-[#d71920]/20" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Email Corporativo / Personal</FormLabel>
-                      <FormControl>
-                        <Input type="email" {...field} className="h-12 font-medium border-black/10" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Telefono de Contacto</FormLabel>
-                      <FormControl>
-                        <Input
-                          value={typeof field.value === "string" ? field.value : ""}
-                          onChange={(event) => field.onChange(event.target.value || null)}
-                          className="h-11 border-black/10"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="joinDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Fecha de Alta</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} className="h-11 border-black/10 font-bold uppercase text-xs" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="branchName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Sede Principal</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ej. Club Central"
-                          value={typeof field.value === "string" ? field.value : ""}
-                          onChange={(event) => field.onChange(event.target.value || null)}
-                          className="h-11 border-black/10 font-bold"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* SECCION 2: RESUMEN INTERNO */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-black/5 pb-4">
-                 <ClipboardList className="h-5 w-5 text-[#d71920]" />
-                 <h3 className="font-display text-xl font-black uppercase tracking-tighter text-[#111111]">Resumen Interno</h3>
-              </div>
-
-              <div className="border border-black/10 bg-[#fbfbf8] p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#7a7f87]">
-                  Nota de operacion
-                </p>
-                <p className="mt-2 text-[12px] leading-relaxed text-[#5f6368]">
-                  La membresia y el cobro manual viven ahora en <span className="font-bold text-[#111111]">Membership Ops</span>.
-                  Este bloque se queda como apoyo interno para notas de seguimiento y contexto del socio.
-                </p>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                <FormField
-                  control={form.control}
-                  name="planLabel"
-                  render={({ field }) => (
-                    <FormItem className="xl:col-span-2">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Etiqueta interna</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 font-black uppercase border-black/10 bg-[#fbfbf8]" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="planStatus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Estado interno</FormLabel>
-                      <FormControl>
-                        <select
-                          value={typeof field.value === "string" ? field.value : "active"}
-                          onChange={(event) => field.onChange(event.target.value)}
-                          className="flex h-11 w-full border border-black/10 bg-white px-3 text-xs font-black uppercase text-[#111111] outline-none"
-                        >
-                          <option value="active">Active</option>
-                          <option value="paused">Paused</option>
-                          <option value="cancelled">Cancelled</option>
-                          <option value="expired">Expired</option>
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Estado Operativo</FormLabel>
-                      <FormControl>
-                        <select
-                          value={typeof field.value === "string" ? field.value : "prospect"}
-                          onChange={(event) => field.onChange(event.target.value)}
-                          className="flex h-11 w-full border border-black/10 bg-white px-3 text-xs font-black uppercase text-[#111111] outline-none"
-                        >
-                          <option value="prospect">Prospect</option>
-                          <option value="active">Active</option>
-                          <option value="paused">Paused</option>
-                          <option value="cancelled">Cancelled</option>
-                          <option value="former">Former</option>
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="planStartedAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Inicio de referencia</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          value={typeof field.value === "string" ? field.value : ""}
-                          onChange={(event) => field.onChange(event.target.value || null)}
-                          className="h-11 border-black/10 text-xs font-bold"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* SECCION 3: NOTAS OPERATIVAS */}
-            <div className="space-y-6">
-               <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">Bitacora Interna (Solo Admin)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={4}
-                        placeholder="Observaciones sobre comportamiento, lesiones o historial comercial..."
-                        className="rounded-none border-black/10 bg-[#fbfbf8] text-sm"
-                        value={typeof field.value === "string" ? field.value : ""}
-                        onChange={(event) => field.onChange(event.target.value || null)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <MemberIdentitySection />
+            <MemberInternalSummarySection />
           </div>
 
-          {/* COLUMNA LATERAL: VINCULACIONES Y SEGURIDAD */}
+          {/* COLUMNA LATERAL */}
           <aside className="space-y-8">
             <div className="sticky top-24 space-y-8">
-              
-              {/* VINCULACION AUTH (PROTEGIDA) */}
-              <div className="bg-[#111111] p-6 text-white shadow-xl">
-                 <div className="flex items-center gap-3 mb-6">
-                    <ShieldCheck className="h-4 w-4 text-[#d71920]" />
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Seguridad App</p>
-                 </div>
-                 
-                 <div className="space-y-4">
-                    <div className="bg-white/5 p-4 border border-white/10">
-                       <p className="text-[9px] font-black uppercase text-white/40 mb-2">Usuario Auth Vinculado</p>
-                       {linkedUser ? (
-                         <div className="space-y-1">
-                            <p className="text-xs font-black uppercase text-white">{linkedUser.displayName}</p>
-                            <p className="text-[10px] font-medium text-white/60 truncate">{linkedUser.email}</p>
-                         </div>
-                       ) : (
-                         <p className="text-[10px] font-bold text-[#d71920] uppercase tracking-tighter">Sin Vinculo Digital</p>
-                       )}
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/20">
-                       <Lock className="h-4 w-4 text-amber-500 shrink-0" />
-                       <p className="text-[9px] leading-relaxed text-amber-200/80 font-medium">
-                         La vinculacion de identidad esta bloqueada desde este panel por seguridad.
-                       </p>
-                    </div>
-                    
-                    {/* Input oculto/deshabilitado para el formulario */}
-                    <input type="hidden" {...form.register("linkedUserId")} />
-                 </div>
-              </div>
-
-              {/* ASIGNACION STAFF */}
-              <div className="space-y-4">
-                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#111111] px-2">Responsable Tecnico</h3>
-                 <div className="bg-white border border-black/10 p-6 shadow-sm">
-                    <FormField
-                      control={form.control}
-                      name="trainerUserId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[9px] font-black uppercase text-[#7a7f87]">Coach Asignado</FormLabel>
-                          <FormControl>
-                            <select
-                              value={typeof field.value === "string" ? field.value : ""}
-                              onChange={(event) => field.onChange(event.target.value || null)}
-                              className="flex h-10 w-full border border-black/10 bg-white px-3 text-[11px] font-black uppercase text-[#111111] outline-none focus:ring-1 focus:ring-[#d71920]"
-                            >
-                              <option value="">Sin entrenador</option>
-                              {trainerOptions.map((trainer) => (
-                                <option key={trainer.userId} value={trainer.userId}>
-                                  {trainer.displayName.toUpperCase()}
-                                </option>
-                              ))}
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                 </div>
-              </div>
-
-              {/* TIPS DE GESTION */}
-              <div className="bg-[#fbfbf8] border border-black/10 p-6 space-y-4">
-                 <div className="flex items-center gap-2 text-[#111111]">
-                    <Info className="h-4 w-4" />
-                    <p className="text-[10px] font-black uppercase tracking-widest">Tip Operativo</p>
-                 </div>
-                 <p className="text-[11px] font-medium text-[#7a7f87] leading-relaxed italic">
-                    &quot;Asegurate de que el email coincida con la cuenta de Auth para evitar problemas de sincronizacion en la App.&quot;
-                 </p>
-              </div>
-
+              <MemberAuthSecurity authOptions={authOptions} />
+              <MemberStaffAssignment trainerOptions={trainerOptions} />
+              <MemberManagementTips />
             </div>
           </aside>
         </div>
 
         {/* ACCIONES DE FORMULARIO */}
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-t border-black/5 pt-10">
-          <div className="flex-1">
-            {feedback ? (
-              <div className="flex items-center gap-3">
-                 <div className="h-2 w-2 rounded-full bg-[#d71920] animate-pulse" />
-                 <p className="text-xs font-bold uppercase tracking-tight text-[#111111]">{feedback}</p>
-              </div>
-            ) : null}
-          </div>
+          <div className="flex-1" />
           <div className="flex items-center gap-3">
             <Button
               type="button"
               variant="outline"
               disabled={draft.isSaving || isPending}
-              onClick={draft.saveDraft}
-              className="h-14 px-8 border-black/10 font-bold uppercase tracking-widest text-[#7a7f87] hover:bg-black/5 rounded-none"
+              onClick={() => {
+                draft.saveDraft();
+                toast.info("Borrador guardado localmente.");
+              }}
+              className="h-14 px-8 border-black/10 font-black uppercase tracking-[0.2em] text-[#7a7f87] hover:bg-black/5 transition-all"
             >
               <Save className="mr-2 h-4 w-4" />
               {draft.isSaving ? "Guardando..." : "Guardar Borrador"}
@@ -451,9 +133,19 @@ export default function MemberProfileForm({
             <Button 
               type="submit" 
               disabled={isPending || draft.isSaving}
-              className="h-14 px-12 bg-[#111111] text-white font-black uppercase tracking-[0.2em] hover:bg-[#d71920] transition-all shadow-xl rounded-none"
+              className={cn(
+                "h-14 px-12 text-white font-black uppercase tracking-[0.25em] transition-all duration-500 shadow-xl",
+                isPending ? "bg-[#7a7f87] cursor-not-allowed" : "bg-[#111111] hover:bg-[#d71920] shadow-black/10 hover:shadow-red-500/20"
+              )}
             >
-              {detail ? "Actualizar Registro" : "Crear Ficha Oficial"}
+              {isPending ? (
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="size-4 animate-spin" />
+                  <span>Sincronizando...</span>
+                </div>
+              ) : (
+                detail ? "Actualizar Registro" : "Crear Ficha Oficial"
+              )}
             </Button>
           </div>
         </div>

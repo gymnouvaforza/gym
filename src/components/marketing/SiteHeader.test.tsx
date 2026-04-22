@@ -7,6 +7,7 @@ import { vi } from "vitest";
 import SiteHeader from "@/components/marketing/SiteHeader";
 import { defaultSiteSettings } from "@/lib/data/default-content";
 import { normalizeSiteName } from "@/lib/seo";
+import { CartProvider } from "@/features/checkout";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: ComponentProps<"a">) => (
@@ -33,7 +34,11 @@ vi.mock("@/components/marketing/SiteHeaderAuthActions", () => ({
 
 describe("SiteHeader", () => {
   it("renders the site header shell with cart and auth actions", () => {
-    render(<SiteHeader settings={defaultSiteSettings} />);
+    render(
+      <CartProvider>
+        <SiteHeader settings={defaultSiteSettings} />
+      </CartProvider>,
+    );
 
     expect(
       screen.getByRole("link", { name: normalizeSiteName(defaultSiteSettings.site_name) }),

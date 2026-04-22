@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import CartProcessingPageClient from "@/components/cart/CartProcessingPageClient";
+import { CartProcessingPage } from "@/features/checkout";
 import { buildNoIndexMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildNoIndexMetadata(
@@ -10,12 +10,12 @@ export const metadata: Metadata = buildNoIndexMetadata(
 
 export const dynamic = "force-dynamic";
 
-export default async function CartProcessingPage({
+export default async function CheckoutProcessingPage({
   params,
 }: Readonly<{
   params: Promise<{ cartId: string }>;
 }>) {
   const { cartId } = await params;
 
-  return <CartProcessingPageClient cartId={cartId} />;
+  return <CartProcessingPage cartId={cartId} />;
 }

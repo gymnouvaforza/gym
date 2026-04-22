@@ -1404,3 +1404,17 @@ export async function updateLeadFollowUpRecord(
     throw new Error("El lead que intentas actualizar ya no existe.");
   }
 }
+
+export async function deleteLeadRecord(
+  supabase: GymSupabaseClient,
+  id: string,
+) {
+  const { error } = await supabase
+    .from("leads")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(mapSupabaseError(error, "eliminar el lead"));
+  }
+}

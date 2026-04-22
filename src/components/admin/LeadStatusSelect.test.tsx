@@ -7,14 +7,23 @@ import { vi } from "vitest";
 import LeadStatusSelect from "@/components/admin/LeadStatusSelect";
 
 const updateLeadStatusMock = vi.fn();
+const toastErrorMock = vi.fn();
 
 vi.mock("@/app/(admin)/dashboard/actions", () => ({
   updateLeadStatus: (...args: unknown[]) => updateLeadStatusMock(...args),
 }));
 
+vi.mock("sonner", () => ({
+  toast: {
+    error: (...args: unknown[]) => toastErrorMock(...args),
+    success: vi.fn(),
+  },
+}));
+
 describe("LeadStatusSelect", () => {
   beforeEach(() => {
     updateLeadStatusMock.mockReset();
+    toastErrorMock.mockReset();
   });
 
   it("disables the control when the page is read only", () => {
@@ -51,6 +60,8 @@ describe("LeadStatusSelect", () => {
 
     await user.selectOptions(screen.getByLabelText("Estado del lead"), "contacted");
 
-    expect(await screen.findByText("No se pudo guardar")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith("No se pudo guardar");
+    });
   });
 });

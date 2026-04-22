@@ -24,11 +24,11 @@ describe("SettingsForm", () => {
     render(<SettingsForm settings={defaultSiteSettings} />);
 
     expect(screen.getByDisplayValue(defaultSiteSettings.site_name)).toBeInTheDocument();
-    expect(screen.queryByLabelText("Título para Google")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Google/i)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /SEO/i }));
 
-    expect(screen.getByLabelText("Título para Google")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Google/i)).toBeInTheDocument();
   });
 
   it("shows validation errors before saving invalid data", async () => {
@@ -37,7 +37,7 @@ describe("SettingsForm", () => {
     render(<SettingsForm settings={defaultSiteSettings} />);
 
     await user.clear(screen.getByLabelText("Nombre del Gimnasio"));
-    await user.click(screen.getByRole("button", { name: /Guardar ajustes avanzados/i }));
+    await user.click(screen.getByRole("button", { name: /Guardar Ajustes/i }));
 
     expect(await screen.findByText("El nombre del sitio es obligatorio.")).toBeInTheDocument();
     expect(saveSiteSettingsMock).not.toHaveBeenCalled();
@@ -49,7 +49,7 @@ describe("SettingsForm", () => {
 
     render(<SettingsForm settings={defaultSiteSettings} />);
 
-    await user.click(screen.getByRole("button", { name: /Guardar ajustes avanzados/i }));
+    await user.click(screen.getByRole("button", { name: /Guardar Ajustes/i }));
 
     await waitFor(() => {
       expect(saveSiteSettingsMock).toHaveBeenCalledWith(

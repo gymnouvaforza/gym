@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import MemberAuthForm from "@/components/auth/MemberAuthForm";
+import { OnboardingOrchestrator } from "@/features/onboarding";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentMemberUser } from "@/lib/auth";
 import { hasSupabasePublicEnv } from "@/lib/env";
@@ -23,7 +23,7 @@ export default async function MemberRegisterPage() {
   return (
     <div className="section-shell flex min-h-screen items-center justify-center py-16">
       {hasSupabasePublicEnv() ? (
-        <MemberAuthForm mode="register" />
+        <OnboardingOrchestrator />
       ) : (
         <Card className="max-w-xl">
           <CardHeader>

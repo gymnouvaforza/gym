@@ -1,29 +1,28 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Save } from "lucide-react";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Save, FolderTree, Tag, AlignLeft, Hash, LayoutList, RotateCcw } from "lucide-react";
+import { useTransition } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 import { saveStoreCategory } from "@/app/(admin)/dashboard/tienda/actions";
+import { AdminFormCheckbox } from "@/components/admin/shared/forms/AdminFormCheckbox";
+import { NFCard } from "@/components/system/nf-card";
+import { NFField } from "@/components/system/nf-field";
 import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  toStoreCategoryFormValues,
-  type StoreCategory,
-} from "@/lib/data/store";
+import { toStoreCategoryFormValues, type StoreCategory } from "@/lib/data/store";
+import { cn } from "@/lib/utils";
 import { storeCategorySchema, type StoreCategoryInput } from "@/lib/validators/store";
-
-import AdminSurface from "./AdminSurface";
 
 interface StoreCategoryFormProps {
   category?: StoreCategory | null;
@@ -31,12 +30,13 @@ interface StoreCategoryFormProps {
   disabledReason?: string;
 }
 
+const NO_PARENT_VALUE = "__none__";
+
 export default function StoreCategoryForm({
   category,
   categories,
   disabledReason,
 }: Readonly<StoreCategoryFormProps>) {
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<StoreCategoryInput>({
@@ -44,141 +44,178 @@ export default function StoreCategoryForm({
     defaultValues: toStoreCategoryFormValues(category),
   });
 
+  const currentOrder = useWatch({
+    control: form.control,
+    name: "order",
+  });
+
   const parentOptions = categories.filter(
     (entry) => entry.parent_id == null && entry.id !== category?.id,
   );
 
   function onSubmit(values: StoreCategoryInput) {
-    setFeedback(null);
     startTransition(async () => {
       try {
         await saveStoreCategory(values, category?.id);
-        setFeedback(category ? "Categoria actualizada." : "Categoria creada.");
+        toast.success(category ? "Categoría actualizada correctamente." : "Nueva categoría creada.");
       } catch (error) {
-        setFeedback(error instanceof Error ? error.message : "Error al guardar.");
+        toast.error(error instanceof Error ? error.message : "Error crítico al guardar la categoría.");
       }
     });
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid gap-5 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="slug"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Slug</FormLabel>
-                <FormControl>
-                  <Input placeholder="Se autogenera si lo dejas vacio" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+    <NFCard
+      title="Estructura de Catálogo"
+      description="Organización jerárquica y metadatos de categoría."
+      className="shadow-xl shadow-black/[0.02] border-black/5"
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="grid gap-6 md:grid-cols-2">
+            <NFField
+              name="name"
+              label="Nombre de Categoría"
+              placeholder="Ej: Suplementos, Equipamiento..."
+              icon={FolderTree}
+              tooltip="Nombre visible para los usuarios en la tienda."
+              disabled={Boolean(disabledReason) || isPending}
+            />
+            <NFField
+              name="slug"
+              label="Slug (URL)"
+              placeholder="Se autogenera si lo dejas vacío"
+              icon={Tag}
+              tooltip="Identificador único en la URL. Déjalo en blanco para auto-generarlo."
+              disabled={Boolean(disabledReason) || isPending}
+            />
+          </div>
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descripcion</FormLabel>
-              <FormControl>
-                <Textarea rows={3} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="pt-2">
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <div className="flex items-center gap-2 group/label">
+                    <AlignLeft className="size-3.5 text-muted-foreground/60 transition-colors group-focus-within/label:text-[#d71920]" />
+                    <FormLabel className="text-[10px] font-black uppercase tracking-wider text-[#7a7f87] group-focus-within/label:text-[#111111] transition-colors">
+                      Descripción Detallada
+                    </FormLabel>
+                  </div>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      {...field}
+                      disabled={Boolean(disabledReason) || isPending}
+                      className="min-h-[100px] bg-black/[0.02] border-black/5 rounded-2xl px-5 py-4 font-medium text-[#111111] focus:ring-0 focus:border-[#111111] focus:bg-white transition-all duration-300 placeholder:text-muted-foreground/20 leading-relaxed shadow-inner resize-none"
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[9px] font-black uppercase text-[#d71920]" />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="parent_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categoria padre</FormLabel>
-                <FormControl>
-                  <select
-                    {...field}
-                    className="flex h-11 w-full rounded-none border border-black/10 bg-white px-3 text-sm text-[#111111]"
+          <div className="grid gap-6 md:grid-cols-2 border-t border-black/5 pt-8">
+            <FormField
+              control={form.control}
+              name="parent_id"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <LayoutList className="size-3.5 text-muted-foreground/60" />
+                    <FormLabel className="text-[10px] font-black uppercase tracking-wider text-[#7a7f87]">
+                      Categoría Padre
+                    </FormLabel>
+                  </div>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === NO_PARENT_VALUE ? "" : value)}
+                    value={field.value || NO_PARENT_VALUE}
+                    disabled={Boolean(disabledReason) || isPending}
                   >
-                    <option value="">Sin padre (categoria raiz)</option>
-                    {parentOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="order"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Orden</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={0}
-                    {...field}
-                    value={typeof field.value === "number" ? field.value : 0}
-                    onChange={(event) => field.onChange(event.target.valueAsNumber || 0)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                    <FormControl>
+                      <SelectTrigger className="h-12 bg-black/[0.02] border-black/5 rounded-xl px-4 font-bold text-[#111111] focus:ring-0 focus:border-[#111111] transition-all">
+                        <SelectValue placeholder="Sin padre (categoría raíz)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="rounded-xl border-black/5 shadow-2xl">
+                      <SelectItem
+                        value={NO_PARENT_VALUE}
+                        className="text-xs font-bold uppercase py-3 text-muted-foreground"
+                      >
+                        Sin padre (raíz)
+                      </SelectItem>
+                      {parentOptions.map((option) => (
+                        <SelectItem
+                          key={option.id}
+                          value={option.id}
+                          className="text-xs font-bold uppercase py-3"
+                        >
+                          {option.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-[9px] font-black uppercase text-[#d71920]" />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="active"
-          render={({ field }) => (
-            <FormItem>
-              <label className="flex items-center gap-3 text-sm font-medium text-[#111111]">
-                <input
-                  type="checkbox"
-                  checked={field.value}
-                  onChange={(event) => field.onChange(event.target.checked)}
-                />
-                Categoria activa
-              </label>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <NFField
+              name="order"
+              label="Prioridad de Orden"
+              type="number"
+              min={0}
+              icon={Hash}
+              tooltip="Número de orden para mostrar en el listado. Menor = Primero."
+              disabled={Boolean(disabledReason) || isPending}
+              value={typeof currentOrder === "number" ? currentOrder : 0}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                form.setValue("order", e.target.valueAsNumber || 0)
+              }
+            />
+          </div>
 
-        <AdminSurface className="sticky bottom-4 z-10 border-black/10 bg-white/95 p-4 backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-[#5f6368]">{feedback ?? disabledReason}</p>
-            <Button type="submit" disabled={isPending || Boolean(disabledReason)}>
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Guardar categoria
+          <div className="pt-4 border-t border-black/5">
+            <AdminFormCheckbox
+              name="active"
+              label="Categoría Activa y Visible"
+              disabled={Boolean(disabledReason) || isPending}
+            />
+          </div>
+
+          <div className="flex flex-col gap-4 border-t border-black/5 pt-8 sm:flex-row sm:items-center sm:justify-between mt-8">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#7a7f87]" aria-live="polite">
+              {disabledReason ? (
+                <span className="text-[#d71920]">{disabledReason}</span>
+              ) : (
+                "ESTADO: " + (category ? "EDICIÓN ACTIVA" : "CREACIÓN DE NUEVA CATEGORÍA")
+              )}
+            </p>
+            <Button
+              type="submit"
+              disabled={isPending || Boolean(disabledReason)}
+              className={cn(
+                "h-12 px-8 text-white font-black uppercase tracking-[0.2em] transition-all duration-500 rounded-xl shadow-lg",
+                isPending ? "bg-black/40 text-white/50" : "bg-[#111111] hover:bg-[#d71920] hover:shadow-red-500/20",
+              )}
+            >
+              {isPending ? (
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="size-4 animate-spin text-white/50" />
+                  <span>Procesando...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Save className="size-4" />
+                  <span>{category ? "Actualizar Categoría" : "Guardar Categoría"}</span>
+                </div>
+              )}
             </Button>
           </div>
-        </AdminSurface>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </NFCard>
   );
 }

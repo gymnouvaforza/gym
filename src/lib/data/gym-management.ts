@@ -61,6 +61,12 @@ import {
   listPersistedUserRoles,
   type PersistedUserRole,
 } from "@/lib/user-roles";
+import {
+  getMemberFinancials,
+  getMemberMeasurements,
+  type MemberMeasurementDto,
+  type MembershipDto,
+} from "@/lib/data/member-finance";
 import { normalizeMembershipQrToken } from "@/lib/membership-qr";
 import { slugify, trimToNull } from "@/lib/utils";
 
@@ -111,6 +117,8 @@ export type DashboardMemberDetail = {
     helperText: string;
     label: string;
   };
+  financials: MembershipDto | null;
+  measurements: MemberMeasurementDto[];
 };
 
 export type DashboardRoutineTemplateListItem = RoutineTemplateListItemDto & {
@@ -1090,12 +1098,22 @@ export async function getDashboardMemberDetail(memberId: string): Promise<Dashbo
     return null;
   }
 
-  const [authOptions, trainerOptions, currentPlans, assignments, templates] = await Promise.all([
+  const [
+    authOptions,
+    trainerOptions,
+    currentPlans,
+    assignments,
+    templates,
+    financials,
+    measurements,
+  ] = await Promise.all([
     listDashboardAuthLinkOptions(),
     listDashboardTrainerOptions(),
     listCurrentPlans(client, [member.id]),
     listAssignments(client, [member.id]),
     listTemplates(client),
+    getMemberFinancials(member.id),
+    getMemberMeasurements(member.id),
   ]);
   const blocks = await listBlocks(
     client,
@@ -1157,6 +1175,8 @@ export async function getDashboardMemberDetail(memberId: string): Promise<Dashbo
       helperText: getMemberStatusHelper(member.status as MemberSummaryDto["status"]),
       label: member.status.toUpperCase(),
     },
+    financials,
+    measurements,
   };
 }
 
@@ -1206,6 +1226,14 @@ export async function createMemberProfile(values: MemberFormValues) {
   }
 
   return member.id;
+}
+
+export async function deleteMemberProfile(memberId: string) {
+  const client = createSupabaseAdminClient();
+  const { error } = await client.from("member_profiles").delete().eq("id", memberId);
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function updateMemberProfile(memberId: string, values: MemberFormValues) {

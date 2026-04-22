@@ -29,7 +29,7 @@ describe("GymInfoForm", () => {
     render(<GymInfoForm settings={defaultSiteSettings} />);
 
     expect(
-      screen.getByText(/boton flotante de WhatsApp que se muestra en la portada/i),
+      screen.getByText(/Alimenta el botón flotante de la portada/i),
     ).toBeInTheDocument();
   });
 });

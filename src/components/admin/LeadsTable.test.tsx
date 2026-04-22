@@ -29,7 +29,7 @@ describe("LeadsTable", () => {
     expect(screen.getByText("Cerrados")).toBeInTheDocument();
     expect(screen.getAllByText(defaultLeads[0].name).length).toBeGreaterThan(0);
     expect(screen.getAllByText(defaultLeads[0].email).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("button", { name: "Ver detalle" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /Ver expediente/i }).length).toBeGreaterThan(0);
   });
 
   it("disables the status selector when the page is read only", () => {

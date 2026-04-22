@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import ShopCatalogClient from "@/components/marketing/ShopCatalogClient";
+import { ShopCatalog } from "@/features/storefront";
 import { getCommerceCatalog } from "@/lib/commerce/catalog";
 import { getActiveProducts } from "@/lib/data/products";
 import { getMarketingData } from "@/lib/data/site";
@@ -48,7 +48,7 @@ export default async function ShopPage() {
       </section>
 
       <section className="section-shell py-10 md:py-14">
-        <ShopCatalogClient
+        <ShopCatalog
           products={allProducts}
           status={catalog.status}
           warning={catalog.warning}

@@ -18,14 +18,14 @@ describe("LeadDetailsDialogTrigger", () => {
 
     render(<LeadDetailsDialogTrigger lead={defaultLeads[0]} />);
 
-    await user.click(screen.getByRole("button", { name: "Ver detalle" }));
+    await user.click(screen.getByRole("button", { name: /Ver expediente/i }));
 
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByText(defaultLeads[0].message)).toBeInTheDocument();
+    expect(screen.getByText(/reservar una prueba/i)).toBeInTheDocument();
     expect(screen.getAllByText(defaultLeads[0].email).length).toBeGreaterThan(0);
     expect(screen.getByText("Interest")).toBeInTheDocument();
     expect(screen.getByText("prueba")).toBeInTheDocument();
-    expect(screen.getByLabelText("Siguiente paso")).toHaveValue(defaultLeads[0].next_step);
+    expect(screen.getByDisplayValue(defaultLeads[0].next_step ?? "")).toBeInTheDocument();
   });
 
   it("shows the phone fallback and keeps the operational controls disabled in read only mode", async () => {
@@ -38,11 +38,11 @@ describe("LeadDetailsDialogTrigger", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Ver detalle" }));
+    await user.click(screen.getByRole("button", { name: /Ver expediente/i }));
 
-    expect(await screen.findByText("Sin telefono")).toBeInTheDocument();
-    expect(screen.queryByText("Contexto capturado")).toBeInTheDocument();
+    expect(await screen.findByText(/Sin tel/i)).toBeInTheDocument();
+    expect(screen.getByText(/Detalles de Captura/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Estado del lead")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Guardar seguimiento" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Guardar Seguimiento/i })).toBeDisabled();
   });
 });

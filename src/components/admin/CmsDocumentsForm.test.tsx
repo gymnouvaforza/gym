@@ -21,8 +21,8 @@ describe("CmsDocumentsForm", () => {
   it("renders legal and system document sections", () => {
     render(<CmsDocumentsForm documents={defaultCmsDocumentList} />);
 
-    expect(screen.getByText("Legales")).toBeInTheDocument();
-    expect(screen.getAllByText("Sistema").length).toBeGreaterThan(0);
+    expect(screen.getByText("Documentación Legal")).toBeInTheDocument();
+    expect(screen.getByText("Textos de Sistema")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Politica de privacidad")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Cookies y preferencias del sitio")).toBeInTheDocument();
   });
@@ -33,10 +33,10 @@ describe("CmsDocumentsForm", () => {
 
     render(<CmsDocumentsForm documents={defaultCmsDocumentList.slice(0, 1)} />);
 
-    const titleInput = screen.getByLabelText("Titulo");
+    const titleInput = screen.getByLabelText("Título del Documento");
     await user.clear(titleInput);
     await user.type(titleInput, "Politica de privacidad actualizada");
-    await user.click(screen.getByRole("button", { name: "Guardar documento" }));
+    await user.click(screen.getByRole("button", { name: "Actualizar Documento" }));
 
     await waitFor(() => {
       expect(saveCmsDocumentMock).toHaveBeenCalledWith(

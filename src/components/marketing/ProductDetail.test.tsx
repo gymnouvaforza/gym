@@ -6,6 +6,7 @@ import { vi } from "vitest";
 
 import ProductDetail from "@/components/marketing/ProductDetail";
 import type { Product } from "@/data/types";
+import { CartProvider } from "@/features/checkout";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: ComponentProps<"a">) => (
@@ -83,7 +84,11 @@ const product: Product = {
 
 describe("ProductDetail", () => {
   it("renders the storefront PDP sections driven by product data", () => {
-    render(<ProductDetail product={product} />);
+    render(
+      <CartProvider>
+        <ProductDetail product={product} />
+      </CartProvider>,
+    );
 
     expect(
       screen.getByRole("heading", { name: "Nuova Forza Isolate Whey Protein" }),
@@ -98,7 +103,11 @@ describe("ProductDetail", () => {
   });
 
   it("switches to preview mode without rendering the live purchase CTA", () => {
-    render(<ProductDetail product={product} previewMode />);
+    render(
+      <CartProvider>
+        <ProductDetail product={product} previewMode />
+      </CartProvider>,
+    );
 
     expect(screen.getByText("Preview ficha PDP")).toBeInTheDocument();
     expect(screen.getByText("Reserva disponible en storefront")).toBeInTheDocument();

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import CartEntry from "@/components/cart/CartEntry";
+import { CartEntry } from "@/features/checkout";
 import SiteHeaderAuthActions from "@/components/marketing/SiteHeaderAuthActions";
 import { novaForzaHomeContent } from "@/lib/data/nova-forza-content";
 import { normalizeSiteName } from "@/lib/seo";

@@ -6,6 +6,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Genera un link de WhatsApp con un mensaje predefinido.
+ */
+export function generateWhatsAppLink(phone: string, message: string) {
+  const cleanPhone = phone.replace(/\D/g, "");
+  // Asumir código de país 51 (Perú) si no tiene suficientes dígitos
+  const fullPhone = cleanPhone.length === 9 ? `51${cleanPhone}` : cleanPhone;
+  return `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

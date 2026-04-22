@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import CartPageClient from "@/components/cart/CartPageClient";
+import { CartPage } from "@/features/checkout";
 import { buildNoIndexMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildNoIndexMetadata(
@@ -8,6 +8,6 @@ export const metadata: Metadata = buildNoIndexMetadata(
   "Revisa tu seleccion antes de completar la recogida local en Nuova Forza.",
 );
 
-export default function CartPage() {
-  return <CartPageClient />;
+export default function ShoppingCartPage() {
+  return <CartPage />;
 }

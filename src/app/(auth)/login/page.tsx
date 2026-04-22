@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
-import LoginForm from "@/components/auth/LoginForm";
+import { LoginForm } from "@/features/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { hasSupabasePublicEnv } from "@/lib/env";
 import { buildNoIndexMetadata } from "@/lib/seo";

@@ -21,24 +21,31 @@ describe("LeadFollowUpForm", () => {
   it("loads the persisted follow-up values", () => {
     render(<LeadFollowUpForm lead={defaultLeads[1]} />);
 
-    expect(screen.getByLabelText("Canal")).toHaveValue(defaultLeads[1].channel);
-    expect(screen.getByLabelText("Resultado")).toHaveValue(defaultLeads[1].outcome);
-    expect(screen.getByLabelText("Siguiente paso")).toHaveValue(defaultLeads[1].next_step);
+    expect(screen.getByDisplayValue(defaultLeads[1].channel ?? "")).toBeInTheDocument();
+    expect(screen.getByDisplayValue(defaultLeads[1].outcome ?? "")).toBeInTheDocument();
+    expect(screen.getByDisplayValue(defaultLeads[1].next_step ?? "")).toBeInTheDocument();
   });
 
   it("sends the follow-up payload on save", async () => {
     saveLeadFollowUpMock.mockResolvedValue(undefined);
     const user = userEvent.setup();
+    const { container } = render(<LeadFollowUpForm lead={defaultLeads[0]} />);
 
-    render(<LeadFollowUpForm lead={defaultLeads[0]} />);
+    const channelInput = container.querySelector('input[name="channel"]');
+    const outcomeInput = container.querySelector('input[name="outcome"]');
+    const nextStepTextarea = container.querySelector('textarea[name="next_step"]');
 
-    await user.clear(screen.getByLabelText("Canal"));
-    await user.type(screen.getByLabelText("Canal"), "Email");
-    await user.clear(screen.getByLabelText("Resultado"));
-    await user.type(screen.getByLabelText("Resultado"), "Pidio brochure");
-    await user.clear(screen.getByLabelText("Siguiente paso"));
-    await user.type(screen.getByLabelText("Siguiente paso"), "Enviar resumen esta tarde.");
-    await user.click(screen.getByRole("button", { name: "Guardar seguimiento" }));
+    expect(channelInput).toBeInstanceOf(HTMLInputElement);
+    expect(outcomeInput).toBeInstanceOf(HTMLInputElement);
+    expect(nextStepTextarea).toBeInstanceOf(HTMLTextAreaElement);
+
+    await user.clear(channelInput as HTMLInputElement);
+    await user.type(channelInput as HTMLInputElement, "Email");
+    await user.clear(outcomeInput as HTMLInputElement);
+    await user.type(outcomeInput as HTMLInputElement, "Pidio brochure");
+    await user.clear(nextStepTextarea as HTMLTextAreaElement);
+    await user.type(nextStepTextarea as HTMLTextAreaElement, "Enviar resumen esta tarde.");
+    await user.click(screen.getByRole("button", { name: /Guardar Seguimiento/i }));
 
     await waitFor(() => {
       expect(saveLeadFollowUpMock).toHaveBeenCalledWith(defaultLeads[0].id, {

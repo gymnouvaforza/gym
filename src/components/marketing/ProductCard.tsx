@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 import ProductBadges from "@/components/marketing/ProductBadges";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,13 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
   const primaryImage = product.images[0] ?? null;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden border border-black/5 bg-white transition-all duration-500 hover:shadow-[0_32px_80px_-40px_rgba(17,17,17,0.3)] relative">
+    <motion.article 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="group flex h-full flex-col overflow-hidden border border-black/5 bg-white transition-all duration-500 hover:shadow-[0_32px_80px_-40px_rgba(17,17,17,0.3)] relative"
+    >
       <Link
         href={`/tienda/${product.slug}`}
         className="relative block aspect-[1/0.9] overflow-hidden bg-[#fbfbf8]"
@@ -94,6 +101,6 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
       
       {/* DECORATIVE ELEMENT */}
       <div className="absolute bottom-0 right-0 h-1 w-0 bg-[#d71920] group-hover:w-full transition-all duration-700" />
-    </article>
+    </motion.article>
   );
 }

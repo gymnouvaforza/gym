@@ -1,23 +1,22 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ClipboardList, Heart, QrCode } from "lucide-react";
+import { Activity, Calendar, CreditCard, Mail, MapPin, User } from "lucide-react";
 
-import AdminSection from "@/components/admin/AdminSection";
 import AdminSurface from "@/components/admin/AdminSurface";
-import AssignRoutinePanel from "@/components/admin/AssignRoutinePanel";
-import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
-import MemberProfileForm from "@/components/admin/MemberProfileForm";
-import MembershipRequestCreateForm from "@/components/admin/MembershipRequestCreateForm";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getDashboardMemberDetail,
   listDashboardAuthLinkOptions,
   listDashboardTrainerOptions,
 } from "@/lib/data/gym-management";
-import {
-  getLatestMembershipRequestForMember,
-  listMembershipPlans,
-} from "@/lib/data/memberships";
+import { listMembershipPlans } from "@/lib/data/memberships";
+import { cn } from "@/lib/utils";
+
+import MemberFinanceTab from "./components/MemberFinanceTab";
+import MemberProfileTab from "./components/MemberProfileTab";
+import MemberProgressTab from "./components/MemberProgressTab";
+import MemberTrainingTab from "./components/MemberTrainingTab";
 
 export default async function DashboardMemberDetailPage({
   params,
@@ -25,277 +24,211 @@ export default async function DashboardMemberDetailPage({
   params: Promise<{ id: string }>;
 }>) {
   const { id } = await params;
-  const [detail, authOptions, trainerOptions, membershipPlans, latestMembershipRequest] =
-    await Promise.all([
-      getDashboardMemberDetail(id),
-      listDashboardAuthLinkOptions(),
-      listDashboardTrainerOptions(),
-      listMembershipPlans({ activeOnly: false }),
-      getLatestMembershipRequestForMember(id),
-    ]);
+  const [detail, authOptions, trainerOptions, membershipPlans] = await Promise.all([
+    getDashboardMemberDetail(id),
+    listDashboardAuthLinkOptions(),
+    listDashboardTrainerOptions(),
+    listMembershipPlans({ activeOnly: false }),
+  ]);
 
   if (!detail) {
     notFound();
   }
 
   return (
-    <div className="space-y-6">
-      <DashboardPageHeader
-        title={detail.member.fullName}
-        description="Ficha operativa del miembro con plan resumido, estado real y asignacion de rutina."
-        icon={ClipboardList}
-        eyebrow={detail.member.memberNumber}
-      />
-
-      <div className="grid gap-4 xl:grid-cols-3">
-        <AdminSurface className="p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-            Estado
-          </p>
-          <div className="mt-3">
-            <Badge variant={detail.member.status === "active" ? "success" : "muted"}>
-              {detail.member.status}
-            </Badge>
+    <div className="space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-8 border-b border-black/5 -mx-8 -mt-8 mb-8">
+        <div className="flex items-center gap-6">
+          <div className="size-20 rounded-2xl bg-[#111111] flex items-center justify-center shadow-2xl shadow-black/20">
+            <User className="size-10 text-white" />
           </div>
-          <p className="mt-3 text-sm text-[#5f6368]">{detail.statusMeta.helperText}</p>
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d71920] bg-red-50 px-2 py-0.5 rounded">
+                Socio {detail.member.memberNumber}
+              </span>
+              <Badge variant="muted" className="text-[9px] font-bold border-black/10">
+                ID: {detail.member.id.split("-")[0].toUpperCase()}
+              </Badge>
+            </div>
+            <h1 className="text-4xl font-black text-[#111111] tracking-tighter uppercase leading-none">
+              {detail.member.fullName}
+            </h1>
+            <p className="text-sm font-bold text-[#7a7f87] mt-2 flex items-center gap-2">
+              <Mail className="size-3.5" /> {detail.member.email}
+              <span className="opacity-20">|</span>
+              <MapPin className="size-3.5" /> {detail.member.branchName ?? "Sede Central"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            disabled
+            title="Accion pendiente de implementacion operativa."
+            className="h-12 px-6 font-black uppercase text-[10px] tracking-widest border-2"
+          >
+            Anular Ficha No Disponible
+          </Button>
+          <Button
+            disabled
+            title="Acciones rapidas pendientes de backend."
+            className="h-12 px-8 bg-[#d71920] hover:bg-[#b0141a] text-white font-black uppercase text-[10px] tracking-widest shadow-lg shadow-red-500/20 transition-all"
+          >
+            Acciones No Disponibles
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <AdminSurface
+          className={cn(
+            "p-6 border-none shadow-sm transition-all duration-300 relative overflow-hidden",
+            detail.member.status === "active"
+              ? "bg-emerald-600 text-white shadow-emerald-500/20"
+              : "bg-[#111111] text-white",
+          )}
+        >
+          <div className="relative z-10">
+            <p className="text-[9px] font-black uppercase tracking-[0.25em] opacity-80 mb-4">
+              Estado Membresia
+            </p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-black tracking-tighter">
+                {detail.member.status.toUpperCase()}
+              </span>
+            </div>
+            <p className="mt-4 text-[11px] font-medium text-white/90 leading-relaxed max-w-[200px]">
+              {detail.statusMeta.helperText}
+            </p>
+          </div>
+          <Activity className="absolute -right-4 -bottom-4 size-32 opacity-10 -rotate-12" />
         </AdminSurface>
 
-        <AdminSurface className="p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-            Plan actual
+        <AdminSurface
+          className={cn(
+            "p-6 border-none shadow-sm transition-all duration-300 bg-white relative overflow-hidden",
+            (detail.financials?.balanceDue ?? 0) > 0 ? "ring-2 ring-red-500/20" : "",
+          )}
+        >
+          <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#7a7f87] mb-4">
+            Deuda Pendiente
           </p>
-          <p className="mt-3 text-lg font-semibold text-[#111111]">
-            {latestMembershipRequest?.planTitleSnapshot ?? detail.plan?.label ?? "Sin plan"}
-          </p>
-          <p className="mt-2 text-sm text-[#5f6368]">
-            {latestMembershipRequest?.validation.label ?? detail.plan?.status ?? "Pendiente"} ·{" "}
-            {detail.member.branchName ?? "Sin sede"}
-          </p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-[14px] font-black text-[#7a7f87]">S/</span>
+            <span
+              className={cn(
+                "text-4xl font-black tracking-tighter",
+                (detail.financials?.balanceDue ?? 0) > 0 ? "text-[#d71920]" : "text-[#111111]",
+              )}
+            >
+              {detail.financials?.balanceDue.toFixed(2) ?? "0.00"}
+            </span>
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+            <div
+              className={cn(
+                "h-2 w-2 rounded-full",
+                (detail.financials?.balanceDue ?? 0) > 0 ? "bg-[#d71920] animate-pulse" : "bg-emerald-500",
+              )}
+            />
+            <p
+              className={cn(
+                "text-[10px] font-black uppercase tracking-widest",
+                (detail.financials?.balanceDue ?? 0) > 0 ? "text-[#d71920]" : "text-emerald-600",
+              )}
+            >
+              {(detail.financials?.balanceDue ?? 0) > 0 ? "Pago Requerido" : "Cuenta al dia"}
+            </p>
+          </div>
+          <CreditCard className="absolute -right-4 -bottom-4 size-32 opacity-5 -rotate-12 text-black" />
         </AdminSurface>
 
-        <AdminSurface className="p-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-            Rutina activa
+        <AdminSurface className="p-6 border-none shadow-sm bg-white relative overflow-hidden">
+          <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#7a7f87] mb-4">
+            Vencimiento
           </p>
-          <p className="mt-3 text-lg font-semibold text-[#111111]">
-            {detail.member.currentRoutineTitle ?? "Sin rutina"}
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-black text-[#111111] tracking-tighter uppercase">
+              {detail.financials?.endDate
+                ? new Date(detail.financials.endDate).toLocaleDateString("es-PE", {
+                    day: "2-digit",
+                    month: "short",
+                  })
+                : "---"}
+            </span>
+            <span className="text-[10px] font-bold text-[#7a7f87] uppercase">
+              {detail.financials?.endDate
+                ? new Date(detail.financials.endDate).getFullYear()
+                : ""}
+            </span>
+          </div>
+          <p className="mt-4 text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+            Proxima renovacion sugerida
           </p>
-          <p className="mt-2 text-sm text-[#5f6368]">
-            {detail.assignmentHistory[0]?.assignedAt ?? "Sin asignacion"}
-          </p>
+          <Calendar className="absolute -right-4 -bottom-4 size-32 opacity-5 -rotate-12 text-black" />
         </AdminSurface>
       </div>
 
-      <AdminSection
-        title="Membresia operativa"
-        description="Este dominio va por separado del checkout pickup: aqui vive la renovacion, el cobro manual y la validacion QR."
-        icon={QrCode}
-      >
-        <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
-          <AdminSurface inset className="border-black/5 p-6">
-            <div className="space-y-5">
-              <div className="space-y-2 border-b border-black/8 pb-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
-                  Estado actual
-                </p>
-                <p className="text-2xl font-black uppercase tracking-tight text-[#111111]">
-                  {latestMembershipRequest?.planTitleSnapshot ?? "Sin membresia operativa"}
-                </p>
-                <p className="text-sm text-[#5f6368]">
-                  {latestMembershipRequest?.requestNumber ??
-                    "Todavia no existe una solicitud formal de membresia para este socio."}
-                </p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="border border-black/8 bg-white p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#7a7f87]">
-                    Coach responsable
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-[#111111]">
-                    {latestMembershipRequest?.member.trainerName ??
-                      detail.member.trainerName ??
-                      "Sin coach asignado"}
-                  </p>
-                </div>
-                <div className="border border-black/8 bg-white p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#7a7f87]">
-                    Plan tecnico
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-[#111111]">
-                    {latestMembershipRequest?.member.trainingPlanLabel ?? "Sin plan tecnico adicional"}
-                  </p>
-                </div>
-              </div>
-
-              {latestMembershipRequest ? (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Link
-                    href={`/dashboard/membresias/pedidos/${latestMembershipRequest.id}`}
-                    className="inline-flex h-11 items-center justify-center border border-black/10 bg-[#111111] px-6 text-[10px] font-black uppercase tracking-[0.18em] text-white transition-colors hover:bg-[#d71920]"
-                  >
-                    Abrir detalle de membresia
-                  </Link>
-                  <Link
-                    href={`/validacion/membresia/${latestMembershipRequest.member.membershipQrToken}`}
-                    target="_blank"
-                    className="inline-flex h-11 items-center justify-center border border-black/10 bg-white px-6 text-[10px] font-black uppercase tracking-[0.18em] text-[#111111] transition-colors hover:bg-[#111111] hover:text-white"
-                  >
-                    Abrir validacion QR
-                  </Link>
-                </div>
-              ) : null}
-            </div>
-          </AdminSurface>
-
-          <AdminSurface inset className="border-black/5 p-6">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
-              Alta o renovacion manual
-            </p>
-            <div className="mt-4">
-              <MembershipRequestCreateForm
-                memberId={detail.member.id}
-                membershipPlans={membershipPlans}
-                defaultPlanId={latestMembershipRequest?.plan.id ?? null}
-                latestRequestId={latestMembershipRequest?.id ?? null}
-              />
-            </div>
-          </AdminSurface>
+      <Tabs defaultValue="perfil" className="w-full">
+        <div className="flex items-center justify-between mb-8 border-b border-black/5">
+          <TabsList className="bg-transparent p-0 h-auto gap-12">
+            <TabsTrigger
+              value="perfil"
+              className="data-[state=active]:text-[#d71920] data-[state=active]:border-[#d71920] border-b-4 border-transparent rounded-none px-0 pb-4 font-black uppercase text-[11px] tracking-[0.2em] transition-all bg-transparent shadow-none shadow-transparent"
+            >
+              Perfil
+            </TabsTrigger>
+            <TabsTrigger
+              value="finanzas"
+              className="data-[state=active]:text-[#d71920] data-[state=active]:border-[#d71920] border-b-4 border-transparent rounded-none px-0 pb-4 font-black uppercase text-[11px] tracking-[0.2em] transition-all bg-transparent shadow-none shadow-transparent"
+            >
+              Finanzas
+            </TabsTrigger>
+            <TabsTrigger
+              value="progreso"
+              className="data-[state=active]:text-[#d71920] data-[state=active]:border-[#d71920] border-b-4 border-transparent rounded-none px-0 pb-4 font-black uppercase text-[11px] tracking-[0.2em] transition-all bg-transparent shadow-none shadow-transparent"
+            >
+              Progreso
+            </TabsTrigger>
+            <TabsTrigger
+              value="entrenamiento"
+              className="data-[state=active]:text-[#d71920] data-[state=active]:border-[#d71920] border-b-4 border-transparent rounded-none px-0 pb-4 font-black uppercase text-[11px] tracking-[0.2em] transition-all bg-transparent shadow-none shadow-transparent"
+            >
+              Entrenamiento
+            </TabsTrigger>
+          </TabsList>
         </div>
-      </AdminSection>
 
-      <AdminSection
-        title="Editar ficha"
-        description="La edicion principal del miembro vive en dashboard."
-      >
-        <MemberProfileForm
-          detail={detail}
-          authOptions={authOptions}
-          trainerOptions={trainerOptions}
-        />
-      </AdminSection>
+        <TabsContent value="perfil" className="outline-none focus:ring-0">
+          <MemberProfileTab detail={detail} authOptions={authOptions} trainerOptions={trainerOptions} />
+        </TabsContent>
 
-      <AdminSection
-        title="Asignacion de Carga Tecnica"
-        description="Selecciona una plantilla del catalogo oficial para activarla en la App del socio. La nueva rutina sustituira a la actual."
-        className="border-t border-black/5 pt-10"
-      >
-        <AssignRoutinePanel memberId={detail.member.id} templates={detail.availableTemplates} />
-      </AdminSection>
+        <TabsContent value="finanzas" className="outline-none focus:ring-0">
+          <MemberFinanceTab
+            financials={detail.financials}
+            memberId={id}
+            memberEmail={detail.member.email}
+            memberName={detail.member.fullName}
+            memberPhone={detail.member.phone}
+            membershipPlans={membershipPlans}
+          />
+        </TabsContent>
 
-      <AdminSection
-        title="Historial de Entrenamiento"
-        description="Registro cronologico de todas las plantillas asignadas a este miembro."
-      >
-        <div className="space-y-3">
-          {detail.assignmentHistory.length ? (
-            detail.assignmentHistory.map((assignment) => (
-              <AdminSurface key={assignment.id} inset className="border-black/5 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center bg-black/5 font-bold text-[#111111]">
-                      {assignment.templateTitle[0]}
-                    </div>
-                    <div>
-                      <p className="font-bold uppercase tracking-tight text-[#111111]">
-                        {assignment.templateTitle}
-                      </p>
-                      <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-[#7a7f87]">
-                        {assignment.assignedAt} · Coach: {assignment.trainerName ?? "Club"}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={assignment.status === "active" ? "success" : "muted"}
-                    className="text-[9px] font-black uppercase"
-                  >
-                    {assignment.status}
-                  </Badge>
-                </div>
-                {assignment.notes ? (
-                  <div className="mt-4 border-l-2 border-black/10 bg-[#fbfbf8] p-3">
-                    <p className="text-xs italic leading-relaxed text-[#5f6368]">
-                      {assignment.notes}
-                    </p>
-                  </div>
-                ) : null}
-              </AdminSurface>
-            ))
-          ) : (
-            <AdminSurface inset className="border-dashed border-black/10 bg-[#fbfbf8] p-12 text-center">
-              <p className="text-sm font-bold uppercase tracking-widest text-[#7a7f87]">
-                Sin historial de asignaciones.
-              </p>
-            </AdminSurface>
-          )}
-        </div>
-      </AdminSection>
+        <TabsContent value="progreso" className="outline-none focus:ring-0">
+          <MemberProgressTab measurements={detail.measurements} memberId={id} />
+        </TabsContent>
 
-      <AdminSection
-        title="Feedback de Entrenamiento"
-        description="Lo que el socio esta marcando sobre la rutina activa y sus ejercicios."
-      >
-        {detail.trainingFeedback.routine || detail.trainingFeedback.exercises.length ? (
-          <div className="space-y-4">
-            <AdminSurface className="p-5">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
-                    Rutina actual
-                  </p>
-                  <p className="mt-2 text-lg font-semibold text-[#111111]">
-                    {detail.member.currentRoutineTitle ?? "Sin rutina"}
-                  </p>
-                </div>
-                <Badge variant={detail.trainingFeedback.routine?.liked ? "success" : "muted"}>
-                  {detail.trainingFeedback.routine?.liked ? "Le gusta" : "Sin like"}
-                </Badge>
-              </div>
-              <p className="mt-4 text-sm leading-6 text-[#5f6368]">
-                {detail.trainingFeedback.routine?.note ??
-                  "Todavia no ha dejado una nota sobre la rutina activa."}
-              </p>
-            </AdminSurface>
-
-            <div className="space-y-3">
-              {detail.trainingFeedback.exercises.length ? (
-                detail.trainingFeedback.exercises.map((exercise) => (
-                  <AdminSurface key={exercise.exerciseId} inset className="border-black/5 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="font-bold uppercase tracking-tight text-[#111111]">
-                          {exercise.exerciseName}
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-[#5f6368]">
-                          {exercise.note ?? "Sin nota del socio."}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 text-[#d71920]">
-                        <Heart className={exercise.liked ? "fill-current" : ""} size={16} />
-                        <span className="text-[10px] font-black uppercase tracking-wider">
-                          {exercise.liked ? "Like" : "Neutro"}
-                        </span>
-                      </div>
-                    </div>
-                  </AdminSurface>
-                ))
-              ) : (
-                <AdminSurface inset className="border-dashed border-black/10 bg-[#fbfbf8] p-8 text-center">
-                  <p className="text-sm font-bold uppercase tracking-widest text-[#7a7f87]">
-                    Sin feedback por ejercicio.
-                  </p>
-                </AdminSurface>
-              )}
-            </div>
-          </div>
-        ) : (
-          <AdminSurface inset className="border-dashed border-black/10 bg-[#fbfbf8] p-8 text-center">
-            <p className="text-sm font-bold uppercase tracking-widest text-[#7a7f87]">
-              El socio aun no ha dejado feedback de entrenamiento.
-            </p>
-          </AdminSurface>
-        )}
-      </AdminSection>
+        <TabsContent value="entrenamiento" className="outline-none focus:ring-0">
+          <MemberTrainingTab
+            detail={detail.member}
+            assignmentHistory={detail.assignmentHistory}
+            availableTemplates={detail.availableTemplates}
+            trainingFeedback={detail.trainingFeedback}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

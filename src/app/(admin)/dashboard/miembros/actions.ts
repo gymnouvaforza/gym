@@ -7,6 +7,7 @@ import {
   assignRoutineToMember,
   createMemberProfile,
   updateMemberProfile,
+  deleteMemberProfile,
 } from "@/lib/data/gym-management";
 import type { AssignRoutineInput } from "@mobile-contracts";
 import type { MemberFormValues } from "@/lib/validators/gym-members";
@@ -22,6 +23,12 @@ function resolveActorUserId(user: Awaited<ReturnType<typeof requireAdminUser>>) 
   }
 
   return user.id;
+}
+
+export async function deleteMemberAction(memberId: string) {
+  await requireAdminUser();
+  await deleteMemberProfile(memberId);
+  revalidateMembers();
 }
 
 export async function saveMemberProfileAction(values: MemberFormValues, memberId?: string) {

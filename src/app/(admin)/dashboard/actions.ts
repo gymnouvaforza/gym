@@ -20,6 +20,7 @@ import {
   saveSiteSettingsRecord,
   updateLeadFollowUpRecord,
   updateLeadStatusRecord,
+  deleteLeadRecord,
 } from "@/lib/supabase/queries";
 import { cmsDocumentSchema, type CmsDocumentValues } from "@/lib/validators/cms-document";
 import { leadFollowUpSchema, type LeadFollowUpValues, leadStatusSchema } from "@/lib/validators/lead";
@@ -180,4 +181,11 @@ export async function moderateMarketingTestimonial(
   revalidatePath("/mi-cuenta");
   revalidatePath("/dashboard/marketing");
   revalidatePublicCacheTags([PUBLIC_CACHE_TAGS.marketing]);
+}
+
+export async function deleteLeadAction(id: string) {
+  const supabase = await getAuthenticatedSupabase();
+  await deleteLeadRecord(supabase, id);
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/leads");
 }
