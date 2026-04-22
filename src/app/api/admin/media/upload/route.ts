@@ -10,16 +10,25 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-const SCOPE_PREFIX: Record<"product" | "team", string> = {
+const BUCKETS = {
+  product: PRODUCT_IMAGES_BUCKET,
+  team: PRODUCT_IMAGES_BUCKET,
+  branding: "branding",
+  favicon: "branding",
+} as const;
+
+const SCOPE_PREFIX: Record<keyof typeof BUCKETS, string> = {
   product: "products",
   team: "marketing/team",
+  branding: "logos",
+  favicon: "favicons",
 };
 
-function isValidScope(value: FormDataEntryValue | null): value is "product" | "team" {
-  return value === "product" || value === "team";
+function isValidScope(value: FormDataEntryValue | null): value is keyof typeof BUCKETS {
+  return value === "product" || value === "team" || value === "branding" || value === "favicon";
 }
 
-function buildStorageObjectPath(scope: "product" | "team", extension: "jpg" | "webp") {
+function buildStorageObjectPath(scope: keyof typeof BUCKETS, extension: string) {
   return `${SCOPE_PREFIX[scope]}/${randomUUID()}.${extension}`;
 }
 
@@ -51,7 +60,7 @@ export async function POST(request: Request) {
 
     if (!isValidScope(scope)) {
       return NextResponse.json(
-        { error: "El scope de imagen debe ser `product` o `team`." },
+        { error: "El scope de imagen no es valido." },
         { status: 400 },
       );
     }
@@ -60,14 +69,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Adjunta una imagen valida." }, { status: 400 });
     }
 
+    const bucketName = BUCKETS[scope];
+
+    // Favicon doesn't need to be converted to WebP necessarily, but optimizeImage handles it.
+    // For favicon we might want to keep ICO/PNG but let's stick to the current pipeline for now.
     const optimized = await optimizeImage({
       buffer: Buffer.from(await file.arrayBuffer()),
       contentType: file.type,
     });
+    
     const objectPath = buildStorageObjectPath(scope, optimized.extension);
     const supabase = createSupabaseAdminClient();
+    
     const { error } = await supabase.storage
-      .from(PRODUCT_IMAGES_BUCKET)
+      .from(bucketName)
       .upload(objectPath, optimized.buffer, {
         cacheControl: "31536000",
         contentType: optimized.contentType,
@@ -80,7 +95,7 @@ export async function POST(request: Request) {
 
     const {
       data: { publicUrl },
-    } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(objectPath);
+    } = supabase.storage.from(bucketName).getPublicUrl(objectPath);
 
     return NextResponse.json({
       url: publicUrl,

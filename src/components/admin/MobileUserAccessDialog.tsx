@@ -71,7 +71,7 @@ export default function MobileUserAccessDialog({
   const [quickName, setQuickName] = useState("");
 
   const isTrainer = roles.includes("trainer");
-  const isAdmin = roles.includes("admin");
+  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
   
   const filteredMembers = allMembers.filter(m => 
     m.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||

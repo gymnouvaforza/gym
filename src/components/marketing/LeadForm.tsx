@@ -57,8 +57,8 @@ export default function LeadForm() {
 
   if (status === "success") {
     return (
-      <div className="bg-white p-12 text-center shadow-2xl" role="status" aria-live="polite">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-none bg-green-100 text-green-600">
+      <div className="bg-white p-12 text-center shadow-2xl rounded-[var(--radius-base)]" role="status" aria-live="polite">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[var(--radius-base)] bg-green-100 text-green-600">
           <Send className="h-8 w-8" />
         </div>
         <h3 className="mt-6 font-display text-2xl font-bold uppercase tracking-tight text-foreground">

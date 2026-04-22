@@ -42,7 +42,7 @@ export function StoreProductContentSection({
               name="images_text"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Imagenes del producto
                   </FormLabel>
                   <FormControl>

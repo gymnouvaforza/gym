@@ -5,6 +5,9 @@ import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import DashboardSidebar from "@/components/admin/DashboardSidebar";
+import { BrandingProvider } from "@/features/admin/branding/components/BrandingProvider";
+import { defaultSiteSettings } from "@/lib/data/default-content";
+import { createDefaultModuleStateMap } from "@/lib/module-flags";
 
 const pathnameMock = vi.hoisted(() => ({ current: "/dashboard/mobile" }));
 const searchParamsMock = vi.hoisted(() => ({ current: "" }));
@@ -29,6 +32,14 @@ vi.mock("next/image", () => ({
 }));
 
 describe("DashboardSidebar", () => {
+  function renderSidebar(props?: ComponentProps<typeof DashboardSidebar>) {
+    return render(
+      <BrandingProvider initialSettings={defaultSiteSettings}>
+        <DashboardSidebar {...props} />
+      </BrandingProvider>,
+    );
+  }
+
   function setHash(hash: string) {
     window.location.hash = hash;
   }
@@ -41,14 +52,17 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/mobile";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     const nav = screen.getByRole("navigation");
     const topLevelLabels = Array.from(nav.children).map((group) =>
       group.querySelector(":scope > a")?.textContent?.trim(),
     );
 
-    expect(screen.getByTestId("mock-image")).toHaveAttribute("data-alt", "Nuova Forza Logo");
+    expect(screen.getByTestId("mock-image")).toHaveAttribute(
+      "data-alt",
+      `${defaultSiteSettings.site_name} Logo`,
+    );
     expect(screen.getByRole("link", { name: /App movil/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Rutinas/i })).toBeInTheDocument();
     expect(topLevelLabels).toContain("App movil");
@@ -65,7 +79,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/info";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     const nav = screen.getByRole("navigation");
     const topLevelLabels = Array.from(nav.children).map((group) =>
@@ -82,7 +96,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/marketing";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     const nav = screen.getByRole("navigation");
     const topLevelLabels = Array.from(nav.children).map((group) =>
@@ -100,31 +114,31 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/leads";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /Filtros/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Bandeja/i })).toBeInTheDocument();
 
     pathnameMock.current = "/dashboard/miembros";
     setSearch("");
-    render(<DashboardSidebar />);
+    renderSidebar();
     expect(screen.getByRole("link", { name: /Listado/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Nuevo socio/i })).toBeInTheDocument();
 
     pathnameMock.current = "/dashboard/web";
     setSearch("");
-    render(<DashboardSidebar />);
+    renderSidebar();
     expect(screen.getByRole("link", { name: /^Secciones$/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Exploracion/i })).toBeInTheDocument();
 
     pathnameMock.current = "/dashboard/cms";
     setSearch("");
-    render(<DashboardSidebar />);
+    renderSidebar();
     expect(screen.getByRole("link", { name: /Documentos/i })).toBeInTheDocument();
 
     pathnameMock.current = "/dashboard/advanced";
     setSearch("");
-    render(<DashboardSidebar />);
+    renderSidebar();
     expect(screen.getByRole("link", { name: /Configuracion/i })).toBeInTheDocument();
   });
 
@@ -132,7 +146,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/tienda";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /^Resumen$/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Productos/i })).toBeInTheDocument();
@@ -144,7 +158,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/mobile";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /App movil/i })).toHaveAttribute(
       "aria-current",
@@ -159,7 +173,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/rutinas/nueva";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /App movil/i })).toHaveAttribute(
       "aria-current",
@@ -175,7 +189,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/info/entrenadores";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /Datos del gym/i })).toHaveAttribute(
       "aria-current",
@@ -191,7 +205,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/marketing/planes";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /Campanas/i })).toHaveAttribute(
       "aria-current",
@@ -210,7 +224,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/marketing";
     setSearch("");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /Campanas/i })).toHaveAttribute(
       "aria-current",
@@ -229,7 +243,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/leads";
     setSearch("");
     setHash("#bandeja");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /Consultas/i })).toHaveAttribute(
       "aria-current",
@@ -245,7 +259,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/web";
     setSearch("");
     setHash("#exploracion");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /^Web$/i })).toHaveAttribute(
       "aria-current",
@@ -261,7 +275,7 @@ describe("DashboardSidebar", () => {
     pathnameMock.current = "/dashboard/mobile";
     setSearch("segment=trainer");
     setHash("");
-    render(<DashboardSidebar />);
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: /App movil/i })).toHaveAttribute(
       "aria-current",
@@ -274,5 +288,41 @@ describe("DashboardSidebar", () => {
     expect(screen.getByRole("link", { name: /Superadmins/i })).not.toHaveAttribute(
       "aria-current",
     );
+  });
+
+  it("hides disabled module links for non-superadmin users", () => {
+    pathnameMock.current = "/dashboard";
+    setSearch("");
+    setHash("");
+
+    const activeModules = createDefaultModuleStateMap();
+    activeModules.mobile = false;
+    activeModules.tienda = false;
+    activeModules.marketing = false;
+
+    renderSidebar({ activeModules, isSuperadmin: false });
+
+    expect(screen.queryByRole("link", { name: /App movil/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^Tienda$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Campanas/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Developer/i })).not.toBeInTheDocument();
+  });
+
+  it("hides disabled modules from the sidebar even for superadmin", () => {
+    pathnameMock.current = "/dashboard";
+    setSearch("");
+    setHash("");
+
+    const activeModules = createDefaultModuleStateMap();
+    activeModules.mobile = false;
+    activeModules.tienda = false;
+    activeModules.marketing = false;
+
+    renderSidebar({ activeModules, isSuperadmin: true });
+
+    expect(screen.queryByRole("link", { name: /App movil/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^Tienda$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Campanas/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Developer/i })).toBeInTheDocument();
   });
 });

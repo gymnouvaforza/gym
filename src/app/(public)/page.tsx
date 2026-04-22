@@ -45,11 +45,11 @@ export default async function PublicHomePage() {
       <JsonLdScript data={buildWebsiteJsonLd(settings)} />
       <JsonLdScript data={buildGymJsonLd(settings, scheduleRows)} />
 
-      <div className="bg-[#151518]">
+      <div data-component="public-home-page" className="bg-background">
         <HeroSection settings={settings} />
         <FloatingWhatsAppButton settings={settings} />
         <ValueSection />
-        <section id="planes" className="section-anchor bg-[#111111] py-24 md:py-32">
+        <section id="planes" className="section-anchor bg-secondary py-24 md:py-32">
           <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
             <MembershipPlansCatalog
               membershipPlans={membershipPlans}

@@ -1,32 +1,41 @@
 "use client";
 
 import {
+  Activity,
   CalendarClock,
+  ChevronRight,
   ClipboardList,
+  Database,
   FileText,
   Globe,
-  Tag,
+  LayoutGrid,
+  Moon,
+  QrCode,
+  Palette,
   Settings2,
+  ShieldCheck,
   ShoppingBag,
   Smartphone,
-  Weight,
-  Moon,
   Sun,
-  Zap,
-  Activity,
-  ShieldCheck,
-  ChevronRight,
-  Database,
+  Tag,
   Users,
-  LayoutGrid,
-  QrCode,
+  Weight,
+  Wrench,
+  Zap,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
-import Image from "next/image";
 
+import { useBranding } from "@/features/admin/branding/components/BrandingProvider";
+import {
+  createDefaultModuleStateMap,
+  type SystemModuleName,
+  type SystemModuleStateMap,
+} from "@/lib/module-flags";
 import { cn } from "@/lib/utils";
 
 type NavLinkChild = {
@@ -34,6 +43,8 @@ type NavLinkChild = {
   label: string;
   icon: LucideIcon;
   activeMatch?: string | string[];
+  module?: SystemModuleName;
+  requiresSuperadmin?: boolean;
 };
 
 type NavLinkItem = {
@@ -44,6 +55,8 @@ type NavLinkItem = {
   tag?: string;
   activeMatch?: string | string[];
   isHeader?: false;
+  module?: SystemModuleName;
+  requiresSuperadmin?: boolean;
 };
 
 type NavHeaderItem = {
@@ -54,16 +67,27 @@ type NavHeaderItem = {
 
 type NavItem = NavLinkItem | NavHeaderItem;
 
-const links: NavItem[] = [
+const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Inicio", icon: Activity },
   { isHeader: true, label: "Atencion y ventas", href: "#" },
   {
     href: "/dashboard/leads",
     label: "Consultas",
     icon: Zap,
+    module: "leads",
     children: [
-      { href: "/dashboard/leads#filtros", label: "Filtros", icon: Database },
-      { href: "/dashboard/leads#bandeja", label: "Bandeja", icon: ClipboardList },
+      {
+        href: "/dashboard/leads#filtros",
+        label: "Filtros",
+        icon: Database,
+        module: "leads",
+      },
+      {
+        href: "/dashboard/leads#bandeja",
+        label: "Bandeja",
+        icon: ClipboardList,
+        module: "leads",
+      },
     ],
   },
   {
@@ -88,27 +112,63 @@ const links: NavItem[] = [
     href: "/dashboard/tienda",
     label: "Tienda",
     icon: ShoppingBag,
+    module: "tienda",
     children: [
-      { href: "/dashboard/tienda", label: "Resumen", icon: ShoppingBag },
-      { href: "/dashboard/tienda/productos", label: "Productos", icon: Tag },
-      { href: "/dashboard/tienda/categorias", label: "Categorias", icon: LayoutGrid },
-      { href: "/dashboard/tienda/pedidos", label: "Pedidos", icon: QrCode },
+      { href: "/dashboard/tienda", label: "Resumen", icon: ShoppingBag, module: "tienda" },
+      {
+        href: "/dashboard/tienda/productos",
+        label: "Productos",
+        icon: Tag,
+        module: "tienda",
+      },
+      {
+        href: "/dashboard/tienda/categorias",
+        label: "Categorias",
+        icon: LayoutGrid,
+        module: "tienda",
+      },
+      {
+        href: "/dashboard/tienda/pedidos",
+        label: "Pedidos",
+        icon: QrCode,
+        module: "tienda",
+      },
     ],
   },
-  
   { isHeader: true, label: "App y entreno", href: "#" },
   {
     href: "/dashboard/mobile",
     label: "App movil",
     icon: Smartphone,
+    module: "mobile",
     children: [
-      { href: "/dashboard/mobile?segment=superadmin", label: "Superadmins", icon: ShieldCheck },
-      { href: "/dashboard/mobile?segment=trainer", label: "Entrenadores", icon: Users },
-      { href: "/dashboard/mobile?segment=user", label: "Usuarios", icon: Database },
-      { href: "/dashboard/rutinas", label: "Rutinas", icon: Weight },
+      {
+        href: "/dashboard/mobile?segment=superadmin",
+        label: "Superadmins",
+        icon: ShieldCheck,
+        module: "mobile",
+      },
+      {
+        href: "/dashboard/mobile?segment=admin",
+        label: "Admins",
+        icon: ShieldCheck,
+        module: "mobile",
+      },
+      {
+        href: "/dashboard/mobile?segment=trainer",
+        label: "Entrenadores",
+        icon: Users,
+        module: "mobile",
+      },
+      {
+        href: "/dashboard/mobile?segment=user",
+        label: "Usuarios",
+        icon: Database,
+        module: "mobile",
+      },
+      { href: "/dashboard/rutinas", label: "Rutinas", icon: Weight, module: "rutinas" },
     ],
   },
-  
   { isHeader: true, label: "Web y contenido", href: "#" },
   {
     href: "/dashboard/web",
@@ -116,6 +176,8 @@ const links: NavItem[] = [
     icon: Globe,
     children: [
       { href: "/dashboard/web#secciones", label: "Secciones", icon: Globe },
+      { href: "/dashboard/web/branding", label: "Identidad (Logo)", icon: Sparkles },
+      { href: "/dashboard/settings/theme", label: "Estilo (Colores)", icon: Palette },
       { href: "/dashboard/web#exploracion", label: "Exploracion", icon: LayoutGrid },
     ],
   },
@@ -123,29 +185,33 @@ const links: NavItem[] = [
     href: "/dashboard/marketing",
     label: "Campanas",
     icon: CalendarClock,
-    activeMatch: [
-      "/dashboard/marketing",
-      "/dashboard/marketing/planes",
-    ],
+    module: "marketing",
+    activeMatch: ["/dashboard/marketing", "/dashboard/marketing/planes"],
     children: [
       {
         href: "/dashboard/marketing",
         label: "Moderacion resenas",
         icon: ClipboardList,
         activeMatch: "/dashboard/marketing",
+        module: "marketing",
       },
-      { href: "/dashboard/marketing/planes", label: "Planes", icon: Tag },
+      {
+        href: "/dashboard/marketing/planes",
+        label: "Planes",
+        icon: Tag,
+        module: "marketing",
+      },
     ],
   },
   {
     href: "/dashboard/cms",
     label: "Textos y legal",
     icon: FileText,
+    module: "cms",
     children: [
-      { href: "/dashboard/cms#documentos", label: "Documentos", icon: FileText },
+      { href: "/dashboard/cms#documentos", label: "Documentos", icon: FileText, module: "cms" },
     ],
   },
-  
   { isHeader: true, label: "Ajustes", href: "#" },
   {
     href: "/dashboard/info",
@@ -165,6 +231,12 @@ const links: NavItem[] = [
     children: [
       { href: "/dashboard/advanced#configuracion", label: "Configuracion", icon: Settings2 },
     ],
+  },
+  {
+    href: "/dashboard/developer",
+    label: "Developer",
+    icon: Wrench,
+    requiresSuperadmin: true,
   },
 ];
 
@@ -192,8 +264,6 @@ function isItemActive(
       ? [activeMatch]
       : [href];
 
-  // When activeMatch is explicitly provided, use exact matching.
-  // When falling back to href (no activeMatch), use startsWith (except /dashboard root).
   const useExact = Boolean(activeMatch);
 
   return candidates.some((candidate) => {
@@ -221,6 +291,57 @@ function isItemActive(
 
     return pathname.startsWith(normalized.path);
   });
+}
+
+function canViewModule(
+  module: SystemModuleName | undefined,
+  activeModules: SystemModuleStateMap,
+) {
+  return !module || activeModules[module];
+}
+
+function canViewEntry(
+  item: Pick<NavLinkItem | NavLinkChild, "module" | "requiresSuperadmin">,
+  activeModules: SystemModuleStateMap,
+  isSuperadmin: boolean,
+) {
+  return (!item.requiresSuperadmin || isSuperadmin) &&
+    canViewModule(item.module, activeModules);
+}
+
+function getVisibleNavigationItems(
+  activeModules: SystemModuleStateMap,
+  isSuperadmin: boolean,
+) {
+  const visibleItems: NavItem[] = [];
+  let pendingHeader: NavHeaderItem | null = null;
+
+  for (const item of NAV_ITEMS) {
+    if (item.isHeader) {
+      pendingHeader = item;
+      continue;
+    }
+
+    if (!canViewEntry(item, activeModules, isSuperadmin)) {
+      continue;
+    }
+
+    const visibleChildren = item.children?.filter((child) =>
+      canViewEntry(child, activeModules, isSuperadmin),
+    );
+
+    if (pendingHeader) {
+      visibleItems.push(pendingHeader);
+      pendingHeader = null;
+    }
+
+    visibleItems.push({
+      ...item,
+      children: visibleChildren,
+    });
+  }
+
+  return visibleItems;
 }
 
 const THEME_STORAGE_KEY = "nuova-forza-theme";
@@ -287,7 +408,16 @@ function subscribeToThemePreference(onStoreChange: () => void) {
   };
 }
 
-export default function DashboardSidebar() {
+interface DashboardSidebarProps {
+  activeModules?: SystemModuleStateMap;
+  isSuperadmin?: boolean;
+}
+
+export default function DashboardSidebar({
+  activeModules = createDefaultModuleStateMap(),
+  isSuperadmin = false,
+}: Readonly<DashboardSidebarProps>) {
+  const { gymName, logoUrl, primaryColor } = useBranding();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentQuery = searchParams.toString() ? `?${searchParams.toString()}` : "";
@@ -312,36 +442,44 @@ export default function DashboardSidebar() {
     notifyThemeListeners();
   };
 
+  const visibleLinks = getVisibleNavigationItems(activeModules, isSuperadmin);
+
   return (
     <div className="flex h-full flex-col bg-[#111111] text-white">
-      {/* BRANDING AREA */}
       <div className="p-6 pb-8">
         <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 shrink-0 bg-white p-1.5 rounded-sm">
-             <Image 
-               src="/images/logo/logo-trans.webp" 
-               alt="Nuova Forza Logo" 
-               fill 
-               className="object-contain"
-               sizes="40px"
-             />
+          <div className="relative h-10 w-10 shrink-0 rounded-sm bg-white p-1.5">
+            <Image
+              src={logoUrl ?? "/images/logo/logo-trans.webp"}
+              alt={`${gymName} Logo`}
+              fill
+              className="object-contain"
+              sizes="40px"
+            />
           </div>
           <div>
             <h2 className="font-display text-xl font-bold uppercase tracking-tight leading-none">
-              NUOVA<span className="text-[#d71920]">FORZA</span>
+              {gymName}
             </h2>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/50">Backoffice Gym</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/50">
+              Backoffice Gym
+            </p>
           </div>
         </div>
       </div>
 
-      {/* NAVIGATION - SCROLLABLE */}
-      <div className="flex-1 overflow-y-auto hide-scrollbar px-3 pb-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div
+        className="flex-1 overflow-y-auto hide-scrollbar px-3 pb-8"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
         <nav className="space-y-[2px]">
-          {links.map((link, idx) => {
+          {visibleLinks.map((link, idx) => {
             if (link.isHeader) {
               return (
-                <p key={idx} className="mb-2 mt-6 px-3 text-xs font-bold uppercase tracking-wider text-white/40">
+                <p
+                  key={`${link.label}-${idx}`}
+                  className="mb-2 mt-6 px-3 text-xs font-bold uppercase tracking-wider text-white/40"
+                >
                   {link.label}
                 </p>
               );
@@ -349,8 +487,6 @@ export default function DashboardSidebar() {
 
             const Icon = link.icon;
             const hasChildren = Boolean(link.children?.length);
-            
-            // Un item es activo si su href coincide O si algun hijo es activo
             const isSelfActive = isItemActive(
               pathname,
               currentQuery,
@@ -362,8 +498,6 @@ export default function DashboardSidebar() {
               isItemActive(pathname, currentQuery, currentHash, child.href, child.activeMatch),
             );
             const isActive = isSelfActive || isChildActive;
-            
-            // Mostrar submenu si esta activo
             const showSubmenu = isActive;
 
             return (
@@ -375,23 +509,41 @@ export default function DashboardSidebar() {
                     "group flex items-center justify-between px-3 py-2.5 rounded-md transition-all",
                     isActive
                       ? "bg-white/10 text-white font-medium"
-                      : "bg-transparent text-white/60 hover:bg-white/[0.04] hover:text-white"
+                      : "bg-transparent text-white/60 hover:bg-white/[0.04] hover:text-white",
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={cn("h-4 w-4 transition-colors", isActive ? "text-[#d71920]" : "group-hover:text-white")} />
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 transition-colors",
+                        isActive ? "" : "group-hover:text-white",
+                      )}
+                      style={isActive ? { color: primaryColor } : {}}
+                    />
                     <span className="text-sm font-medium tracking-wide">{link.label}</span>
                   </div>
-                  {link.tag && !isActive && (
-                    <div className="flex items-center gap-1.5 bg-white/10 px-2 py-0.5 rounded-sm">
-                       <div className="h-1.5 w-1.5 rounded-full bg-[#d71920] animate-pulse" />
-                       <span className="text-[10px] font-bold text-white tracking-tight uppercase">{link.tag}</span>
+                  {link.tag && !isActive ? (
+                    <div className="flex items-center gap-1.5 rounded-sm bg-white/10 px-2 py-0.5">
+                      <div 
+                        className="h-1.5 w-1.5 rounded-full animate-pulse" 
+                        style={{ backgroundColor: primaryColor }}
+                      />
+                      <span className="text-[10px] font-bold text-white tracking-tight uppercase">
+                        {link.tag}
+                      </span>
                     </div>
-                  )}
-                  {hasChildren && <ChevronRight className={cn("h-3.5 w-3.5 transition-transform text-white/40 group-hover:text-white/80", showSubmenu && "rotate-90 text-white/80")} />}
+                  ) : null}
+                  {hasChildren ? (
+                    <ChevronRight
+                      className={cn(
+                        "h-3.5 w-3.5 transition-transform text-white/40 group-hover:text-white/80",
+                        showSubmenu && "rotate-90 text-white/80",
+                      )}
+                    />
+                  ) : null}
                 </Link>
 
-                {hasChildren && showSubmenu && (
+                {hasChildren && showSubmenu ? (
                   <div className="ml-3 mt-1 space-y-1 border-l border-white/10 pl-2 animate-in fade-in slide-in-from-left-2 duration-300">
                     {link.children?.map((child) => {
                       const isSubActive = isItemActive(
@@ -402,6 +554,7 @@ export default function DashboardSidebar() {
                         child.activeMatch,
                       );
                       const SubIcon = child.icon;
+
                       return (
                         <Link
                           key={child.href}
@@ -409,27 +562,29 @@ export default function DashboardSidebar() {
                           aria-current={isSubActive ? "page" : undefined}
                           className={cn(
                             "flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium tracking-wide transition-all",
-                            isSubActive 
-                              ? "bg-white/10 text-white font-semibold" 
-                              : "text-white/50 hover:bg-white/[0.02] hover:text-white"
+                            isSubActive
+                              ? "bg-white/10 text-white font-semibold"
+                              : "text-white/50 hover:bg-white/[0.02] hover:text-white",
                           )}
                         >
-                          <SubIcon className={cn("h-3.5 w-3.5", isSubActive ? "text-[#d71920]" : "text-white/30")} />
+                          <SubIcon
+                            className="h-3.5 w-3.5"
+                            style={isSubActive ? { color: primaryColor } : { color: "rgba(255,255,255,0.3)" }}
+                          />
                           {child.label}
                         </Link>
                       );
                     })}
                   </div>
-                )}
+                ) : null}
               </div>
             );
           })}
         </nav>
       </div>
 
-      {/* FOOTER AREA: THEME SWITCH & STATUS */}
       <div className="mt-auto border-t border-white/10 p-4 bg-black/20">
-        <button 
+        <button
           onClick={toggleTheme}
           className="flex w-full items-center justify-between rounded-md bg-white/5 border border-white/10 px-4 py-2.5 transition-all hover:bg-white/10 group"
         >
@@ -449,13 +604,15 @@ export default function DashboardSidebar() {
           <div className="h-4 w-px bg-white/10" />
           <LayoutGrid className="h-3.5 w-3.5 text-white/30" />
         </button>
-        
+
         <div className="mt-4 flex items-center justify-between px-2">
-           <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-[10px] font-medium uppercase tracking-wider text-white/50">System Online</p>
-           </div>
-           <p className="text-[10px] font-medium text-white/30">V2.0.4</p>
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+            <p className="text-[10px] font-medium uppercase tracking-wider text-white/50">
+              System Online
+            </p>
+          </div>
+          <p className="text-[10px] font-medium text-white/30">V2.0.4</p>
         </div>
       </div>
     </div>

@@ -36,7 +36,7 @@ export function NFCard({
       {(title || description || headerActions) && (
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 pt-6">
           <div className="space-y-1.5">
-            {title && <CardTitle className="text-base font-black uppercase tracking-widest text-[#111111]">{title}</CardTitle>}
+            {title && <CardTitle className="text-base font-black uppercase tracking-widest text-foreground">{title}</CardTitle>}
             {description && <CardDescription className="text-[11px] font-bold text-muted-foreground/70 uppercase tracking-tight">{description}</CardDescription>}
           </div>
           {headerActions && <div className="flex items-center gap-2">{headerActions}</div>}

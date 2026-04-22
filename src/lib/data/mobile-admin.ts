@@ -8,6 +8,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import {
   APP_BLOCKED_ROLE,
   DASHBOARD_ADMIN_ROLE,
+  SUPERADMIN_ROLE,
   isUserRolesSchemaError,
   listPersistedUserRoles,
   type PersistedUserRole,
@@ -198,7 +199,10 @@ export async function getMobileAdminSnapshot(): Promise<MobileAdminSnapshot> {
         createdAt: user.created_at ?? null,
         email: user.email ?? null,
         hasAppAccess: !roles.includes(APP_BLOCKED_ROLE),
-        hasDashboardAccess: roles.includes(DASHBOARD_ADMIN_ROLE) || roles.includes(TRAINER_ROLE),
+        hasDashboardAccess:
+          roles.includes(SUPERADMIN_ROLE) ||
+          roles.includes(DASHBOARD_ADMIN_ROLE) ||
+          roles.includes(TRAINER_ROLE),
         hasMemberBridge: Boolean(memberBridge),
         hasMemberProfile: Boolean(memberProfile),
         id: user.id,
@@ -216,7 +220,9 @@ export async function getMobileAdminSnapshot(): Promise<MobileAdminSnapshot> {
   return {
     counts: {
       authUsers: users.length,
-      dashboardAdmins: users.filter((user) => user.roles.includes(DASHBOARD_ADMIN_ROLE)).length,
+      dashboardAdmins: users.filter((user) =>
+        user.roles.includes(SUPERADMIN_ROLE) || user.roles.includes(DASHBOARD_ADMIN_ROLE),
+      ).length,
       linkedMembers: users.filter((user) => user.hasMemberProfile).length,
       pendingSetup: users.filter((user) => !user.roles.length || !user.hasMemberProfile).length,
       trainers: trainerUsers.length,

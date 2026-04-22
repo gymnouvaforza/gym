@@ -43,17 +43,21 @@ export default async function MembershipQrCard({
   const isSuccess = validation.tone === "success";
 
   return (
-    <div className="w-full">
-      <div className="border border-black/10 bg-white p-6 sm:p-8">
-        <div className="flex flex-col gap-4 border-b border-black/5 pb-6">
+    <section 
+      id="membership-qr" 
+      data-component="membership-qr-card"
+      className="w-full"
+    >
+      <div className="border border-border/50 bg-card p-6 sm:p-8 rounded-[var(--radius-base)]">
+        <div className="flex flex-col gap-4 border-b border-border/10 pb-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d71920]">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
                 Estado QR
               </p>
-              <h3 className="font-display text-2xl font-black uppercase tracking-tight text-[#111111] italic">
+              <h2 className="font-display text-2xl font-black uppercase tracking-tight text-foreground italic">
                 {memberName}
-              </h3>
+              </h2>
             </div>
             <Badge
               variant={isSuccess ? "success" : "warning"}
@@ -64,12 +68,12 @@ export default async function MembershipQrCard({
           </div>
         </div>
 
-        <div className="relative mx-auto mt-8 flex aspect-square w-full max-w-[280px] items-center justify-center bg-white p-4 shadow-[0_0_50px_-12px_rgba(215,25,32,0.15)] transition-all sm:p-6">
+        <div className="relative mx-auto mt-8 flex aspect-square w-full max-w-[280px] items-center justify-center bg-white p-4 shadow-2xl transition-all sm:p-6 rounded-[var(--radius-base)]">
           {qrMarkup ? (
             <div className="w-full" dangerouslySetInnerHTML={{ __html: qrMarkup }} />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-black/[0.02] p-6 text-center">
-              <QrCode className="h-12 w-12 text-black/10" />
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-muted/5 p-6 text-center">
+              <QrCode className="h-12 w-12 text-foreground/10" />
               <PublicInlineAlert
                 tone="warning"
                 title="Error"
@@ -79,15 +83,15 @@ export default async function MembershipQrCard({
             </div>
           )}
 
-          <div className="absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-[#d71920]" />
-          <div className="absolute -right-1 -top-1 h-4 w-4 border-r-2 border-t-2 border-[#d71920]" />
-          <div className="absolute -bottom-1 -left-1 h-4 w-4 border-b-2 border-l-2 border-[#d71920]" />
-          <div className="absolute -right-1 -bottom-1 h-4 w-4 border-b-2 border-r-2 border-[#d71920]" />
+          <div className="absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-primary" />
+          <div className="absolute -right-1 -top-1 h-4 w-4 border-r-2 border-t-2 border-primary" />
+          <div className="absolute -bottom-1 -left-1 h-4 w-4 border-b-2 border-l-2 border-primary" />
+          <div className="absolute -right-1 -bottom-1 h-4 w-4 border-b-2 border-r-2 border-primary" />
         </div>
 
         <div className="mt-10 space-y-4">
-          <div className="flex items-start gap-3 bg-black/[0.03] p-4 text-[11px] leading-relaxed text-[#5f6368]">
-            <ShieldCheck className="h-4 w-4 shrink-0 text-[#d71920]" />
+          <div className="flex items-start gap-3 bg-muted/10 p-4 text-[11px] leading-relaxed text-muted-foreground rounded-[var(--radius-base)]">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
             <p className="uppercase tracking-tight font-medium">
               Este QR abre tu estado publico de membresia. En recepcion el equipo valida el ingreso
               desde su panel.
@@ -95,7 +99,7 @@ export default async function MembershipQrCard({
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2">
-            <Button asChild className="h-12 bg-[#111111] text-white hover:bg-[#d71920]">
+            <Button asChild className="h-12 bg-secondary text-secondary-foreground hover:bg-primary">
               <Link href={qrUrl} target="_blank" rel="noreferrer">
                 Abrir estado QR
               </Link>
@@ -104,7 +108,7 @@ export default async function MembershipQrCard({
               <Button
                 asChild
                 variant="outline"
-                className="h-12 border-black/10 text-[#111111] hover:bg-black hover:text-white"
+                className="h-12 border-border/10 text-foreground hover:bg-secondary hover:text-secondary-foreground"
               >
                 <Link href={detailHref}>Gestionar Plan</Link>
               </Button>
@@ -112,6 +116,6 @@ export default async function MembershipQrCard({
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

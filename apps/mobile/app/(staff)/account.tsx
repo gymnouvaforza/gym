@@ -8,6 +8,18 @@ import { NFTopBar } from "@/components/ui/nf-top-bar";
 import { Screen } from "@/components/ui/screen";
 import { useAuth } from "@/providers/auth-provider";
 
+function getStaffRoleLabel(accessLevel: string | null | undefined) {
+  switch (accessLevel) {
+    case "superadmin":
+      return "Superadmin";
+    case "admin":
+      return "Admin";
+    case "trainer":
+    default:
+      return "Staff";
+  }
+}
+
 export default function StaffAccountScreen() {
   const { mobileSession, signOut } = useAuth();
 
@@ -40,7 +52,9 @@ export default function StaffAccountScreen() {
             Rol
           </Text>
           <Text className="font-sans-black text-sm uppercase tracking-[1px] text-nf-text">
-            {mobileSession?.role === "staff" ? "Staff" : mobileSession?.role}
+            {mobileSession?.role === "staff"
+              ? getStaffRoleLabel(mobileSession.staffAccessLevel)
+              : mobileSession?.role}
           </Text>
         </View>
       </NFCard>

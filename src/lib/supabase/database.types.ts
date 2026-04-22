@@ -6,6 +6,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type DatabaseUserRole = "superadmin" | "admin" | "trainer" | "app_blocked";
+
 export type DBCmsDocument = Database["public"]["Tables"]["cms_documents"]["Row"];
 export type DBMarketingPlan = Database["public"]["Tables"]["marketing_plans"]["Row"];
 export type DBMarketingScheduleRow = Database["public"]["Tables"]["marketing_schedule_rows"]["Row"];
@@ -14,6 +16,7 @@ export type DBMarketingTestimonial = Database["public"]["Tables"]["marketing_tes
 export type Lead = Database["public"]["Tables"]["leads"]["Row"];
 export type LeadStatus = Database["public"]["Enums"]["lead_status"];
 export type SiteSettings = Database["public"]["Tables"]["site_settings"]["Row"];
+export type DBSystemModule = Database["public"]["Tables"]["system_modules"]["Row"];
 
 export type DBMemberPlanSnapshot = Database["public"]["Tables"]["member_plan_snapshots"]["Row"];
 export type DBMemberMeasurement = Database["public"]["Tables"]["member_measurements"]["Row"];
@@ -6957,6 +6960,11 @@ export type Database = {
           transactional_from_email: string
           updated_at: string
           whatsapp_url: string | null
+          logo_url: string | null
+          favicon_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          slogan: string | null
         }
         Insert: {
           address?: string | null
@@ -6991,6 +6999,11 @@ export type Database = {
           transactional_from_email: string
           updated_at?: string
           whatsapp_url?: string | null
+          logo_url?: string | null
+          favicon_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slogan?: string | null
         }
         Update: {
           address?: string | null
@@ -7025,6 +7038,11 @@ export type Database = {
           transactional_from_email?: string
           updated_at?: string
           whatsapp_url?: string | null
+          logo_url?: string | null
+          favicon_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slogan?: string | null
         }
         Relationships: []
       }
@@ -7575,7 +7593,7 @@ export type Database = {
           created_at: string
           is_irreversible: boolean
           note: string | null
-          role: string
+          role: DatabaseUserRole
           updated_at: string
           user_id: string
         }
@@ -7585,7 +7603,7 @@ export type Database = {
           created_at?: string
           is_irreversible?: boolean
           note?: string | null
-          role: string
+          role: DatabaseUserRole
           updated_at?: string
           user_id: string
         }
@@ -7595,9 +7613,33 @@ export type Database = {
           created_at?: string
           is_irreversible?: boolean
           note?: string | null
-          role?: string
+          role?: DatabaseUserRole
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      system_modules: {
+        Row: {
+          description: string | null
+          id: number
+          is_enabled: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          description?: string | null
+          id?: never
+          is_enabled?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          description?: string | null
+          id?: never
+          is_enabled?: boolean
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }

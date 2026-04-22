@@ -17,6 +17,7 @@ import {
   type MemberPlanSnapshotDto,
   type MemberSummaryDto,
   type MobileRole,
+  type MobileStaffAccessLevel,
   type MobileSession,
   type RoutineAssignmentDto,
   type RoutineDetailDto,
@@ -1804,7 +1805,11 @@ export async function toggleAppAccess(userId: string, shouldHaveAccess: boolean)
   }
 }
 
-export async function createLiveMobileSession(user: User, role: MobileRole): Promise<MobileSession> {
+export async function createLiveMobileSession(
+  user: User,
+  role: MobileRole,
+  staffAccessLevel: MobileStaffAccessLevel | null = null,
+): Promise<MobileSession> {
   const client = createSupabaseAdminClient();
   const member =
     role === "member"
@@ -1818,6 +1823,7 @@ export async function createLiveMobileSession(user: User, role: MobileRole): Pro
       hasActiveRoutine: false,
       member: null,
       role,
+      staffAccessLevel,
       userId: user.id,
     };
   }
@@ -1840,6 +1846,7 @@ export async function createLiveMobileSession(user: User, role: MobileRole): Pro
     hasActiveRoutine: Boolean(activeAssignment),
     member: memberSummary,
     role,
+    staffAccessLevel,
     userId: user.id,
   };
 }

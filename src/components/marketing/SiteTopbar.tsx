@@ -5,15 +5,15 @@ import { formatTopbarDeadline, resolveActiveTopbar } from "@/lib/topbar";
 import { cn } from "@/lib/utils";
 
 const topbarStyles = {
-  promotion: "bg-[#d71920] text-white",
-  announcement: "bg-[#111111] text-white",
-  notice: "bg-[#f7f4ef] text-[#111111] border-b border-black/10",
+  promotion: "bg-primary text-white",
+  announcement: "bg-secondary text-white",
+  notice: "bg-background text-foreground border-b border-border",
 } as const;
 
 const badgeStyles = {
   promotion: "bg-white/12 text-white",
-  announcement: "bg-[#d71920] text-white",
-  notice: "bg-[#d71920] text-white",
+  announcement: "bg-primary text-white",
+  notice: "bg-primary text-white",
 } as const;
 
 const variantLabels = {

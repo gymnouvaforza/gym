@@ -10,14 +10,14 @@ export default function TrainingZonesSectionFallback() {
   return (
     <section
       id="zonas"
-      className="section-anchor relative overflow-hidden bg-[#18181b] py-24 md:py-32"
+      className="section-anchor relative overflow-hidden bg-secondary py-24 md:py-32"
     >
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top_right,_rgba(215,25,32,0.08),_transparent_40%)]" />
 
       <div className="section-shell relative z-10">
         <div className="max-w-2xl">
           <p className="section-kicker text-accent">{trainingZonesSectionCopy.kicker}</p>
-          <h2 className="section-title text-white">
+          <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl text-white">
             Espacios para <span className="text-accent italic">rendir</span> mejor en cada sesion
           </h2>
           <p className="section-copy mt-6 text-zinc-400">{trainingZonesSectionCopy.intro}</p>
@@ -27,7 +27,7 @@ export default function TrainingZonesSectionFallback() {
           {previewZones.map((zone) => (
             <article
               key={zone.id}
-              className="group relative overflow-hidden border border-white/8 bg-black"
+              className="group relative overflow-hidden border border-white/8 bg-black rounded-[var(--radius-base)]"
             >
               <div className="relative aspect-[5/6]">
                 {zone.poster ? (
@@ -51,7 +51,7 @@ export default function TrainingZonesSectionFallback() {
                   <p className="mt-3 text-sm leading-relaxed text-white/70">{zone.description}</p>
                   {zone.cta_label && zone.cta_href ? (
                     <div className="mt-6">
-                      <Button asChild className="btn-athletic btn-primary !h-11 !px-5 !text-[11px]">
+                      <Button asChild className="btn-athletic btn-primary !h-11 !px-5 !text-[11px] rounded-[var(--radius-base)]">
                         <Link href={zone.cta_href}>{zone.cta_label}</Link>
                       </Button>
                     </div>

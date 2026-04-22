@@ -14,13 +14,17 @@ export default function TeamSection({ members }: Readonly<TeamSectionProps>) {
   }
 
   return (
-    <section id="entrenadores" className="section-anchor relative overflow-hidden bg-[#111111] py-24 md:py-32">
+    <section 
+      id="entrenadores" 
+      data-component="team-section"
+      className="section-anchor relative overflow-hidden bg-secondary py-24 md:py-32"
+    >
       <div className="absolute inset-0 athletic-grid opacity-10" />
       <div className="section-shell relative z-10">
         <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="section-kicker">Nuestros Expertos</p>
-            <h2 className="section-title text-white italic">
+            <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl text-foreground italic">
               El Equipo <span className="text-accent underline decoration-accent/20 underline-offset-8">Elite</span>
             </h2>
           </div>
@@ -35,7 +39,10 @@ export default function TeamSection({ members }: Readonly<TeamSectionProps>) {
 
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {members.map((member) => (
-            <article key={member.name} className="group relative overflow-hidden bg-white/5 transition-all duration-500 hover:bg-white/10">
+            <article 
+              key={member.name} 
+              className="group relative overflow-hidden bg-foreground/5 transition-all duration-500 hover:bg-foreground/10 rounded-[var(--radius-base)]"
+            >
               <div className="relative aspect-[3/4] overflow-hidden">
                 <Image
                   src={member.image_url ?? "/images/trainers/trainer-1.png"}
@@ -54,8 +61,8 @@ export default function TeamSection({ members }: Readonly<TeamSectionProps>) {
               </div>
               
               <div className="p-8">
-                <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-white">{member.name}</h3>
-                <p className="mt-4 text-[15px] leading-relaxed text-white/50">{member.bio}</p>
+                <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-foreground">{member.name}</h3>
+                <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">{member.bio}</p>
               </div>
 
               {/* Decorative corner accent */}

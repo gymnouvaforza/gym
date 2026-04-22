@@ -1,7 +1,16 @@
 import { Pressable, Text, View } from "react-native";
 
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Activity, Dumbbell, History, House, LayoutTemplate, User, Users } from "lucide-react-native";
+import {
+  Activity,
+  Dumbbell,
+  History,
+  House,
+  LayoutTemplate,
+  ShieldCheck,
+  User,
+  Users,
+} from "lucide-react-native";
 
 const iconMap = {
   index: House,
@@ -10,6 +19,7 @@ const iconMap = {
   account: User,
   members: Users,
   templates: LayoutTemplate,
+  developer: ShieldCheck,
 } as const;
 
 const labelMap = {
@@ -19,6 +29,7 @@ const labelMap = {
   account: "Cuenta",
   members: "Miembros",
   templates: "Plantillas",
+  developer: "Developer",
 } as const;
 
 export function NFBottomTabBar({ state, navigation }: BottomTabBarProps) {

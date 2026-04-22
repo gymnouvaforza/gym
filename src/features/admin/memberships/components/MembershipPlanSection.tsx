@@ -28,7 +28,7 @@ export function MembershipPlanSection({ membershipPlans }: MembershipPlanSection
           ]}
         />
         {selectedPlan && (
-          <p className="text-[10px] font-bold text-[#5f6368] uppercase px-1">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase px-1">
             {selectedPlan.billing_label ?? `${selectedPlan.duration_days} días`} · S/ {selectedPlan.price_amount.toFixed(2)}
           </p>
         )}

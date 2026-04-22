@@ -1,6 +1,7 @@
 import { Zap, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { countLeadsByStatus, buildDashboardMetrics } from "@/lib/admin-dashboard";
+import type { SystemModuleStateMap } from "@/lib/module-flags";
 import { getDashboardData } from "@/lib/data/site";
 import AdminMetricCard from "@/components/admin/AdminMetricCard";
 import AdminSurface from "@/components/admin/AdminSurface";
@@ -26,8 +27,20 @@ export function DashboardLeadSectionFallback() {
   );
 }
 
-export default async function DashboardLeadSection() {
-  const { leads } = await getDashboardData();
+export default async function DashboardLeadSection({
+  activeModulesPromise,
+}: {
+  activeModulesPromise: Promise<SystemModuleStateMap>;
+}) {
+  const [{ leads }, activeModules] = await Promise.all([
+    getDashboardData(),
+    activeModulesPromise,
+  ]);
+
+  if (!activeModules.leads) {
+    return null;
+  }
+
   const leadSummary = countLeadsByStatus(leads);
   const newLeads = leadSummary.new;
   const leadMetrics = buildDashboardMetrics(leads, newLeads);

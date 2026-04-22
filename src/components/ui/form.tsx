@@ -83,7 +83,7 @@ function FormLabel({ className, ...props }: React.ComponentProps<typeof Label>) 
 
   return (
     <Label
-      className={cn("text-sm font-medium text-[#111111]", error && "text-red-700", className)}
+      className={cn("text-sm font-medium text-foreground", error && "text-red-700", className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -112,7 +112,7 @@ function FormDescription({ className, ...props }: React.HTMLAttributes<HTMLParag
   const { formDescriptionId } = useFormField();
 
   return (
-    <p id={formDescriptionId} className={cn("text-sm text-[#6b7280]", className)} {...props} />
+    <p id={formDescriptionId} className={cn("text-sm text-muted-foreground", className)} {...props} />
   );
 }
 

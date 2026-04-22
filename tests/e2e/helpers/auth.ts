@@ -2,6 +2,8 @@ import { expect, type Page } from "@playwright/test";
 
 import { getAdminCredentials, getBaseUrl } from "./env";
 
+export type TestDashboardRole = "superadmin" | "admin" | "trainer";
+
 export async function loginAsLocalAdmin(page: Page) {
   const { identity, password } = getAdminCredentials();
 
@@ -11,6 +13,20 @@ export async function loginAsLocalAdmin(page: Page) {
       password,
     },
   });
+
+  expect(response.ok()).toBeTruthy();
+}
+
+export async function overrideDashboardRole(page: Page, role: TestDashboardRole) {
+  const response = await page.context().request.post(`${getBaseUrl()}/api/dev-role`, {
+    data: { role },
+  });
+
+  expect(response.ok()).toBeTruthy();
+}
+
+export async function clearDashboardRoleOverride(page: Page) {
+  const response = await page.context().request.delete(`${getBaseUrl()}/api/dev-role`);
 
   expect(response.ok()).toBeTruthy();
 }

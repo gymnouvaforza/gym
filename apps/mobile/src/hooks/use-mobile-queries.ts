@@ -5,11 +5,13 @@ import type {
   AssignRoutineResponse,
   MemberHistoryResponse,
   MemberRoutineResponse,
+  MobileSystemModulesResponse,
   RoutineTemplateListItemDto,
   StaffDashboardDto,
   StaffMemberDetailDto,
   StaffMembersResponse,
   StaffTemplatesResponse,
+  UpdateMobileSystemModuleResponse,
   UpdateExerciseFeedbackInput,
   UpdateMemberInput,
   UpdateRoutineFeedbackInput,
@@ -231,5 +233,68 @@ export function useUpdateStaffMemberMutation(memberId: string | undefined) {
         accessToken: token,
         body: JSON.stringify(payload),
       }),
+  });
+}
+
+export function useSystemModulesQuery() {
+  const { token } = useAccessToken();
+
+  return useQuery({
+    queryKey: ["staff-system-modules", token],
+    enabled: Boolean(token),
+    queryFn: () =>
+      mobileFetchJson<MobileSystemModulesResponse>("/api/mobile/staff/modules", {
+        accessToken: token,
+      }),
+  });
+}
+
+export function useToggleSystemModuleMutation() {
+  const { token } = useAccessToken();
+  const queryClient = useQueryClient();
+  const queryKey = ["staff-system-modules", token] as const;
+
+  return useMutation({
+    mutationFn: (payload: { name: string; isEnabled: boolean }) =>
+      mobileFetchJson<UpdateMobileSystemModuleResponse>(
+        `/api/mobile/staff/modules/${payload.name}`,
+        {
+          method: "PATCH",
+          accessToken: token,
+          body: JSON.stringify({ isEnabled: payload.isEnabled }),
+        },
+      ),
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<MobileSystemModulesResponse>(queryKey);
+
+      if (previous) {
+        queryClient.setQueryData<MobileSystemModulesResponse>(queryKey, {
+          items: previous.items.map((item) =>
+            item.name === payload.name ? { ...item, isEnabled: payload.isEnabled } : item,
+          ),
+        });
+      }
+
+      return { previous };
+    },
+    onError: (_error, _payload, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSuccess: (response) => {
+      queryClient.setQueryData<MobileSystemModulesResponse>(queryKey, (current) => {
+        if (!current) {
+          return { items: [response.item] };
+        }
+
+        return {
+          items: current.items.map((item) =>
+            item.name === response.item.name ? response.item : item,
+          ),
+        };
+      });
+    },
   });
 }

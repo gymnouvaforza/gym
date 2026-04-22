@@ -4,7 +4,9 @@ import { Inter, Oswald } from "next/font/google";
 import type { ReactNode } from "react";
 
 import AuthProvider from "@/components/auth/AuthProvider";
-import { DEFAULT_SITE_NAME, SITE_URL, resolveOgImageUrl } from "@/lib/seo";
+import ThemeInjector from "@/components/system/ThemeInjector";
+import { SITE_URL, resolveOgImageUrl } from "@/lib/seo";
+import { getMarketingSnapshot } from "@/lib/supabase/queries";
 
 import "./globals.css";
 
@@ -19,80 +21,65 @@ const oswald = Oswald({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: `Gimnasio en Chiclayo | ${DEFAULT_SITE_NAME} Gym`,
-    template: `%s | ${DEFAULT_SITE_NAME}`,
-  },
-  description:
-    "Entrenamiento de fuerza de alto nivel, equipamiento premium y acompañamiento real en Chiclayo. Progreso sostenible para atletas y principiantes.",
-  keywords: [
-    "gimnasio chiclayo",
-    "entrenamiento de fuerza",
-    "crossfit chiclayo",
-    "musculación",
-    "mejor gym chiclayo",
-    "fitness peru",
-  ],
-  authors: [{ name: DEFAULT_SITE_NAME }],
-  creator: DEFAULT_SITE_NAME,
-  publisher: DEFAULT_SITE_NAME,
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  icons: {
-    icon: "/images/favicon/ico.png",
-    shortcut: "/images/favicon/ico.png",
-    apple: "/images/favicon/ico.png",
-  },
-  openGraph: {
-    title: `Gimnasio en Chiclayo | ${DEFAULT_SITE_NAME} Gym`,
-    description:
-      "Entrenamiento de fuerza de alto nivel y equipamiento premium en Chiclayo. Únete a la élite.",
-    images: [
-      {
-        url: resolveOgImageUrl(null),
-        alt: DEFAULT_SITE_NAME,
-      },
-    ],
-    locale: "es_PE",
-    siteName: DEFAULT_SITE_NAME,
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `Gimnasio en Chiclayo | ${DEFAULT_SITE_NAME} Gym`,
-    description: "Entrenamiento de fuerza de alto nivel en Chiclayo. Resultados reales.",
-    images: [resolveOgImageUrl(null)],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+export async function generateMetadata(): Promise<Metadata> {
+  const { settings } = await getMarketingSnapshot();
+  const siteName = settings.site_name;
+  
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: `Gimnasio en Chiclayo | ${siteName} Gym`,
+      template: `%s | ${siteName}`,
     },
-  },
-};
+    description: settings.seo_description,
+    keywords: settings.seo_keywords,
+    authors: [{ name: siteName }],
+    creator: siteName,
+    publisher: siteName,
+    icons: {
+      icon: settings.favicon_url ?? "/images/favicon/ico.png",
+      shortcut: settings.favicon_url ?? "/images/favicon/ico.png",
+      apple: settings.favicon_url ?? "/images/favicon/ico.png",
+    },
+    openGraph: {
+      title: `Gimnasio en Chiclayo | ${siteName} Gym`,
+      description: settings.seo_description,
+      images: [
+        {
+          url: resolveOgImageUrl(settings.seo_og_image_url),
+          alt: siteName,
+        },
+      ],
+      locale: "es_PE",
+      siteName: siteName,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Gimnasio en Chiclayo | ${siteName} Gym`,
+      description: settings.seo_description,
+      images: [resolveOgImageUrl(settings.seo_og_image_url)],
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
+  const { settings } = await getMarketingSnapshot();
+
   return (
     <html lang="es-PE" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <ThemeInjector config={settings.theme_config} />
+      </head>
       <body
-        className={`${inter.variable} ${oswald.variable} bg-background text-foreground antialiased`}
+        className={`${inter.variable} ${oswald.variable} bg-background text-foreground antialiased font-primary-dynamic`}
         suppressHydrationWarning
       >
-        <NextTopLoader color="#d71920" showSpinner={false} shadow={false} height={3} />
+        <NextTopLoader color={settings.theme_config.colors.primary} showSpinner={false} shadow={false} height={3} />
         <AuthProvider>
           {children}
         </AuthProvider>

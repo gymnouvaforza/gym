@@ -34,6 +34,7 @@ import type { LeadFollowUpValues } from "@/lib/validators/lead";
 import type { MarketingContentValues } from "@/lib/validators/marketing";
 import type { SiteSettingsValues } from "@/lib/validators/settings";
 import { trimToNull } from "@/lib/utils";
+import { defaultThemeConfig, type ThemeConfig } from "@/lib/validators/theme";
 
 import type {
   Database,
@@ -352,6 +353,15 @@ export function normalizeSiteSettings(row: Partial<SiteSettings> | null | undefi
       trimToNull(row?.seo_canonical_url) ?? defaultSiteSettings.seo_canonical_url,
     footer_text: safeString(row?.footer_text, defaultSiteSettings.footer_text),
     updated_at: row?.updated_at ?? defaultSiteSettings.updated_at,
+    logo_url: row?.logo_url ?? defaultSiteSettings.logo_url,
+    favicon_url: row?.favicon_url ?? defaultSiteSettings.favicon_url,
+    primary_color: row?.primary_color ?? defaultSiteSettings.primary_color,
+    secondary_color: row?.secondary_color ?? defaultSiteSettings.secondary_color,
+    slogan: row?.slogan ?? defaultSiteSettings.slogan,
+    theme_config: {
+      colors: (row?.theme_config as Record<string, unknown>)?.colors as Record<string, string> ?? defaultThemeConfig.colors,
+      custom_css: row?.custom_css ?? defaultThemeConfig.custom_css,
+    } as ThemeConfig,
   };
 }
 
@@ -386,6 +396,7 @@ export function normalizeLeads(rows: Partial<Lead>[] | null | undefined): Lead[]
     }, [])
     .sort((left, right) => right.created_at.localeCompare(left.created_at));
 }
+
 export function normalizeLead(row: Partial<Lead> | null | undefined): Lead {
   const status = (row && leadStatuses.includes(row.status as LeadStatus))
     ? (row.status as LeadStatus)
@@ -1409,12 +1420,64 @@ export async function deleteLeadRecord(
   supabase: GymSupabaseClient,
   id: string,
 ) {
-  const { error } = await supabase
-    .from("leads")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("leads").delete().eq("id", id);
 
   if (error) {
     throw new Error(mapSupabaseError(error, "eliminar el lead"));
+  }
+}
+
+export async function updateBrandingRecord(
+  supabase: GymSupabaseClient,
+  values: {
+    gym_name: string;
+    slogan?: string | null;
+    primary_color: string;
+    secondary_color: string;
+    logo_url?: string | null;
+    favicon_url?: string | null;
+  },
+) {
+  const { data: settings } = await supabase.from("site_settings").select("id").limit(1).maybeSingle();
+  const id = settings?.id ?? 1;
+
+  const { error } = await supabase
+    .from("site_settings")
+    .update({
+      site_name: values.gym_name.trim(),
+      slogan: trimToNull(values.slogan),
+      primary_color: values.primary_color,
+      secondary_color: values.secondary_color,
+      logo_url: values.logo_url,
+      favicon_url: values.favicon_url,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(mapSupabaseError(error, "la identidad visual"));
+  }
+}
+
+export async function updateThemeConfigRecord(
+  supabase: GymSupabaseClient,
+  config: ThemeConfig,
+) {
+  const { data: settings } = await supabase.from("site_settings").select("id").limit(1).maybeSingle();
+  const id = settings?.id ?? 1;
+
+  const { error } = await supabase
+    .from("site_settings")
+    .update({
+      theme_config: {
+        colors: config.colors,
+      } as unknown as Json,
+      custom_css: config.custom_css,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(mapSupabaseError(error, "la configuracion del tema"));
   }
 }

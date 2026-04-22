@@ -20,6 +20,7 @@ describe("GET /api/mobile/me", () => {
     routeMocks.requireMobileSession.mockResolvedValue({
       response: null,
       role: "member",
+      staffAccessLevel: null,
       user,
     });
     routeMocks.getLiveMobileSession.mockResolvedValue({
@@ -28,6 +29,7 @@ describe("GET /api/mobile/me", () => {
       hasActiveRoutine: false,
       member: null,
       role: "member",
+      staffAccessLevel: null,
       userId: "user-1",
     });
 
@@ -36,7 +38,7 @@ describe("GET /api/mobile/me", () => {
     const payload = await response.json();
 
     expect(response.status).toBe(200);
-    expect(routeMocks.getLiveMobileSession).toHaveBeenCalledWith(user, "member");
+    expect(routeMocks.getLiveMobileSession).toHaveBeenCalledWith(user, "member", null);
     expect(payload.role).toBe("member");
   });
 });

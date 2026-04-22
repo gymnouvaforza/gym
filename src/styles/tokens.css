@@ -1,0 +1,54 @@
+:root {
+  /* Brand Colors */
+  --brand-primary: #d71920;      /* Rojo Nova */
+  --brand-primary-hover: #bf161c;
+  --brand-secondary: #111111;    /* Black / Dark Grey */
+  --brand-secondary-hover: #27272a;
+  
+  /* Surface / Backgrounds */
+  --surface-background: #f5f5f0; /* Beige Nova */
+  --surface-card: #ffffff;
+  --surface-panel: #111111;
+  
+  /* Text Colors */
+  --text-main: #111111;
+  --text-muted: #555555;
+  --text-inverted: #ffffff;
+  --text-accent: #d71920;
+  
+  /* Feedback / Semantic */
+  --status-info: #00588f;
+  --status-success: #476058;
+  --status-warning: #6d5940;
+  --status-error: #b91c1c;
+  
+  /* Feedback Backgrounds */
+  --bg-info: #faf8f4;
+  --bg-success: #f7fbf5;
+  --bg-warning: #fff8ee;
+  --bg-error: #fff4f4;
+  
+  /* Dynamic Theme Overrides */
+  --color-accent-custom: #f3f4f6;
+  --font-primary-dynamic: var(--font-inter);
+  
+  /* Layout & Spacing */
+  --radius-base: 0px; /* Sharp design style */
+  --radius-xl: 12px;
+  
+  /* Typography */
+  --font-display: var(--font-oswald); /* Assumes Oswald or similar via Next.js Font */
+  --font-sans: var(--font-inter);     /* Assumes Inter via Next.js Font */
+  
+  /* Borders */
+  --border-main: rgba(17, 17, 17, 0.1);
+  --border-inverted: rgba(255, 255, 255, 0.1);
+}
+
+.dark {
+  --surface-background: #0a0a0a;
+  --surface-card: #111111;
+  --text-main: #f5f5f0;
+  --text-muted: #a1a1aa;
+  --border-main: rgba(255, 255, 255, 0.1);
+}

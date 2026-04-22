@@ -34,6 +34,7 @@ export function createMobileSession(
       status: "active",
     },
     role: "member",
+    staffAccessLevel: null,
     userId: "user-1",
     ...overrides,
   } as MobileSession;

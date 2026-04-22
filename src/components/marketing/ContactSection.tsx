@@ -6,18 +6,26 @@ import type { SiteSettings } from "@/lib/supabase/database.types";
 
 import LeadForm from "./LeadForm";
 
-export default function ContactSection({ settings }: { settings: SiteSettings }) {
+interface ContactSectionProps {
+  settings: SiteSettings;
+}
+
+export default function ContactSection({ settings }: Readonly<ContactSectionProps>) {
   const address = settings.address ?? novaForzaHomeContent.contact.address;
   const phone = settings.contact_phone ?? novaForzaHomeContent.contact.whatsappDisplay;
   const phoneHref = phone.replace(/[^\d+]/g, "");
   const email = settings.contact_email ?? novaForzaHomeContent.contact.email;
 
   return (
-    <section id="contacto" className="section-anchor relative overflow-hidden bg-[#f5f5f0] py-24 md:py-32">
+    <section 
+      id="contacto" 
+      data-component="contact-section"
+      className="section-anchor relative overflow-hidden bg-background py-24 md:py-32"
+    >
       <div className="section-shell grid gap-16 lg:grid-cols-2">
         <div className="max-w-xl">
           <p className="section-kicker">Comienza hoy</p>
-          <h2 className="section-title italic">
+          <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl italic">
             Ubicacion &{" "}
             <span className="text-accent underline decoration-accent/20 underline-offset-8">
               Contacto
@@ -26,7 +34,7 @@ export default function ContactSection({ settings }: { settings: SiteSettings })
 
           <div className="mt-16 space-y-12">
             <div className="flex items-start gap-8">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-black text-accent">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
                 <MapPin className="h-6 w-6" />
               </div>
               <div>
@@ -40,7 +48,7 @@ export default function ContactSection({ settings }: { settings: SiteSettings })
             </div>
 
             <div className="flex items-start gap-8">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-black text-accent">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
                 <Smartphone className="h-6 w-6" />
               </div>
               <div>
@@ -57,7 +65,7 @@ export default function ContactSection({ settings }: { settings: SiteSettings })
             </div>
 
             <div className="flex items-start gap-8">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-black text-accent">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
                 <Mail className="h-6 w-6" />
               </div>
               <div>

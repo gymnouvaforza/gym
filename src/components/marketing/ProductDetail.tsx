@@ -62,31 +62,35 @@ export default function ProductDetail({
       ];
 
   return (
-    <section className={previewMode ? "py-0" : "section-shell py-12 md:py-20"}>
+    <article 
+      id={`product-${product.id}`}
+      data-component="product-detail"
+      className={previewMode ? "py-0" : "section-shell py-12 md:py-20"}
+    >
       {!previewMode ? (
         <nav
           aria-label="Breadcrumb"
-          className="mb-12 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#7a7f87]"
+          className="mb-12 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground"
         >
-          <Link href="/" className="transition hover:text-[#d71920]">
+          <Link href="/" className="transition hover:text-primary">
             INICIO
           </Link>
-          <span className="text-black/10">/</span>
-          <Link href="/tienda" className="transition hover:text-[#d71920]">
+          <span className="text-foreground/10">/</span>
+          <Link href="/tienda" className="transition hover:text-primary">
             TIENDA PRO
           </Link>
-          <span className="text-black/10">/</span>
+          <span className="text-foreground/10">/</span>
           <Link
             href={`/tienda?categoria=${product.category}`}
-            className="transition hover:text-[#d71920]"
+            className="transition hover:text-primary"
           >
             {productCategoryLabels[product.category].toUpperCase()}
           </Link>
-          <span className="text-black/10">/</span>
-          <span className="text-[#111111]">{product.name.toUpperCase()}</span>
+          <span className="text-foreground/10">/</span>
+          <span className="text-foreground">{product.name.toUpperCase()}</span>
         </nav>
       ) : (
-        <div className="mb-8 inline-flex items-center bg-[#111111] px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] text-white">
+        <div className="mb-8 inline-flex items-center bg-secondary px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] text-secondary-foreground rounded-[var(--radius-base)]">
           Preview ficha PDP
         </div>
       )}
@@ -104,23 +108,23 @@ export default function ProductDetail({
           <div className="space-y-8">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="h-1.5 w-1.5 bg-[#d71920]" />
-                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#7a7f87]">
+                <div className="h-1.5 w-1.5 bg-primary" />
+                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground">
                   {product.eyebrow ?? "Equipamiento de Rendimiento"}
                 </p>
               </div>
-              <h1 className="font-display text-5xl font-black uppercase leading-none tracking-tighter text-[#111111] sm:text-7xl italic">
+              <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-black uppercase leading-none tracking-tighter text-foreground italic">
                 {product.name}
               </h1>
             </div>
 
             <div className="flex flex-col gap-4">
               <div className="flex items-baseline gap-4">
-                <p className="font-display text-5xl font-black tracking-tighter text-[#111111]">
+                <p className="font-display text-5xl font-black tracking-tighter text-foreground">
                   {formatProductPrice(product)}
                 </p>
                 {showComparePrice ? (
-                  <p className="text-lg font-bold text-[#9ca3af] line-through decoration-[#d71920]/40">
+                  <p className="text-lg font-bold text-muted-foreground line-through decoration-primary/40">
                     {formatProductPrice({
                       price: comparePrice,
                       currency: product.currency,
@@ -128,35 +132,35 @@ export default function ProductDetail({
                   </p>
                 ) : null}
                 {product.discount_label ? (
-                  <Badge className="h-7 rounded-none border-none bg-[#d71920] px-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+                  <Badge className="h-7 rounded-[var(--radius-base)] border-none bg-primary px-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
                     {product.discount_label}
                   </Badge>
                 ) : null}
               </div>
-              <p className="border-l-2 border-[#d71920] bg-black/5 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[#7a7f87]">
+              <p className="border-l-2 border-primary bg-foreground/5 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                 Reserva asistida con cierre manual desde WhatsApp.
               </p>
             </div>
 
-            <p className="border-l border-black/10 pl-8 text-lg font-medium leading-8 text-[#5f6368]">
+            <p className="border-l border-border/10 pl-8 text-lg font-medium leading-8 text-muted-foreground">
               {product.description}
             </p>
           </div>
 
-          <div className="border border-black/10 bg-white p-10 shadow-2xl">
+          <div className="border border-border bg-card p-10 shadow-2xl rounded-[var(--radius-base)]">
             <ProductPurchasePanel product={product} previewMode={previewMode} />
           </div>
 
-          <div className="group relative overflow-hidden bg-[#111111] p-10 text-white shadow-2xl">
+          <div className="group relative overflow-hidden bg-secondary p-10 text-secondary-foreground shadow-2xl rounded-[var(--radius-base)]">
             <div className="relative z-10 flex items-start gap-6">
-              <div className="shrink-0 bg-white p-3 text-[#111111]">
+              <div className="shrink-0 bg-white p-3 text-secondary">
                 <Store className="h-6 w-6" />
               </div>
               <div className="space-y-2">
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-[#d71920]">
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-primary">
                   {getPickupHeading(product).toUpperCase()}
                 </p>
-                <p className="text-sm italic leading-relaxed text-white/60">
+                <p className="text-sm italic leading-relaxed opacity-60">
                   &ldquo;{getPickupCopy(product)}&rdquo;
                 </p>
               </div>
@@ -165,13 +169,13 @@ export default function ProductDetail({
           </div>
 
           <div className="flex flex-wrap gap-2 pt-4">
-            <Badge className="h-8 rounded-none border-black/10 bg-white px-4 text-[9px] font-black uppercase tracking-widest text-[#111111] shadow-sm">
+            <Badge className="h-8 rounded-[var(--radius-base)] border-border bg-card px-4 text-[9px] font-black uppercase tracking-widest text-foreground shadow-sm">
               {stockMeta.label}
             </Badge>
             {product.tags.map((tag) => (
               <Badge
                 key={tag}
-                className="h-8 rounded-none border-black/5 bg-[#fbfbf8] px-4 text-[9px] font-bold uppercase tracking-widest text-[#7a7f87]"
+                className="h-8 rounded-[var(--radius-base)] border-border bg-background px-4 text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
               >
                 {tag}
               </Badge>
@@ -180,10 +184,10 @@ export default function ProductDetail({
         </div>
       </div>
 
-      <div className="mt-20 grid grid-cols-1 gap-8 border-t border-black/10 pt-16 md:grid-cols-3">
-        <div className="group space-y-8 border border-black/10 bg-white p-10 shadow-lg transition-colors hover:border-[#111111]">
+      <div className="mt-20 grid grid-cols-1 gap-8 border-t border-border pt-16 md:grid-cols-3">
+        <section className="group space-y-8 border border-border bg-card p-10 shadow-lg transition-colors hover:border-secondary rounded-[var(--radius-base)]">
           <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center bg-[#111111] transition-colors group-hover:bg-[#d71920]">
+            <div className="flex h-10 w-10 items-center justify-center bg-secondary transition-colors group-hover:bg-primary rounded-[var(--radius-base)]">
               <CheckCircle2 className="h-5 w-5 text-white" />
             </div>
             <h2 className="font-display text-xl font-black uppercase tracking-tight italic">
@@ -193,34 +197,34 @@ export default function ProductDetail({
           <ul className="space-y-4">
             {benefitItems.map((item) => (
               <li key={item} className="flex items-start gap-4">
-                <div className="mt-2 h-1 w-1 shrink-0 bg-[#d71920]" />
-                <span className="text-sm font-medium leading-relaxed text-[#5f6368]">{item}</span>
+                <div className="mt-2 h-1 w-1 shrink-0 bg-primary" />
+                <span className="text-sm font-medium leading-relaxed text-muted-foreground">{item}</span>
               </li>
             ))}
           </ul>
-        </div>
+        </section>
 
-        <div className="group space-y-8 border border-black/10 bg-white p-10 shadow-lg transition-colors hover:border-[#111111]">
+        <section className="group space-y-8 border border-border bg-card p-10 shadow-lg transition-colors hover:border-secondary rounded-[var(--radius-base)]">
           <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center bg-[#111111] transition-colors group-hover:bg-[#d71920]">
+            <div className="flex h-10 w-10 items-center justify-center bg-secondary transition-colors group-hover:bg-primary rounded-[var(--radius-base)]">
               <TimerReset className="h-5 w-5 text-white" />
             </div>
             <h2 className="font-display text-xl font-black uppercase tracking-tight italic">
               Como usar
             </h2>
           </div>
-          <div className="space-y-4 text-sm font-medium italic leading-relaxed text-[#5f6368]">
+          <div className="space-y-4 text-sm font-medium italic leading-relaxed text-muted-foreground">
             {usageItems.map((item) => (
-              <p key={item} className="border-l-2 border-black/5 pl-6">
+              <p key={item} className="border-l-2 border-border/10 pl-6">
                 &ldquo;{item}&rdquo;
               </p>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="group space-y-8 border border-black/10 bg-white p-10 shadow-lg transition-colors hover:border-[#111111]">
+        <section className="group space-y-8 border border-border bg-card p-10 shadow-lg transition-colors hover:border-secondary rounded-[var(--radius-base)]">
           <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center bg-[#111111] transition-colors group-hover:bg-[#d71920]">
+            <div className="flex h-10 w-10 items-center justify-center bg-secondary transition-colors group-hover:bg-primary rounded-[var(--radius-base)]">
               <FileText className="h-5 w-5 text-white" />
             </div>
             <h2 className="font-display text-xl font-black uppercase tracking-tight italic">
@@ -231,17 +235,17 @@ export default function ProductDetail({
             {specificationItems.map((item) => (
               <div
                 key={`${item.label}-${item.value}`}
-                className="flex items-center justify-between gap-4 border-b border-black/5 pb-4 last:border-0"
+                className="flex items-center justify-between gap-4 border-b border-border/10 pb-4 last:border-0"
               >
-                <dt className="text-[10px] font-black uppercase tracking-widest text-[#7a7f87]">
+                <dt className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   {item.label}
                 </dt>
-                <dd className="text-xs font-bold uppercase text-[#111111]">{item.value}</dd>
+                <dd className="text-xs font-bold uppercase text-foreground">{item.value}</dd>
               </div>
             ))}
           </dl>
-        </div>
+        </section>
       </div>
-    </section>
+    </article>
   );
 }

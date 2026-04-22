@@ -23,12 +23,14 @@ describe("GET /api/mobile/me/history", () => {
       hasActiveRoutine: false,
       member: null,
       role: "member",
+      staffAccessLevel: null,
       userId: "user-1",
     };
 
     routeMocks.requireMobileSession.mockResolvedValue({
       response: null,
       role: "member",
+      staffAccessLevel: null,
       user: { email: "member@novaforza.com", id: "user-1" },
     });
     routeMocks.getLiveMobileSession.mockResolvedValue(mobileSession);

@@ -41,17 +41,17 @@ export function NFField({
       render={({ field }) => (
         <FormItem className={cn("space-y-2", className)}>
           <div className="flex items-center gap-2 group/label">
-            {Icon && <Icon className="size-3.5 text-muted-foreground/60 transition-colors group-focus-within/label:text-[#d71920]" />}
-            <FormLabel className="text-[10px] font-black uppercase tracking-wider text-[#7a7f87] group-focus-within/label:text-[#111111] transition-colors">
+            {Icon && <Icon className="size-3.5 text-muted-foreground/60 transition-colors group-focus-within/label:text-primary" />}
+            <FormLabel className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-focus-within/label:text-foreground transition-colors">
               {label}
             </FormLabel>
             {tooltip && (
               <TooltipProvider>
                 <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
-                    <HelpCircle className="size-3 text-muted-foreground/30 cursor-help transition-all hover:text-[#111111] hover:scale-110" />
+                    <HelpCircle className="size-3 text-muted-foreground/30 cursor-help transition-all hover:text-foreground hover:scale-110" />
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-[#111111] text-white border-none p-3 text-[10px] font-bold uppercase tracking-tight max-w-[200px]">
+                  <TooltipContent side="top" className="bg-secondary text-white border-none p-3 text-[10px] font-bold uppercase tracking-tight max-w-[200px]">
                     {tooltip}
                   </TooltipContent>
                 </Tooltip>
@@ -64,13 +64,13 @@ export function NFField({
                 {...field} 
                 {...props} 
                 value={field.value ?? ""}
-                className="h-12 bg-black/[0.02] border-black/5 rounded-xl px-4 font-bold text-[#111111] placeholder:text-muted-foreground/30 focus-visible:ring-0 focus-visible:border-[#111111] focus-visible:bg-white transition-all duration-300 shadow-none"
+                className="h-12 bg-black/[0.02] border-black/5 rounded-xl px-4 font-bold text-foreground placeholder:text-muted-foreground/30 focus-visible:ring-0 focus-visible:border-foreground focus-visible:bg-white transition-all duration-300 shadow-none"
               />
-              <div className="absolute inset-0 rounded-xl border-2 border-transparent group-focus-within/input:border-[#111111]/5 pointer-events-none transition-all duration-300" />
+              <div className="absolute inset-0 rounded-xl border-2 border-transparent group-focus-within/input:border-foreground/5 pointer-events-none transition-all duration-300" />
             </div>
           </FormControl>
           {description && <FormDescription className="text-[10px] font-medium italic opacity-70">{description}</FormDescription>}
-          <FormMessage className="text-[9px] font-black uppercase tracking-tighter text-[#d71920] mt-1.5" />
+          <FormMessage className="text-[9px] font-black uppercase tracking-tighter text-primary mt-1.5" />
         </FormItem>
       )}
     />

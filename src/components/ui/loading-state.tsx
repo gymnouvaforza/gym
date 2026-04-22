@@ -74,7 +74,7 @@ export function RouteSkeleton({
             </div>
           </div>
           <SkeletonBlock className="mt-6 h-12 w-full" />
-          <p className="mt-5 text-sm text-[#5f6368]">{description}</p>
+          <p className="mt-5 text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
     );
@@ -109,7 +109,7 @@ export function RouteSkeleton({
       <div className="rounded-[28px] border border-black/8 bg-white p-6 shadow-sm sm:p-8">
         <SkeletonBlock className="h-3 w-24" />
         <SkeletonBlock className="mt-4 h-10 w-60 sm:w-80" />
-        <p className="mt-4 max-w-2xl text-sm text-[#5f6368]">{description}</p>
+        <p className="mt-4 max-w-2xl text-sm text-muted-foreground">{description}</p>
       </div>
       <div className="mt-6 grid gap-6">
         {Array.from({ length: sections }).map((_, index) => (
@@ -120,7 +120,7 @@ export function RouteSkeleton({
           />
         ))}
       </div>
-      <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a7f87]">
+      <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {title}
       </p>
     </section>
@@ -143,17 +143,17 @@ export function AuthBlockingState({
   return (
     <div
       className={cn(
-        "absolute inset-0 z-10 flex items-center justify-center bg-[#111111]/80 p-6 backdrop-blur-md",
+        "absolute inset-0 z-10 flex items-center justify-center bg-secondary/80 p-6 backdrop-blur-md",
         className,
       )}
       role="status"
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="w-full max-w-md rounded-none border border-white/10 bg-[#161616] p-6 text-white shadow-[0_30px_90px_-40px_rgba(0,0,0,0.65)]">
+      <div className="w-full max-w-md rounded-none border border-white/10 bg-secondary p-6 text-white shadow-[0_30px_90px_-40px_rgba(0,0,0,0.65)]">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center border border-white/10 bg-white/5">
-            <Loader2 className="h-5 w-5 animate-spin text-[#d71920]" />
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
           </div>
           <div className="space-y-1">
             <p className="text-[10px] font-black uppercase tracking-[0.26em] text-[#f3a3a6]">

@@ -5,21 +5,45 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
+export const SUPERADMIN_ROLE = "superadmin";
 export const DASHBOARD_ADMIN_ROLE = "admin";
 export const TRAINER_ROLE = "trainer";
 export const APP_BLOCKED_ROLE = "app_blocked";
 
-export const DASHBOARD_ACCESS_ROLES = [DASHBOARD_ADMIN_ROLE, TRAINER_ROLE, APP_BLOCKED_ROLE] as const;
+export const DASHBOARD_STAFF_ROLES = [
+  SUPERADMIN_ROLE,
+  DASHBOARD_ADMIN_ROLE,
+  TRAINER_ROLE,
+] as const;
 
-export type PersistedUserRole = (typeof DASHBOARD_ACCESS_ROLES)[number];
+export const MOBILE_STAFF_ROLES = [
+  SUPERADMIN_ROLE,
+  DASHBOARD_ADMIN_ROLE,
+  TRAINER_ROLE,
+] as const;
+
+export type PersistedUserRole =
+  | typeof SUPERADMIN_ROLE
+  | typeof DASHBOARD_ADMIN_ROLE
+  | typeof TRAINER_ROLE
+  | typeof APP_BLOCKED_ROLE;
 
 type PersistedRoleRecord = Pick<
   Database["public"]["Tables"]["user_roles"]["Row"],
   "assigned_at" | "is_irreversible" | "note" | "role" | "user_id"
 >;
 
+function isPersistedUserRole(value: string): value is PersistedUserRole {
+  return [
+    SUPERADMIN_ROLE,
+    DASHBOARD_ADMIN_ROLE,
+    TRAINER_ROLE,
+    APP_BLOCKED_ROLE,
+  ].includes(value as PersistedUserRole);
+}
+
 function normalizeRoles(roles: string[]) {
-  return [...new Set(roles)] as PersistedUserRole[];
+  return [...new Set(roles.filter(isPersistedUserRole))];
 }
 
 export function isUserRolesSchemaError(error: unknown) {
@@ -125,5 +149,5 @@ export async function listPersistedUserRoles() {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as PersistedRoleRecord[];
+  return (data ?? []).filter((record) => isPersistedUserRole(record.role)) as PersistedRoleRecord[];
 }

@@ -10,7 +10,11 @@ export async function GET(request: Request) {
     return session.response!;
   }
 
-  const mobileSession = await getLiveMobileSession(session.user, session.role!);
+  const mobileSession = await getLiveMobileSession(
+    session.user,
+    session.role!,
+    session.staffAccessLevel,
+  );
 
   return NextResponse.json({
     routine: await getLiveRoutineForSession(mobileSession),

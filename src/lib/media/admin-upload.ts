@@ -1,4 +1,4 @@
-export type AdminMediaUploadScope = "product" | "team";
+export type AdminMediaUploadScope = "product" | "team" | "branding" | "favicon";
 
 export interface AdminMediaUploadResponse {
   bytes: number;

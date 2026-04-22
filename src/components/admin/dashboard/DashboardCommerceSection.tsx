@@ -1,6 +1,7 @@
 import { ShoppingBag, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { buildCommerceMetrics } from "@/lib/admin-dashboard";
+import type { SystemModuleStateMap } from "@/lib/module-flags";
 import { getStoreAdminSnapshot } from "@/lib/data/store-admin";
 import AdminMetricCard from "@/components/admin/AdminMetricCard";
 import { SectionSkeleton } from "@/components/ui/loading-state";
@@ -24,8 +25,20 @@ export function DashboardCommerceSectionFallback() {
   );
 }
 
-export default async function DashboardCommerceSection() {
-  const storeSnapshot = await getStoreAdminSnapshot();
+export default async function DashboardCommerceSection({
+  activeModulesPromise,
+}: {
+  activeModulesPromise: Promise<SystemModuleStateMap>;
+}) {
+  const [storeSnapshot, activeModules] = await Promise.all([
+    getStoreAdminSnapshot(),
+    activeModulesPromise,
+  ]);
+
+  if (!activeModules.tienda) {
+    return null;
+  }
+
   const commerceMetrics = buildCommerceMetrics(storeSnapshot.products, storeSnapshot.source, {
     warning: storeSnapshot.warning,
   });

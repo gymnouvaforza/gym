@@ -26,7 +26,7 @@ function renderTitleLines(words: string[], accentLastWord = false) {
       key={`${word}-${index}`}
       className={cn(
         "block text-white",
-        accentLastWord && index === words.length - 1 && words.length > 1 && "text-accent",
+        accentLastWord && index === words.length - 1 && words.length > 1 && "text-primary",
       )}
     >
       {word}
@@ -34,39 +34,51 @@ function renderTitleLines(words: string[], accentLastWord = false) {
   ));
 }
 
-export default function HeroSection({ settings }: { settings: SiteSettings }) {
+interface HeroSectionProps {
+  settings: SiteSettings;
+}
+
+export default function HeroSection({ settings }: Readonly<HeroSectionProps>) {
   const heroVideoUrl = settings.hero_video_url ?? DEFAULT_VIDEO_PATH;
   const titleParts = splitHeroTitle(settings.hero_title);
 
   return (
-    <section id="inicio" className="relative section-anchor min-h-screen overflow-hidden bg-[#090909]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(215,25,32,0.1)_0%,_transparent_50%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,_rgba(215,25,32,0.08)_0%,_transparent_50%)]" />
+    <section 
+      id="hero-section" 
+      data-component="hero-section"
+      className="relative section-anchor min-h-screen overflow-hidden bg-secondary flex items-center"
+      aria-labelledby="hero-title"
+    >
+      {/* Overlays with semantic variable naming */}
+      <div className="radial-overlay-1 pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_var(--brand-primary)_0.1,_transparent_50%)] opacity-10" />
+      <div className="radial-overlay-2 pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,_var(--brand-primary)_0.08,_transparent_50%)] opacity-10" />
 
-      <div className="section-shell relative z-10 flex min-h-screen flex-col justify-center py-24">
-        <div className="grid gap-16 lg:grid-cols-12 lg:items-center">
+      <div className="section-shell relative z-10 w-full py-20 lg:py-32">
+        <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
           <div className="flex flex-col items-center text-center lg:col-span-7 lg:items-start lg:text-left">
             <div className="flex items-center gap-3">
-              <span className="h-2 w-2 rounded-full bg-accent" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-accent">
+              <span className="h-2 w-2 rounded-[var(--radius-base)] bg-primary" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">
                 {settings.hero_badge || "Entrenamiento premium en Chiclayo"}
               </p>
             </div>
 
-            <h1 className="mt-8 font-display text-[28px] font-extrabold uppercase italic leading-[0.95] tracking-tight xs:text-[40px] sm:text-[56px] lg:text-[82px]">
+            <h1
+              id="hero-title"
+              className="mt-6 font-display text-4xl sm:text-6xl lg:text-8xl font-extrabold uppercase italic leading-[0.9] tracking-tighter text-white sm:mt-8"
+            >
               {renderTitleLines([...titleParts.left, ...titleParts.right], true)}
             </h1>
-
-            <p className="mt-10 max-w-xl text-[16px] leading-relaxed text-white/60 sm:text-[18px]">
+            <p className="mt-8 max-w-xl text-[15px] leading-relaxed text-white/60 sm:mt-10 sm:text-[18px]">
               {settings.hero_description}
             </p>
 
-            <div className="mt-12 flex flex-col gap-4 sm:flex-row">
+            <div className="mt-10 flex w-full flex-col gap-4 sm:flex-row sm:w-auto lg:mt-12">
               <Button
                 asChild
-                className="btn-athletic bg-accent text-white !h-16 !px-10 hover:bg-white hover:text-black"
+                className="btn-athletic bg-primary text-white h-16 w-full px-10 hover:bg-white hover:text-secondary rounded-[var(--radius-base)] sm:w-auto"
               >
-                <Link href="#planes" className="flex items-center gap-3">
+                <Link href="#membership-plans" className="flex items-center justify-center gap-3" aria-label="Ver planes de membresia">
                   <span className="flex flex-col items-start leading-none">
                     <span className="text-[10px] opacity-70">Ver</span>
                     <span className="text-sm font-black">PLANES</span>
@@ -77,9 +89,9 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
               <Button
                 asChild
                 variant="outline"
-                className="btn-athletic border-white/10 bg-white/5 text-white !h-16 !px-10 hover:bg-white/10"
+                className="btn-athletic border-white/20 bg-white/5 text-white h-16 w-full px-10 hover:bg-white/10 rounded-[var(--radius-base)] sm:w-auto"
               >
-                <Link href="#contacto">
+                <Link href="#contact-section" className="flex items-center justify-center" aria-label="Reserva tu prueba gratis">
                   <span className="flex flex-col items-start leading-none">
                     <span className="text-[10px] opacity-70">Reserva tu</span>
                     <span className="text-sm font-black">PRUEBA</span>
@@ -89,13 +101,13 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
             </div>
           </div>
 
-          <div className="relative lg:col-span-5">
+          <div className="relative hidden sm:block lg:col-span-5">
             <div className="animate-slide-up relative mx-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[360px] reveal-2 [animation-fill-mode:forwards]">
-              <div className="pointer-events-none absolute inset-0 -z-10 bg-accent/20 blur-[120px]" />
+              <div className="pointer-events-none absolute inset-0 -z-10 bg-primary/20 blur-[120px]" />
 
-              <div className="relative aspect-[9/16] overflow-hidden rounded-[2.5rem] border-[6px] border-[#1a1a1a] shadow-2xl shadow-accent/20">
+              <div className="relative aspect-[9/16] overflow-hidden rounded-[2.5rem] border-[6px] border-white/5 shadow-2xl shadow-primary/20">
                 <HeroPhoneMedia
-                  imageAlt="Nuova Forza Hero"
+                  imageAlt={`${settings.site_name} Hero Presentation`}
                   imageSrc={FALLBACK_IMAGE}
                   videoSrc={heroVideoUrl}
                 />
@@ -111,10 +123,10 @@ export default function HeroSection({ settings }: { settings: SiteSettings }) {
         </div>
       </div>
 
-      <div className="animate-fade-in absolute bottom-12 left-1/2 -translate-x-1/2 reveal-4 [animation-fill-mode:forwards]">
+      <div className="animate-fade-in absolute bottom-8 left-1/2 -translate-x-1/2 reveal-4 [animation-fill-mode:forwards] sm:bottom-12">
         <div className="flex flex-col items-center gap-3">
-          <div className="relative h-12 w-[1px] bg-gradient-to-b from-transparent via-white/20 to-transparent">
-            <div className="animate-scroll-dot absolute inset-x-0 top-0 mx-auto h-[6px] w-[2px] bg-accent" />
+          <div className="relative h-10 w-[1px] bg-gradient-to-b from-transparent via-white/20 to-transparent sm:h-12">
+            <div className="animate-scroll-dot absolute inset-x-0 top-0 mx-auto h-[6px] w-[2px] bg-primary" />
           </div>
         </div>
       </div>

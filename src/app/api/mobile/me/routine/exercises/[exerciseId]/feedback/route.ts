@@ -14,7 +14,11 @@ export async function PATCH(
   }
 
   const { exerciseId } = await context.params;
-  const mobileSession = await getLiveMobileSession(session.user, session.role!);
+  const mobileSession = await getLiveMobileSession(
+    session.user,
+    session.role!,
+    session.staffAccessLevel,
+  );
   const body = await request.json().catch(() => ({}));
 
   try {

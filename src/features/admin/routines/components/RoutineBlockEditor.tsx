@@ -22,10 +22,10 @@ export function RoutineBlockEditor({
   });
 
   return (
-    <div className="group relative space-y-6 border border-black/10 bg-white p-8 transition-all hover:border-[#d71920]/20">
+    <div className="group relative space-y-6 border border-black/10 bg-white p-8 transition-all hover:border-primary/20">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-black/5 pb-6">
         <div className="flex items-center gap-5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none bg-[#111111] font-display text-xl font-bold text-white">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none bg-secondary font-display text-xl font-bold text-white">
             {String(blockIndex + 1).padStart(2, "0")}
           </div>
           <AdminFormField
@@ -41,7 +41,7 @@ export function RoutineBlockEditor({
           variant="ghost" 
           size="sm" 
           onClick={onRemove} 
-          className="h-10 text-[#4b5563] hover:bg-[#d71920]/5 hover:text-[#d71920] font-bold uppercase tracking-wider text-[10px]"
+          className="h-10 text-muted-foreground hover:bg-primary/5 hover:text-primary font-bold uppercase tracking-wider text-[10px]"
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Quitar bloque
@@ -57,7 +57,7 @@ export function RoutineBlockEditor({
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#111111]">Ejercicios ({exercises.fields.length})</p>
+           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">Ejercicios ({exercises.fields.length})</p>
            <div className="h-px flex-1 mx-4 bg-black/5" />
         </div>
         
@@ -77,7 +77,7 @@ export function RoutineBlockEditor({
         <Button
           type="button"
           variant="outline"
-          className="w-full border-2 border-dashed border-black/10 py-8 font-black uppercase tracking-widest hover:border-[#d71920]/40 hover:bg-[#fff3f3] hover:text-[#d71920]"
+          className="w-full border-2 border-dashed border-black/10 py-8 font-black uppercase tracking-widest hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
           onClick={() => exercises.append(buildEmptyExercise())}
         >
           <Plus className="mr-2 h-5 w-5" />

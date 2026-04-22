@@ -44,7 +44,7 @@ export default function MembershipPlansCatalog({
 
   if (membershipPlans.length === 0) {
     return (
-      <div className="border border-white/10 bg-white/5 p-8 text-white">
+      <div className="border border-white/10 bg-white/5 p-8 text-white rounded-[var(--radius-base)]">
         <PublicInlineAlert
           tone="warning"
           title="Catalogo operativo pendiente"
@@ -55,12 +55,17 @@ export default function MembershipPlansCatalog({
   }
 
   return (
-    <section className="space-y-12">
+    <section 
+      id="membership-plans" 
+      data-component="membership-plans-catalog"
+      className="space-y-12"
+      aria-labelledby="plans-title"
+    >
       <div className="text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.34em] text-[#d71920]">
+        <p className="text-[10px] font-black uppercase tracking-[0.34em] text-primary">
           Membresias
         </p>
-        <h2 className="mt-4 font-display text-4xl font-black uppercase tracking-tight text-white sm:text-6xl">
+        <h2 id="plans-title" className="mt-4 font-display text-4xl font-black uppercase tracking-tight text-white sm:text-6xl italic">
           Elige Tu Plan
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/65">
@@ -78,54 +83,55 @@ export default function MembershipPlansCatalog({
               className={[
                 "relative flex flex-col p-12 transition-all duration-500",
                 plan.is_featured
-                  ? "z-10 bg-white text-[#181818] shadow-[0_30px_100px_rgba(0,0,0,0.6)] lg:scale-105"
+                  ? "z-10 bg-white text-foreground shadow-2xl lg:scale-105 featured-card"
                   : "border border-white/5 bg-white/5 text-white hover:bg-white/10",
               ].join(" ")}
+              style={{ borderRadius: "var(--radius-base)" }}
             >
               {plan.is_featured ? (
-                <div className="absolute top-0 right-0 bg-[#d71920] px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
+                <div className="absolute top-0 right-0 bg-primary px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
                   Destacado
                 </div>
               ) : null}
 
               <div className="mb-10">
-                <h2
+                <h3
                   className={[
                     "font-display text-2xl font-bold uppercase tracking-widest",
-                    plan.is_featured ? "text-[#181818]/75" : "text-white/70",
+                    plan.is_featured ? "text-foreground/75" : "text-white/70",
                   ].join(" ")}
                 >
                   {plan.title}
-                </h2>
+                </h3>
                 <div className="mt-8 flex items-baseline gap-2">
-                  <span className="font-display text-6xl font-black tracking-tighter text-[#d71920] lg:text-7xl">
+                  <span className="font-display text-6xl font-black tracking-tighter text-primary lg:text-7xl">
                     S/{plan.price_amount.toFixed(0)}
                   </span>
-                  <span className={plan.is_featured ? "text-[#6a645d]" : "text-white/40"}>
+                  <span className={plan.is_featured ? "text-muted-foreground" : "text-white/40"}>
                     {plan.billing_label ?? `${plan.duration_days} dias`}
                   </span>
                 </div>
-                <p className={plan.is_featured ? "mt-4 text-sm leading-7 text-[#5a544d]" : "mt-4 text-sm leading-7 text-white/65"}>
+                <p className={plan.is_featured ? "mt-4 text-sm leading-7 text-muted-foreground" : "mt-4 text-sm leading-7 text-white/65"}>
                   {plan.description ??
                     "Membresia operativa con QR, vigencia real y seguimiento desde tu cuenta."}
                 </p>
               </div>
 
               <div className="mb-12 space-y-5">
-                <div className={plan.is_featured ? "flex items-center gap-4 text-[15px] text-[#181818]" : "flex items-center gap-4 text-[15px] text-white"}>
-                  <ShieldCheck className="h-5 w-5 text-[#d71920]" />
+                <div className={plan.is_featured ? "flex items-center gap-4 text-[15px] text-foreground" : "flex items-center gap-4 text-[15px] text-white"}>
+                  <ShieldCheck className="h-5 w-5 text-primary" />
                   <span className="font-medium tracking-tight opacity-90">
                     {plan.duration_days} dias por ciclo
                   </span>
                 </div>
-                <div className={plan.is_featured ? "flex items-center gap-4 text-[15px] text-[#181818]" : "flex items-center gap-4 text-[15px] text-white"}>
-                  <ShieldCheck className="h-5 w-5 text-[#d71920]" />
+                <div className={plan.is_featured ? "flex items-center gap-4 text-[15px] text-foreground" : "flex items-center gap-4 text-[15px] text-white"}>
+                  <ShieldCheck className="h-5 w-5 text-primary" />
                   <span className="font-medium tracking-tight opacity-90">
                     QR operativo y vigencia real
                   </span>
                 </div>
-                <div className={plan.is_featured ? "flex items-center gap-4 text-[15px] text-[#181818]" : "flex items-center gap-4 text-[15px] text-white"}>
-                  <ShieldCheck className="h-5 w-5 text-[#d71920]" />
+                <div className={plan.is_featured ? "flex items-center gap-4 text-[15px] text-foreground" : "flex items-center gap-4 text-[15px] text-white"}>
+                  <ShieldCheck className="h-5 w-5 text-primary" />
                   <span className="font-medium tracking-tight opacity-90">
                     {isAuthenticated
                       ? "Se anade a tu cuenta y avisa al admin"
@@ -139,14 +145,14 @@ export default function MembershipPlansCatalog({
                   <MembershipReserveButton
                     membershipPlanId={plan.id}
                     label="Reservar membresia"
-                    className="w-full bg-[#d71920] text-white hover:bg-[#111111] hover:text-white"
+                    className="w-full bg-primary text-white hover:bg-secondary hover:text-white rounded-[var(--radius-base)]"
                   />
                 ) : whatsappPlanUrl ? (
                   <Button
                     asChild
-                    className="h-12 w-full rounded-none bg-[#d71920] text-[10px] font-black uppercase tracking-[0.18em] text-white hover:bg-white hover:text-[#111111]"
+                    className="h-12 w-full bg-primary text-[10px] font-black uppercase tracking-[0.18em] text-white hover:bg-white hover:text-foreground rounded-[var(--radius-base)]"
                   >
-                    <Link href={whatsappPlanUrl} target="_blank" rel="noreferrer">
+                    <Link href={whatsappPlanUrl} target="_blank" rel="noreferrer" aria-label={`Hablar por WhatsApp sobre el plan ${plan.title}`}>
                       Hablar por WhatsApp
                       <ArrowUpRight className="h-4 w-4" />
                     </Link>
@@ -154,9 +160,9 @@ export default function MembershipPlansCatalog({
                 ) : (
                   <Button
                     asChild
-                    className="h-12 w-full rounded-none bg-[#d71920] text-[10px] font-black uppercase tracking-[0.18em] text-white hover:bg-white hover:text-[#111111]"
+                    className="h-12 w-full bg-primary text-[10px] font-black uppercase tracking-[0.18em] text-white hover:bg-white hover:text-foreground rounded-[var(--radius-base)]"
                   >
-                    <Link href="/contacto">Solicitar informacion</Link>
+                    <Link href="/contacto" aria-label="Solicitar mas informacion">Solicitar informacion</Link>
                   </Button>
                 )}
               </div>

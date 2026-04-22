@@ -12,6 +12,7 @@ import {
 } from "@/lib/env";
 import {
   countUsersWithRole,
+  SUPERADMIN_ROLE,
   DASHBOARD_ADMIN_ROLE,
   isUserRolesSchemaError,
   listUserRolesForServerSession,
@@ -19,6 +20,7 @@ import {
 } from "@/lib/user-roles";
 
 export const LOCAL_ADMIN_COOKIE = "gym_admin_session";
+export const DASHBOARD_ROLE_OVERRIDE_COOKIE = "gym_e2e_dashboard_role";
 export const MEMBER_LOGIN_PATH = "/acceso";
 
 export interface LocalAdminUser {
@@ -27,12 +29,42 @@ export interface LocalAdminUser {
   isLocalAdmin: true;
 }
 
-export type DashboardAccessMode = "admin" | "trainer" | "bootstrap" | "local";
+export type DashboardAccessMode =
+  | "superadmin"
+  | "admin"
+  | "trainer"
+  | "bootstrap"
+  | "local";
 
 export interface DashboardAccessState {
   accessMode: DashboardAccessMode | null;
   accessWarning: string | null;
   user: AuthUser | LocalAdminUser | null;
+}
+
+type DashboardRoleOverride = Extract<DashboardAccessMode, "superadmin" | "admin" | "trainer">;
+
+function resolveDashboardRoleOverride(input: string | undefined): DashboardRoleOverride | null {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+
+  switch (input) {
+    case "superadmin":
+    case "admin":
+    case "trainer":
+      return input;
+    default:
+      return null;
+  }
+}
+
+function createLocalAdminUser(user: string): LocalAdminUser {
+  return {
+    email: `${user} (local)`,
+    id: `local-admin:${user}`,
+    isLocalAdmin: true,
+  };
 }
 
 export const isLocalAdminSession = cache(async function isLocalAdminSession() {
@@ -78,14 +110,27 @@ async function canBootstrapDashboardAccess() {
 
 export const getDashboardAccessState = cache(
   async function getDashboardAccessState(): Promise<DashboardAccessState> {
+  const cookieStore = await cookies();
+  const roleOverride = resolveDashboardRoleOverride(
+    cookieStore.get(DASHBOARD_ROLE_OVERRIDE_COOKIE)?.value,
+  );
   const authenticatedUser = await getAuthenticatedUser();
 
   if (authenticatedUser?.id) {
     try {
       const roles = await listUserRolesForServerSession(authenticatedUser.id);
 
-      if (roles.includes(DASHBOARD_ADMIN_ROLE) || roles.includes(TRAINER_ROLE)) {
-        const accessMode = roles.includes(DASHBOARD_ADMIN_ROLE) ? "admin" : "trainer";
+      if (
+        roles.includes(SUPERADMIN_ROLE) ||
+        roles.includes(DASHBOARD_ADMIN_ROLE) ||
+        roles.includes(TRAINER_ROLE)
+      ) {
+        const accessMode =
+          roles.includes(SUPERADMIN_ROLE)
+            ? "superadmin"
+            : roles.includes(DASHBOARD_ADMIN_ROLE)
+              ? "admin"
+              : "trainer";
 
         return {
           user: authenticatedUser,
@@ -122,12 +167,16 @@ export const getDashboardAccessState = cache(
   if (await isLocalAdminSession()) {
     const adminEnv = getLocalAdminEnv();
     if (adminEnv) {
+      if (roleOverride) {
+        return {
+          user: createLocalAdminUser(adminEnv.user),
+          accessMode: roleOverride,
+          accessWarning: null,
+        };
+      }
+
       return {
-        user: {
-          email: `${adminEnv.user} (local)`,
-          id: `local-admin:${adminEnv.user}`,
-          isLocalAdmin: true,
-        },
+        user: createLocalAdminUser(adminEnv.user),
         accessMode: "local",
         accessWarning: null,
       };
@@ -172,10 +221,7 @@ export async function requireSuperadminUser(
 ) {
   const accessState = await getDashboardAccessState();
 
-  if (
-    !accessState.user ||
-    !["admin", "bootstrap", "local"].includes(accessState.accessMode ?? "")
-  ) {
+  if (!accessState.user || accessState.accessMode !== "superadmin") {
     redirect(redirectTo);
   }
 
@@ -191,6 +237,7 @@ export const getDashboardCapabilities = cache(async function getDashboardCapabil
     accessMode: accessState.accessMode,
     accessWarning: accessState.accessWarning,
     isBootstrap: accessState.accessMode === "bootstrap",
+    isSuperadmin: accessState.accessMode === "superadmin",
     isLocalReadOnly: accessState.accessMode === "local" && !canManageRealData,
     isReadOnly: !canManageRealData,
   };

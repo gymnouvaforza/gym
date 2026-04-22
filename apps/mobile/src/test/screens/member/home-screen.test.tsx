@@ -13,6 +13,7 @@ describe("MemberHomeScreen", () => {
           hasActiveRoutine: false,
           member: null,
           role: "member",
+          staffAccessLevel: null,
           userId: "user-1",
         },
       },

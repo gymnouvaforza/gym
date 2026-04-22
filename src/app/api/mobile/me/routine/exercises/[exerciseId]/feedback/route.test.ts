@@ -23,12 +23,14 @@ describe("PATCH /api/mobile/me/routine/exercises/[exerciseId]/feedback", () => {
       hasActiveRoutine: true,
       member: { id: "member-1" },
       role: "member",
+      staffAccessLevel: null,
       userId: "user-1",
     };
 
     routeMocks.requireMobileSession.mockResolvedValue({
       response: null,
       role: "member",
+      staffAccessLevel: null,
       user: { email: "member@novaforza.com", id: "user-1" },
     });
     routeMocks.getLiveMobileSession.mockResolvedValue(mobileSession);

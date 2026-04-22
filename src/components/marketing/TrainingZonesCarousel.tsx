@@ -22,35 +22,40 @@ const zoneIconMap: Record<TrainingZoneIcon, typeof Dumbbell> = {
   bike: Bike,
 };
 
+interface ZoneCardProps {
+  zone: TrainingZone;
+  shouldLoadVideo: boolean;
+}
+
 function ZoneCard({
   zone,
   shouldLoadVideo,
-}: {
-  zone: TrainingZone;
-  shouldLoadVideo: boolean;
-}) {
+}: Readonly<ZoneCardProps>) {
   const Icon = zoneIconMap[zone.icon];
   const [videoFailed, setVideoFailed] = useState(false);
 
   return (
-    <div className="group relative flex h-[500px] w-[300px] shrink-0 flex-col overflow-hidden bg-black sm:h-[600px] sm:w-[340px] md:h-[640px] md:w-[360px]">
+    <article 
+      data-component="training-zone-card"
+      className="group relative flex h-[500px] w-[300px] shrink-0 flex-col overflow-hidden bg-secondary sm:h-[600px] sm:w-[340px] md:h-[640px] md:w-[360px] rounded-[var(--radius-base)]"
+    >
       <div className="absolute inset-0 z-0">
         {zone.poster ? (
           <Image
             src={zone.poster}
             alt={zone.title}
             fill
-            className="object-cover opacity-80 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-100"
+            className="object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-80"
             sizes="(min-width: 1280px) 360px, (min-width: 768px) 340px, 300px"
             quality={60}
           />
         ) : (
-          <div className="flex h-full flex-col justify-end bg-[radial-gradient(circle_at_top,_rgba(215,25,32,0.24),_transparent_34%),linear-gradient(180deg,_#0e0e10_0%,_#18181b_100%)] p-8 text-white">
-            <div className="mb-auto flex h-14 w-14 items-center justify-center border border-white/10 bg-white/[0.05]">
-              <Icon className="h-6 w-6 text-accent" />
+          <div className="flex h-full flex-col justify-end bg-secondary p-8 text-white">
+            <div className="mb-auto flex h-14 w-14 items-center justify-center border border-white/10 bg-white/5 rounded-[var(--radius-base)]">
+              <Icon className="h-6 w-6 text-primary" />
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-white/45">
-              Clip no disponible
+            <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-white/30">
+              Multimedia pendiente
             </p>
           </div>
         )}
@@ -63,7 +68,7 @@ function ZoneCard({
             playsInline
             preload="none"
             poster={zone.poster}
-            className="h-full w-full object-cover opacity-80 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-100"
+            className="h-full w-full object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-80"
             onError={() => setVideoFailed(true)}
           >
             <source src={zone.video} type="video/mp4" />
@@ -71,14 +76,15 @@ function ZoneCard({
         ) : null}
       </div>
 
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/95 via-black/40 to-transparent transition-opacity duration-500" />
+      {/* Overlay gradiente mas oscuro para mejorar legibilidad de textos blancos */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-secondary via-secondary/60 to-transparent" />
 
       <div className="relative z-20 flex h-full flex-col justify-between p-6 sm:p-8">
         <div className="flex items-center justify-between">
-          <div className="flex h-12 w-12 items-center justify-center border border-white/10 bg-black/40 text-accent backdrop-blur-md transition-colors duration-300 group-hover:bg-accent group-hover:text-white">
+          <div className="flex h-12 w-12 items-center justify-center border border-white/10 bg-white/5 text-primary backdrop-blur-md transition-colors duration-300 group-hover:bg-primary group-hover:text-white rounded-[var(--radius-base)]">
             <Icon className="h-5 w-5" />
           </div>
-          <span className="border border-white/10 bg-black/40 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 backdrop-blur-md">
+          <span className="border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 backdrop-blur-md rounded-[var(--radius-base)]">
             {zone.short_label}
           </span>
         </div>
@@ -93,12 +99,12 @@ function ZoneCard({
           </h3>
 
           {zone.subtitle ? (
-            <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
               {zone.subtitle}
             </p>
           ) : null}
 
-          <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-white/70">
+          <p className="mt-4 line-clamp-3 text-sm font-medium leading-relaxed text-white/70">
             {zone.description}
           </p>
 
@@ -106,7 +112,7 @@ function ZoneCard({
             <div className="mt-6">
               <Button
                 asChild
-                className="btn-athletic btn-primary w-full !h-12 !text-[11px] opacity-100 sm:translate-y-4 sm:opacity-0 sm:transition-all sm:duration-300 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+                className="btn-athletic bg-primary text-white w-full !h-12 !text-[11px] opacity-100 sm:translate-y-4 sm:opacity-0 sm:transition-all sm:duration-300 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 rounded-[var(--radius-base)]"
               >
                 <Link href={zone.cta_href}>{zone.cta_label}</Link>
               </Button>
@@ -114,7 +120,7 @@ function ZoneCard({
           ) : null}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -175,32 +181,35 @@ export default function TrainingZonesCarousel() {
   return (
     <section
       id="zonas"
+      data-component="training-zones-carousel"
       ref={sectionRef}
-      className="section-anchor relative overflow-hidden bg-[#18181b] py-24 md:py-32"
+      className="section-anchor relative overflow-hidden bg-secondary py-24 md:py-32"
     >
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top_right,_rgba(215,25,32,0.08),_transparent_40%)]" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_top_right,_var(--brand-primary),_transparent_40%)] opacity-5" />
 
       <div className="section-shell relative z-10 max-w-none px-4 sm:pl-6 sm:pr-0 md:pl-12 lg:pl-16 xl:pl-24">
         <div className="mb-12 flex flex-col gap-8 sm:pr-6 md:mb-16 md:flex-row md:items-end md:justify-between md:pr-12 lg:pr-16 xl:pr-24">
           <div className="max-w-2xl">
-            <p className="section-kicker text-accent">{trainingZonesSectionCopy.kicker}</p>
-            <h2 className="section-title text-white">
-              Espacios para <span className="text-accent italic">rendir</span> mejor en cada sesion
+            <p className="section-kicker text-primary">{trainingZonesSectionCopy.kicker}</p>
+            <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl text-white">
+              Espacios para <span className="text-primary italic">rendir</span> mejor en cada sesion
             </h2>
-            <p className="section-copy mt-6 text-zinc-400">{trainingZonesSectionCopy.intro}</p>
+            <p className="section-copy mt-6 text-white/50">{trainingZonesSectionCopy.intro}</p>
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
             <button
               onClick={scrollPrev}
-              className="group flex h-14 w-14 items-center justify-center border border-white/10 bg-white/5 text-white transition-colors hover:border-accent hover:bg-accent"
+              type="button"
+              className="group flex h-14 w-14 items-center justify-center border border-white/10 bg-white/5 text-white transition-all hover:border-primary hover:bg-primary rounded-[var(--radius-base)]"
               aria-label="Anterior zona"
             >
               <ChevronLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
             </button>
             <button
               onClick={scrollNext}
-              className="group flex h-14 w-14 items-center justify-center border border-white/10 bg-white/5 text-white transition-colors hover:border-accent hover:bg-accent"
+              type="button"
+              className="group flex h-14 w-14 items-center justify-center border border-white/10 bg-white/5 text-white transition-all hover:border-primary hover:bg-primary rounded-[var(--radius-base)]"
               aria-label="Siguiente zona"
             >
               <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -224,14 +233,16 @@ export default function TrainingZonesCarousel() {
         <div className="mt-8 flex items-center justify-center gap-2 pr-6 md:hidden">
           <button
             onClick={scrollPrev}
-            className="flex h-12 w-12 items-center justify-center border border-white/10 bg-white/5 text-white transition-colors active:border-accent active:bg-accent"
+            type="button"
+            className="flex h-12 w-12 items-center justify-center border border-white/10 bg-white/5 text-white transition-colors active:border-primary active:bg-primary rounded-[var(--radius-base)]"
             aria-label="Anterior zona"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
             onClick={scrollNext}
-            className="flex h-12 w-12 items-center justify-center border border-white/10 bg-white/5 text-white transition-colors active:border-accent active:bg-accent"
+            type="button"
+            className="flex h-12 w-12 items-center justify-center border border-white/10 bg-white/5 text-white transition-colors active:border-primary active:bg-primary rounded-[var(--radius-base)]"
             aria-label="Siguiente zona"
           >
             <ChevronRight className="h-5 w-5" />

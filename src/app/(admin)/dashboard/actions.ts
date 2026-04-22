@@ -21,6 +21,8 @@ import {
   updateLeadFollowUpRecord,
   updateLeadStatusRecord,
   deleteLeadRecord,
+  updateBrandingRecord,
+  updateThemeConfigRecord,
 } from "@/lib/supabase/queries";
 import { cmsDocumentSchema, type CmsDocumentValues } from "@/lib/validators/cms-document";
 import { leadFollowUpSchema, type LeadFollowUpValues, leadStatusSchema } from "@/lib/validators/lead";
@@ -30,6 +32,9 @@ import {
   type MarketingTestimonialModerationStatus,
 } from "@/lib/validators/marketing-testimonial";
 import { siteSettingsSchema, type SiteSettingsValues } from "@/lib/validators/settings";
+import { brandingSchema, type BrandingValues } from "@/lib/validators/branding";
+import { themeConfigSchema, type ThemeConfig } from "@/lib/validators/theme";
+
 
 async function getAuthenticatedSupabase() {
   await requireAdminUser();
@@ -189,3 +194,47 @@ export async function deleteLeadAction(id: string) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/leads");
 }
+
+export async function updateBrandingAction(values: BrandingValues): Promise<ActionResponse> {
+  try {
+    const parsed = brandingSchema.parse(values);
+    const supabase = await getAuthenticatedSupabase();
+
+    await updateBrandingRecord(supabase, {
+      gym_name: parsed.gym_name,
+      slogan: parsed.slogan,
+      primary_color: parsed.primary_color,
+      secondary_color: parsed.secondary_color,
+      logo_url: parsed.logo_url,
+      favicon_url: parsed.favicon_url,
+    });
+
+    revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Error al actualizar branding." 
+    };
+  }
+}
+
+export async function updateThemeAction(config: ThemeConfig): Promise<ActionResponse> {
+  try {
+    const parsed = themeConfigSchema.parse(config);
+    const supabase = await getAuthenticatedSupabase();
+
+    await updateThemeConfigRecord(supabase, parsed);
+
+    revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    return { success: true };
+  } catch (error) {
+    console.error("DEBUG: updateThemeAction Error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error al actualizar la configuracion del tema."
+    };
+  }
+}
+
+

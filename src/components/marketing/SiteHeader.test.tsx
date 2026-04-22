@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 
 import { render, screen } from "@testing-library/react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { vi } from "vitest";
 
 import SiteHeader from "@/components/marketing/SiteHeader";
+import { createDefaultModuleStateMap } from "@/lib/module-flags";
 import { defaultSiteSettings } from "@/lib/data/default-content";
 import { normalizeSiteName } from "@/lib/seo";
 import { CartProvider } from "@/features/checkout";
@@ -24,8 +25,9 @@ vi.mock("next/image", () => ({
   ),
 }));
 
-vi.mock("@/components/cart/CartEntry", () => ({
-  default: () => <button type="button">Abrir carrito</button>,
+vi.mock("@/features/checkout", () => ({
+  CartProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+  CartEntry: () => <button type="button">Abrir carrito</button>,
 }));
 
 vi.mock("@/components/marketing/SiteHeaderAuthActions", () => ({
@@ -34,9 +36,11 @@ vi.mock("@/components/marketing/SiteHeaderAuthActions", () => ({
 
 describe("SiteHeader", () => {
   it("renders the site header shell with cart and auth actions", () => {
+    const activeModules = createDefaultModuleStateMap();
+
     render(
       <CartProvider>
-        <SiteHeader settings={defaultSiteSettings} />
+        <SiteHeader settings={defaultSiteSettings} activeModules={activeModules} />
       </CartProvider>,
     );
 

@@ -72,8 +72,8 @@ export default function MembershipReserveButton({
         </PendingButtonLabel>
       </Button>
 
-      <p className="flex items-center gap-2 text-[11px] text-[#5f6368]">
-        <QrCode className="h-3.5 w-3.5 text-[#d71920]" />
+      <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <QrCode className="h-3.5 w-3.5 text-primary" />
         La solicitud queda vinculada a tu cuenta y te enviaremos acceso al QR por correo.
       </p>
 

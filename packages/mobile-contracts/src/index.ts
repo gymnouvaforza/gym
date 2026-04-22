@@ -3,6 +3,9 @@ import { z } from "zod";
 export const MobileRoleSchema = z.enum(["member", "staff"]);
 export type MobileRole = z.infer<typeof MobileRoleSchema>;
 
+export const MobileStaffAccessLevelSchema = z.enum(["trainer", "admin", "superadmin"]);
+export type MobileStaffAccessLevel = z.infer<typeof MobileStaffAccessLevelSchema>;
+
 export const MemberStatusSchema = z.enum([
   "prospect",
   "active",
@@ -40,11 +43,47 @@ export const MobileSessionSchema = z.object({
   userId: z.string(),
   email: z.string().email(),
   role: MobileRoleSchema,
+  staffAccessLevel: MobileStaffAccessLevelSchema.nullable(),
   displayName: z.string(),
   member: MemberSummaryDtoSchema.nullable(),
   hasActiveRoutine: z.boolean(),
 });
 export type MobileSession = z.infer<typeof MobileSessionSchema>;
+
+export const MobileSystemModuleNameSchema = z.enum([
+  "tienda",
+  "rutinas",
+  "mobile",
+  "leads",
+  "marketing",
+  "cms",
+]);
+export type MobileSystemModuleName = z.infer<typeof MobileSystemModuleNameSchema>;
+
+export const MobileSystemModuleDtoSchema = z.object({
+  name: MobileSystemModuleNameSchema,
+  label: z.string(),
+  description: z.string(),
+  disabledImpact: z.string(),
+  isEnabled: z.boolean(),
+  updatedAt: z.string(),
+});
+export type MobileSystemModuleDto = z.infer<typeof MobileSystemModuleDtoSchema>;
+
+export const MobileSystemModulesResponseSchema = z.object({
+  items: z.array(MobileSystemModuleDtoSchema),
+});
+export type MobileSystemModulesResponse = z.infer<typeof MobileSystemModulesResponseSchema>;
+
+export const UpdateMobileSystemModuleInputSchema = z.object({
+  isEnabled: z.boolean(),
+});
+export type UpdateMobileSystemModuleInput = z.infer<typeof UpdateMobileSystemModuleInputSchema>;
+
+export const UpdateMobileSystemModuleResponseSchema = z.object({
+  item: MobileSystemModuleDtoSchema,
+});
+export type UpdateMobileSystemModuleResponse = z.infer<typeof UpdateMobileSystemModuleResponseSchema>;
 
 export const RoutineExerciseDtoSchema = z.object({
   id: z.string(),

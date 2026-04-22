@@ -10,5 +10,7 @@ export async function GET(request: Request) {
     return session.response!;
   }
 
-  return NextResponse.json(await getLiveMobileSession(session.user, session.role!));
+  return NextResponse.json(
+    await getLiveMobileSession(session.user, session.role!, session.staffAccessLevel),
+  );
 }

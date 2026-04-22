@@ -8,6 +8,7 @@ import { SectionSkeleton } from "@/components/ui/loading-state";
 import DashboardLeadSection, { DashboardLeadSectionFallback } from "@/components/admin/dashboard/DashboardLeadSection";
 import DashboardCommerceSection, { DashboardCommerceSectionFallback } from "@/components/admin/dashboard/DashboardCommerceSection";
 import DashboardOverviewAlerts from "@/components/admin/dashboard/DashboardOverviewAlerts";
+import { getActiveModules } from "@/lib/data/modules";
 import { getDashboardData } from "@/lib/data/site";
 import { getStoreAdminSnapshot } from "@/lib/data/store-admin";
 
@@ -33,6 +34,8 @@ async function DashboardWarnings() {
 }
 
 export default function DashboardPage() {
+  const activeModulesPromise = getActiveModules();
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-[1200px] w-full">
       <div className="flex flex-col gap-6 border-b border-black/5 pb-8 lg:flex-row lg:items-end lg:justify-between">
@@ -67,15 +70,15 @@ export default function DashboardPage() {
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton lines={4} />}>
-         <DashboardOverviewAlerts />
+         <DashboardOverviewAlerts activeModulesPromise={activeModulesPromise} />
       </Suspense>
 
       <div className="space-y-12">
         <Suspense fallback={<DashboardLeadSectionFallback />}>
-          <DashboardLeadSection />
+          <DashboardLeadSection activeModulesPromise={activeModulesPromise} />
         </Suspense>
         <Suspense fallback={<DashboardCommerceSectionFallback />}>
-          <DashboardCommerceSection />
+          <DashboardCommerceSection activeModulesPromise={activeModulesPromise} />
         </Suspense>
       </div>
     </div>

@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { ShoppingBag, Users, Activity } from "lucide-react";
 import { countLeadsByStatus, getCommerceSourceMeta, getTopbarStatusMeta } from "@/lib/admin-dashboard";
+import type { SystemModuleStateMap } from "@/lib/module-flags";
 import { getDashboardData } from "@/lib/data/site";
 import { getStoreAdminSnapshot } from "@/lib/data/store-admin";
 import { resolveTopbarStatus } from "@/lib/topbar";
 import { Badge } from "@/components/ui/badge";
 
-export default async function DashboardOverviewAlerts() {
-  const [{ settings, leads, teamMembers }, storeSnapshot] = await Promise.all([
+export default async function DashboardOverviewAlerts({
+  activeModulesPromise,
+}: {
+  activeModulesPromise: Promise<SystemModuleStateMap>;
+}) {
+  const [{ settings, leads, teamMembers }, storeSnapshot, activeModules] = await Promise.all([
     getDashboardData(),
     getStoreAdminSnapshot(),
+    activeModulesPromise,
   ]);
 
   const leadSummary = countLeadsByStatus(leads);
@@ -22,7 +28,7 @@ export default async function DashboardOverviewAlerts() {
   return (
     <div className="space-y-6 mb-10">
       {/* ALERTS SECTION */}
-      {newLeads > 0 && (
+      {activeModules.leads && newLeads > 0 && (
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-l-4 border-[#d71920] bg-red-50 p-5 rounded-r-xl shadow-sm">
            <div>
              <p className="text-xs font-bold uppercase tracking-widest text-[#d71920] mb-1">
@@ -64,7 +70,7 @@ export default async function DashboardOverviewAlerts() {
                Tienda
              </p>
              <Badge variant={commerceMeta.tone} className="text-[10px] font-bold uppercase tracking-tight">
-               {commerceMeta.label}
+               {activeModules.tienda ? commerceMeta.label : "Desactivado"}
              </Badge>
            </div>
            <ShoppingBag className="h-5 w-5 text-black/10" />
@@ -90,7 +96,7 @@ export default async function DashboardOverviewAlerts() {
                Productos Activos
              </p>
              <p className="text-xl font-display font-bold text-[#111111]">
-               {storeSnapshot.products.length}
+               {activeModules.tienda ? storeSnapshot.products.length : 0}
              </p>
            </div>
            <ShoppingBag className="h-5 w-5 text-amber-600/50" />

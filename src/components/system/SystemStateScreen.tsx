@@ -22,8 +22,8 @@ export default function SystemStateScreen({
           title={document.title}
           message={document.summary ?? "Estamos mostrando una pantalla de sistema temporal."}
         />
-        <div className="border border-black/8 bg-white p-8 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#d71920]">
+        <div className="border border-border bg-white p-8 shadow-[0_24px_70px_-54px_rgba(17,17,17,0.35)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-primary">
             Estado del sistema
           </p>
           {document.body_markdown ? (

@@ -5,7 +5,7 @@ import { NFLoadingState } from "@/components/ui/nf-loading-state";
 import { useAuth } from "@/providers/auth-provider";
 
 export default function StaffLayout() {
-  const { isHydrated, isProfileLoading, session, role } = useAuth();
+  const { isHydrated, isProfileLoading, mobileSession, session, role } = useAuth();
 
   if (!isHydrated || (session && isProfileLoading)) {
     return <NFLoadingState label="Cargando staff..." />;
@@ -27,6 +27,9 @@ export default function StaffLayout() {
       <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="members" options={{ title: "Members" }} />
       <Tabs.Screen name="templates" options={{ title: "Templates" }} />
+      {mobileSession?.staffAccessLevel === "superadmin" ? (
+        <Tabs.Screen name="developer" options={{ title: "Developer" }} />
+      ) : null}
       <Tabs.Screen name="account" options={{ title: "Account" }} />
     </Tabs>
   );

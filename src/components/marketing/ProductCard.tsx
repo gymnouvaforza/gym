@@ -22,7 +22,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="group flex h-full flex-col overflow-hidden border border-black/5 bg-white transition-all duration-500 hover:shadow-[0_32px_80px_-40px_rgba(17,17,17,0.3)] relative"
+      className="group flex h-full flex-col overflow-hidden border border-black/5 bg-white transition-all duration-500 hover:shadow-[0_32px_80px_-40px_rgba(17,17,17,0.3)] relative rounded-[var(--radius-base)]"
     >
       <Link
         href={`/tienda/${product.slug}`}
@@ -48,7 +48,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
         {/* BADGES POSICIONADOS */}
         <div className="absolute left-6 top-6 flex flex-col gap-2">
             {product.featured && (
-              <span className="bg-[#d71920] px-3 py-1 font-black text-[9px] uppercase tracking-widest text-white shadow-xl">
+              <span className="bg-[#d71920] px-3 py-1 font-black text-[9px] uppercase tracking-widest text-white shadow-xl rounded-[var(--radius-base)]">
                 Premium
               </span>
             )}
@@ -66,7 +66,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
           </div>
           
           <div className="space-y-3">
-            <h3 className="font-display text-3xl font-black uppercase leading-none tracking-tighter text-[#111111] italic group-hover:text-[#d71920] transition-colors">
+            <h3 className="font-display text-2xl sm:text-3xl font-black uppercase leading-none tracking-tighter text-[#111111] italic group-hover:text-[#d71920] transition-colors">
               <Link href={`/tienda/${product.slug}`}>{product.name}</Link>
             </h3>
             <div className="flex items-baseline gap-3">
@@ -91,7 +91,7 @@ export default function ProductCard({ product }: Readonly<ProductCardProps>) {
           <Button
             variant="outline"
             size="lg"
-            className="h-12 px-8 rounded-none border-black/10 bg-white text-[#111111] font-black uppercase text-[10px] tracking-[0.2em] hover:bg-[#111111] hover:text-white transition-all shadow-sm"
+            className="h-12 px-8 rounded-[var(--radius-base)] border-black/10 bg-white text-[#111111] font-black uppercase text-[10px] tracking-[0.2em] hover:bg-[#111111] hover:text-white transition-all shadow-sm"
             asChild
           >
             <Link href={`/tienda/${product.slug}`}>Ver mas</Link>

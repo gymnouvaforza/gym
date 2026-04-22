@@ -9,17 +9,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-none whitespace-nowrap text-sm font-semibold tracking-[0.08em] transition-all duration-300 cursor-pointer disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d71920]/30",
+  "relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-none whitespace-nowrap text-sm font-semibold tracking-[0.08em] transition-all duration-300 cursor-pointer disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
   {
     variants: {
       variant: {
         default:
-          "bg-[#d71920] text-white shadow-[0_18px_40px_-22px_rgba(215,25,32,0.55)] hover:bg-[#bf161c] hover:-translate-y-0.5",
+          "bg-primary text-primary-foreground shadow-[0_18px_40px_-22px_rgba(215,25,32,0.55)] hover:bg-brand-primary-hover hover:-translate-y-0.5",
         secondary:
-          "border border-[#18181b] bg-[#18181b] text-white shadow-[0_18px_45px_-28px_rgba(17,17,17,0.7)] hover:bg-[#27272a] hover:-translate-y-0.5",
+          "border border-secondary bg-secondary text-secondary-foreground shadow-[0_18px_45px_-28px_rgba(17,17,17,0.7)] hover:bg-brand-secondary-hover hover:-translate-y-0.5",
         outline:
-          "border border-black/12 bg-white text-[#111111] hover:border-[#d71920]/35 hover:bg-[#fff7f7] hover:text-[#111111] hover:-translate-y-0.5",
-        ghost: "border border-transparent text-[#4b5563] hover:bg-black/[0.04] hover:text-[#111111]",
+          "border border-black/12 bg-white text-foreground hover:border-primary/35 hover:bg-error-bg hover:text-foreground hover:-translate-y-0.5",
+        ghost: "border border-transparent text-muted-foreground hover:bg-black/[0.04] hover:text-foreground",
         destructive: "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
         success: "bg-green-600 text-white shadow-[0_18px_40px_-22px_rgba(22,163,74,0.55)] hover:bg-green-700",
       },

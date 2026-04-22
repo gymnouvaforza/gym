@@ -1,12 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import type { SystemModuleStateMap } from "@/lib/module-flags";
 import DashboardSidebar from "./DashboardSidebar";
 
-export default function MobileSidebar() {
+interface MobileSidebarProps {
+  activeModules: SystemModuleStateMap;
+  isSuperadmin: boolean;
+}
+
+export default function MobileSidebar({
+  activeModules,
+  isSuperadmin,
+}: Readonly<MobileSidebarProps>) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -44,7 +54,10 @@ export default function MobileSidebar() {
               </div>
               
               <div className="flex-1 overflow-hidden">
-                <DashboardSidebar />
+                <DashboardSidebar
+                  activeModules={activeModules}
+                  isSuperadmin={isSuperadmin}
+                />
               </div>
             </div>
           </Dialog.Content>

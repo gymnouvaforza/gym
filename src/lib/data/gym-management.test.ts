@@ -445,6 +445,7 @@ describe("gym-management live mobile helpers", () => {
         status: "active",
       },
       role: "member",
+      staffAccessLevel: null,
       userId: "user-1",
     });
 
@@ -558,6 +559,7 @@ describe("gym-management live mobile helpers", () => {
         status: "active" as const,
       },
       role: "member",
+      staffAccessLevel: null,
       userId: "user-1",
     });
 
@@ -661,6 +663,7 @@ describe("gym-management live mobile helpers", () => {
         status: "active" as const,
       },
       role: "member" as const,
+      staffAccessLevel: null,
       userId: "user-1",
     };
 
@@ -742,6 +745,7 @@ describe("gym-management live mobile helpers", () => {
         status: "active",
       },
       role: "member",
+      staffAccessLevel: null,
       userId: "user-1",
     });
 

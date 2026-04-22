@@ -24,9 +24,9 @@ export function RoutineExerciseItem({
   const baseName = `blocks.${blockIndex}.exercises.${exerciseIndex}`;
 
   return (
-    <div className="relative flex flex-col gap-4 border border-black/5 bg-[#fbfbf8]/50 p-6 transition-all hover:bg-white hover:shadow-xl xl:flex-row xl:items-start">
-      <div className="flex shrink-0 items-center gap-3">
-        <span className="flex h-8 w-8 items-center justify-center border-2 border-[#111111] text-xs font-black">
+    <div className="relative flex flex-col gap-4 border border-black/5 bg-background/50 p-6 transition-all hover:bg-white hover:shadow-xl xl:flex-row xl:items-start">
+      <div className="flex shrink-0 items-center gap-4 xl:flex-col xl:gap-2">
+        <span className="flex h-8 w-8 items-center justify-center border-2 border-foreground text-xs font-black">
           {exerciseIndex + 1}
         </span>
       </div>
@@ -106,7 +106,7 @@ export function RoutineExerciseItem({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-10 w-10 text-[#4b5563] hover:bg-[#d71920]/5 hover:text-[#d71920]"
+          className="h-10 w-10 text-muted-foreground hover:bg-primary/5 hover:text-primary"
           onClick={onRemove}
         >
           <Trash2 className="h-4 w-4" />

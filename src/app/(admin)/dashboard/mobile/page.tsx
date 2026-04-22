@@ -4,7 +4,6 @@ import {
   Smartphone,
   UserCog,
   UserRound,
-  UserRoundCheck,
   Zap,
   Lock,
   Activity
@@ -25,10 +24,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getDashboardCapabilities } from "@/lib/auth";
+import MobileUserAccessDialog from "@/components/admin/MobileUserAccessDialog";
+import { listDashboardMembers } from "@/lib/data/gym-management";
 import { getMobileAdminSnapshot } from "@/lib/data/mobile-admin";
+import { assertModuleEnabledOrNotFound } from "@/lib/data/modules";
 import { cn } from "@/lib/utils";
 
-type MobileUserSegment = "superadmin" | "trainer" | "user";
+type ExtendedMobileUserSegment = "superadmin" | "admin" | "trainer" | "user";
 
 const segmentMeta = {
   superadmin: {
@@ -36,6 +38,12 @@ const segmentMeta = {
     empty: "Todavia no hay superadmins persistidos en `public.user_roles`.",
     label: "Superadmin",
     color: "bg-[#111111]",
+  },
+  admin: {
+    description: "Admins operativos del dashboard sin privilegio root de developer console.",
+    empty: "Todavia no hay admins persistidos en `public.user_roles`.",
+    label: "Admin",
+    color: "bg-[#d71920]",
   },
   trainer: {
     description: "Entrenadores con acceso operativo a la app mobile.",
@@ -50,7 +58,7 @@ const segmentMeta = {
     color: "bg-blue-500",
   },
 } satisfies Record<
-  MobileUserSegment,
+  ExtendedMobileUserSegment,
   {
     description: string;
     empty: string;
@@ -67,26 +75,33 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
-function getUserSegment(roles: string[]): MobileUserSegment {
-  if (roles.includes("admin")) return "superadmin";
+function getUserSegment(roles: string[]): ExtendedMobileUserSegment {
+  if (roles.includes("superadmin")) return "superadmin";
+  if (roles.includes("admin")) return "admin";
   if (roles.includes("trainer")) return "trainer";
   return "user";
 }
 
-function parseSegment(value: string | string[] | undefined): MobileUserSegment {
+function parseSegment(value: string | string[] | undefined): ExtendedMobileUserSegment {
   const normalized = Array.isArray(value) ? value[0] : value;
-  if (normalized === "superadmin" || normalized === "trainer" || normalized === "user") return normalized;
+  if (
+    normalized === "superadmin" ||
+    normalized === "admin" ||
+    normalized === "trainer" ||
+    normalized === "user"
+  ) {
+    return normalized;
+  }
   return "superadmin";
 }
-
-import { listDashboardMembers } from "@/lib/data/gym-management";
-import MobileUserAccessDialog from "@/components/admin/MobileUserAccessDialog";
 
 export default async function DashboardMobilePage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  await assertModuleEnabledOrNotFound("mobile");
+
   const params = await searchParams;
   const activeSegment = parseSegment(params.segment);
   const [
@@ -101,9 +116,10 @@ export default async function DashboardMobilePage({
 
   const usersBySegment = {
     superadmin: snapshot.users.filter((user) => getUserSegment(user.roles) === "superadmin"),
+    admin: snapshot.users.filter((user) => getUserSegment(user.roles) === "admin"),
     trainer: snapshot.users.filter((user) => getUserSegment(user.roles) === "trainer"),
     user: snapshot.users.filter((user) => getUserSegment(user.roles) === "user"),
-  } satisfies Record<MobileUserSegment, typeof snapshot.users>;
+  } satisfies Record<ExtendedMobileUserSegment, typeof snapshot.users>;
 
   const filteredUsers = usersBySegment[activeSegment];
   const activeMeta = segmentMeta[activeSegment];
@@ -149,13 +165,13 @@ export default async function DashboardMobilePage({
           <div className="grid gap-4 md:grid-cols-4">
             <AdminMetricCard label="TOTAL AUTH" value={String(snapshot.counts.authUsers)} hint="Cuentas Supabase." icon={UserRound} tone="muted" className="border-none shadow-md" />
             <AdminMetricCard label="COACHES" value={String(usersBySegment.trainer.length)} hint="Acceso Staff App." icon={ShieldCheck} tone="warning" className="border-none shadow-md" />
-            <AdminMetricCard label="ADMINS" value={String(usersBySegment.superadmin.length)} hint="Control Total." icon={UserCog} tone="default" className="border-none shadow-md" />
-            <AdminMetricCard label="VINCULADOS" value={String(snapshot.counts.linkedMembers)} hint="Enlace Mobile." icon={UserRoundCheck} tone="success" className="border-none shadow-md" />
+            <AdminMetricCard label="ROOT" value={String(usersBySegment.superadmin.length)} hint="Superadmin real." icon={UserCog} tone="default" className="border-none shadow-md" />
+            <AdminMetricCard label="ADMINS" value={String(usersBySegment.admin.length)} hint="Operacion dashboard." icon={ShieldCheck} tone="default" className="border-none shadow-md" />
           </div>
 
           <section className="space-y-6">
             <div className="flex flex-wrap gap-2 border-b border-black/5 pb-6">
-              {(Object.keys(segmentMeta) as MobileUserSegment[]).map((segment) => {
+              {(Object.keys(segmentMeta) as ExtendedMobileUserSegment[]).map((segment) => {
                 const isActive = segment === activeSegment;
                 const count = usersBySegment[segment].length;
                 return (
