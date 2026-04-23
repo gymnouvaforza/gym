@@ -36,11 +36,11 @@ export default function SiteHeaderAuthActions({
   }
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-2 border-t border-black/8 pt-4 lg:hidden">
-      <Button asChild variant="outline" className="h-10 w-full font-semibold">
+    <div className="mt-4 flex flex-col gap-2 xs:gap-3 border-t border-black/5 pt-6 lg:hidden">
+      <Button asChild variant="outline" className="h-11 xs:h-12 w-full font-bold uppercase tracking-wider text-[11px] xs:text-xs">
         <Link href={secondaryAction.href}>{secondaryAction.label}</Link>
       </Button>
-      <Button asChild className="btn-athletic btn-primary h-10 w-full font-semibold">
+      <Button asChild className="btn-athletic btn-primary h-11 xs:h-12 w-full font-bold uppercase tracking-wider text-[11px] xs:text-xs">
         <Link href={primaryAction.href}>{primaryAction.label}</Link>
       </Button>
     </div>

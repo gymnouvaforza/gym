@@ -50,7 +50,7 @@ export default async function PublicHomePage() {
         <FloatingWhatsAppButton settings={settings} />
         <ValueSection />
         <section id="planes" className="section-anchor bg-secondary py-24 md:py-32">
-          <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12">
             <MembershipPlansCatalog
               membershipPlans={membershipPlans}
               whatsappUrl={settings.whatsapp_url}

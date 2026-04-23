@@ -27,12 +27,12 @@ export default function FloatingWhatsAppButton({
       target="_blank"
       rel="noreferrer"
       aria-label="Escribenos por WhatsApp"
-      className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] right-4 z-40 inline-flex items-center gap-3 rounded-full border border-[#25d366]/30 bg-[#111111]/92 px-4 py-3 text-white shadow-[0_18px_40px_rgba(0,0,0,0.35)] backdrop-blur transition-all duration-200 hover:-translate-y-1 hover:border-[#25d366]/60 hover:bg-[#1a1a1a] hover:shadow-[0_22px_50px_rgba(0,0,0,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25d366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#151518] md:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] md:right-6 md:px-5"
+      className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] right-4 z-40 inline-flex items-center gap-0 sm:gap-3 rounded-full border border-[#25d366]/30 bg-[#111111]/92 p-3 sm:px-4 sm:py-3 text-white shadow-[0_18px_40px_rgba(0,0,0,0.35)] backdrop-blur transition-all duration-200 hover:-translate-y-1 hover:border-[#25d366]/60 hover:bg-[#1a1a1a] hover:shadow-[0_22px_50px_rgba(0,0,0,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25d366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#151518] md:bottom-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] md:right-6 md:px-5"
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#25d366] text-[#111111] shadow-[0_10px_24px_rgba(37,211,102,0.35)]">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#25d366] text-[#111111] shadow-[0_10px_24px_rgba(37,211,102,0.35)]">
         <WhatsAppIcon />
       </span>
-      <span className="flex flex-col leading-none">
+      <span className="hidden sm:flex flex-col leading-none">
         <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/55">
           Contacto directo
         </span>

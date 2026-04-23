@@ -88,7 +88,7 @@ export default function LeadForm() {
     <form
       onSubmit={handleSubmit(onSubmit)}
       noValidate
-      className="space-y-6 bg-white p-10 shadow-2xl sm:p-12"
+      className="space-y-6 bg-white p-6 xs:p-8 sm:p-12 shadow-2xl"
     >
       <p className="text-xs leading-6 text-[#5f6368]">
         Completa este formulario y te respondemos por WhatsApp o email lo antes posible.
@@ -97,14 +97,14 @@ export default function LeadForm() {
       <div className="space-y-2">
         <label
           htmlFor="name"
-          className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/50"
+          className="text-xs font-bold uppercase tracking-[0.15em] text-foreground/50"
         >
           Nombre completo
         </label>
         <Input
           id="name"
           placeholder="Ej: Juan Perez"
-          className="h-14 bg-[#f8f8f6]"
+          className="h-12 xs:h-14 bg-[#f8f8f6]"
           aria-invalid={Boolean(nameError)}
           aria-describedby={nameError ? `${formId}-name-error` : undefined}
           {...register("name")}
@@ -116,11 +116,11 @@ export default function LeadForm() {
         ) : null}
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-4 xs:gap-6 sm:grid-cols-2">
         <div className="space-y-2">
           <label
             htmlFor="email"
-            className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/50"
+            className="text-xs font-bold uppercase tracking-[0.15em] text-foreground/50"
           >
             Email
           </label>
@@ -128,7 +128,7 @@ export default function LeadForm() {
             id="email"
             type="email"
             placeholder="juan@email.com"
-            className="h-14 bg-[#f8f8f6]"
+            className="h-12 xs:h-14 bg-[#f8f8f6]"
             aria-invalid={Boolean(emailError)}
             aria-describedby={emailError ? `${formId}-email-error` : undefined}
             {...register("email")}
@@ -142,14 +142,14 @@ export default function LeadForm() {
         <div className="space-y-2">
           <label
             htmlFor="phone"
-            className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/50"
+            className="text-xs font-bold uppercase tracking-[0.15em] text-foreground/50"
           >
             Telefono (opcional)
           </label>
           <Input
             id="phone"
             placeholder="+54 9..."
-            className="h-14 bg-[#f8f8f6]"
+            className="h-12 xs:h-14 bg-[#f8f8f6]"
             aria-invalid={Boolean(phoneError)}
             aria-describedby={phoneError ? `${formId}-phone-error` : undefined}
             {...register("phone")}
@@ -165,14 +165,14 @@ export default function LeadForm() {
       <div className="space-y-2">
         <label
           htmlFor="message"
-          className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/50"
+          className="text-xs font-bold uppercase tracking-[0.15em] text-foreground/50"
         >
           Mensaje
         </label>
         <Textarea
           id="message"
           placeholder="Cuentanos tus objetivos..."
-          className="min-h-[120px] resize-none bg-[#f8f8f6]"
+          className="min-h-[100px] xs:min-h-[120px] resize-none bg-[#f8f8f6]"
           aria-invalid={Boolean(messageError)}
           aria-describedby={messageError ? `${formId}-message-error` : undefined}
           {...register("message")}
@@ -195,19 +195,19 @@ export default function LeadForm() {
       <Button
         type="submit"
         disabled={status === "loading"}
-        className="btn-athletic btn-primary h-16 w-full text-base"
+        className="btn-athletic btn-primary h-auto min-h-[3.5rem] xs:min-h-[4rem] w-full px-2 sm:px-10 text-[11px] xs:text-xs sm:text-base tracking-[0.1em] sm:tracking-[0.2em] whitespace-normal text-center leading-tight py-2"
       >
         {status === "loading" ? (
-          <>
-            <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-            Enviando...
-          </>
+          <span className="flex items-center justify-center gap-2">
+            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin shrink-0" />
+            <span>Enviando...</span>
+          </span>
         ) : (
           "Enviar solicitud de prueba"
         )}
       </Button>
 
-      <p className="text-xs leading-6 text-[#7a7f87]">
+      <p className="text-[10px] sm:text-xs leading-6 text-[#7a7f87]">
         Al enviar tus datos, te contactamos solo para responder tu consulta o agendar una visita.
       </p>
     </form>

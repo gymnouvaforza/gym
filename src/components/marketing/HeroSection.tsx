@@ -65,9 +65,10 @@ export default function HeroSection({ settings }: Readonly<HeroSectionProps>) {
 
             <h1
               id="hero-title"
-              className="mt-6 font-display text-4xl sm:text-6xl lg:text-8xl font-extrabold uppercase italic leading-[0.9] tracking-tighter text-white sm:mt-8"
+              className="mt-6 font-display text-4xl xs:text-[42px] sm:text-7xl lg:text-8xl font-black uppercase italic leading-[0.85] xs:leading-[0.8] tracking-tighter text-white sm:mt-8"
             >
-              {renderTitleLines([...titleParts.left, ...titleParts.right], true)}
+              <span className="block">{titleParts.left.join(" ")}</span>
+              <span className="block text-primary">{titleParts.right.join(" ")}</span>
             </h1>
             <p className="mt-8 max-w-xl text-[15px] leading-relaxed text-white/60 sm:mt-10 sm:text-[18px]">
               {settings.hero_description}

@@ -65,10 +65,10 @@ export default function MembershipPlansCatalog({
         <p className="text-[10px] font-black uppercase tracking-[0.34em] text-primary">
           Membresias
         </p>
-        <h2 id="plans-title" className="mt-4 font-display text-4xl font-black uppercase tracking-tight text-white sm:text-6xl italic">
+        <h2 id="plans-title" className="mt-4 font-display text-3xl xs:text-4xl sm:text-5xl font-black uppercase tracking-tight text-white italic break-words">
           Elige Tu Plan
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/65">
+        <p className="mx-auto mt-4 max-w-2xl text-xs sm:text-sm leading-6 sm:leading-7 text-white/65 px-2 sm:px-0">
           Mismo formato de pricing de siempre, pero ahora conectado al flujo real de membresias.
         </p>
       </div>
@@ -81,7 +81,7 @@ export default function MembershipPlansCatalog({
             <article
               key={plan.id}
               className={[
-                "relative flex flex-col p-12 transition-all duration-500",
+                "relative flex flex-col p-6 sm:p-8 lg:p-12 transition-all duration-500 overflow-hidden",
                 plan.is_featured
                   ? "z-10 bg-white text-foreground shadow-2xl lg:scale-105 featured-card"
                   : "border border-white/5 bg-white/5 text-white hover:bg-white/10",
@@ -89,29 +89,29 @@ export default function MembershipPlansCatalog({
               style={{ borderRadius: "var(--radius-base)" }}
             >
               {plan.is_featured ? (
-                <div className="absolute top-0 right-0 bg-primary px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white">
+                <div className="absolute top-0 right-0 bg-primary px-4 py-1 sm:px-6 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-white">
                   Destacado
                 </div>
               ) : null}
 
-              <div className="mb-10">
+              <div className="mb-8 sm:mb-10">
                 <h3
                   className={[
-                    "font-display text-2xl font-bold uppercase tracking-widest",
+                    "font-display text-xl sm:text-2xl font-bold uppercase tracking-widest break-words",
                     plan.is_featured ? "text-foreground/75" : "text-white/70",
                   ].join(" ")}
                 >
                   {plan.title}
                 </h3>
-                <div className="mt-8 flex items-baseline gap-2">
-                  <span className="font-display text-6xl font-black tracking-tighter text-primary lg:text-7xl">
+                <div className="mt-6 sm:mt-8 flex items-baseline gap-2 flex-wrap">
+                  <span className="font-display text-5xl sm:text-6xl font-black tracking-tighter text-primary lg:text-7xl">
                     S/{plan.price_amount.toFixed(0)}
                   </span>
-                  <span className={plan.is_featured ? "text-muted-foreground" : "text-white/40"}>
+                  <span className={plan.is_featured ? "text-muted-foreground text-xs sm:text-sm" : "text-white/40 text-xs sm:text-sm"}>
                     {plan.billing_label ?? `${plan.duration_days} dias`}
                   </span>
                 </div>
-                <p className={plan.is_featured ? "mt-4 text-sm leading-7 text-muted-foreground" : "mt-4 text-sm leading-7 text-white/65"}>
+                <p className={plan.is_featured ? "mt-4 text-xs sm:text-sm leading-6 sm:leading-7 text-muted-foreground break-words" : "mt-4 text-xs sm:text-sm leading-6 sm:leading-7 text-white/65 break-words"}>
                   {plan.description ??
                     "Membresia operativa con QR, vigencia real y seguimiento desde tu cuenta."}
                 </p>

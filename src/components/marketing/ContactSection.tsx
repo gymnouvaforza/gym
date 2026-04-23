@@ -32,49 +32,49 @@ export default function ContactSection({ settings }: Readonly<ContactSectionProp
             </span>
           </h2>
 
-          <div className="mt-16 space-y-12">
-            <div className="flex items-start gap-8">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
-                <MapPin className="h-6 w-6" />
+          <div className="mt-12 sm:mt-16 space-y-8 sm:space-y-12">
+            <div className="flex items-start gap-4 sm:gap-8">
+              <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
+                <MapPin className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40 truncate">
                   Direccion
                 </p>
-                <p className="mt-3 font-display text-2xl font-bold uppercase tracking-tight text-foreground">
+                <p className="mt-2 sm:mt-3 font-display text-lg xs:text-xl sm:text-2xl font-bold uppercase tracking-tight text-foreground break-words">
                   {address}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-8">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
-                <Smartphone className="h-6 w-6" />
+            <div className="flex items-start gap-4 sm:gap-8">
+              <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
+                <Smartphone className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40 truncate">
                   {novaForzaHomeContent.contact.whatsappLabel}
                 </p>
                 <Link
                   href={`tel:${phoneHref}`}
-                  className="mt-3 inline-block font-display text-2xl font-bold uppercase tracking-tight text-foreground transition-colors hover:text-accent"
+                  className="mt-2 sm:mt-3 inline-block font-display text-lg xs:text-xl sm:text-2xl font-bold uppercase tracking-tight text-foreground transition-colors hover:text-accent break-all"
                 >
                   {phone}
                 </Link>
               </div>
             </div>
 
-            <div className="flex items-start gap-8">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
-                <Mail className="h-6 w-6" />
+            <div className="flex items-start gap-4 sm:gap-8">
+              <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center bg-secondary text-accent rounded-[var(--radius-base)]">
+                <Mail className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40 truncate">
                   {novaForzaHomeContent.contact.emailLabel}
                 </p>
                 <Link
                   href={`mailto:${email}`}
-                  className="mt-3 inline-block font-display text-2xl font-bold uppercase tracking-tight text-foreground transition-colors hover:text-accent"
+                  className="mt-2 sm:mt-3 inline-block font-display text-lg xs:text-xl sm:text-2xl font-bold uppercase tracking-tight text-foreground transition-colors hover:text-accent break-all"
                 >
                   {email}
                 </Link>

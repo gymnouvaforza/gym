@@ -45,7 +45,7 @@ function ZoneCard({
             src={zone.poster}
             alt={zone.title}
             fill
-            className="object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-80"
+            className="object-cover opacity-90 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-100"
             sizes="(min-width: 1280px) 360px, (min-width: 768px) 340px, 300px"
             quality={60}
           />
@@ -68,7 +68,7 @@ function ZoneCard({
             playsInline
             preload="none"
             poster={zone.poster}
-            className="h-full w-full object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-80"
+            className="h-full w-full object-cover opacity-90 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-100"
             onError={() => setVideoFailed(true)}
           >
             <source src={zone.video} type="video/mp4" />
@@ -76,8 +76,8 @@ function ZoneCard({
         ) : null}
       </div>
 
-      {/* Overlay gradiente mas oscuro para mejorar legibilidad de textos blancos */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-secondary via-secondary/60 to-transparent" />
+      {/* Overlay gradiente mas suave para mejorar legibilidad de textos blancos sin lavar el video */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-secondary via-secondary/40 to-transparent opacity-90" />
 
       <div className="relative z-20 flex h-full flex-col justify-between p-6 sm:p-8">
         <div className="flex items-center justify-between">
