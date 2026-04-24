@@ -7,13 +7,15 @@ import PickupRequestAnnotationsForm from "@/components/admin/PickupRequestAnnota
 import PickupRequestPaymentForm from "@/components/admin/PickupRequestPaymentForm";
 import AdminSurface from "@/components/admin/AdminSurface";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
+import DeletePickupRequestButton from "@/components/admin/DeletePickupRequestButton";
 import PickupRequestStatusControl from "@/components/admin/PickupRequestStatusControl";
 import PickupRequestTimeline from "@/components/admin/PickupRequestTimeline";
-import ResendPickupRequestEmailButton from "@/components/admin/ResendPickupRequestEmailButton";
+import PickupRequestEmailButton from "@/components/admin/PickupRequestEmailButton";
 import SyncPickupRequestFromOrderButton from "@/components/admin/SyncPickupRequestFromOrderButton";
 import { Badge } from "@/components/ui/badge";
 import { formatCartAmount } from "@/lib/cart/format";
 import { retrieveCart } from "@/lib/cart/medusa-store";
+import { repairPickupRequestSnapshot } from "@/lib/cart/pickup-request-snapshot";
 import {
   applyManualPaymentSummaryToPickupRequest,
   getEffectivePickupRequestPaymentLabel,
@@ -38,7 +40,7 @@ import {
   listPickupRequestPaymentEntries,
 } from "@/lib/data/pickup-requests";
 import { cn } from "@/lib/utils";
-import type { Cart, CartLineItem, PickupRequestDetail, PickupRequestLineItem } from "@/lib/cart/types";
+import type { PickupRequestDetail } from "@/lib/cart/types";
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -83,127 +85,18 @@ const hintAccentClasses = {
   warning: "bg-amber-400",
 } as const;
 
-function pickupSnapshotLooksBroken(pickupRequest: PickupRequestDetail) {
-  if (pickupRequest.total > 0 && pickupRequest.subtotal > 0) {
-    return pickupRequest.lineItems.some(
-      (lineItem) => lineItem.quantity > 0 && lineItem.unitPrice <= 0 && lineItem.total <= 0,
-    );
-  }
-
-  return pickupRequest.lineItems.some((lineItem) => lineItem.quantity > 0);
-}
-
-function mapCartItemToPickupLineItem(item: CartLineItem): PickupRequestLineItem {
-  return {
-    id: item.id,
-    title: item.title,
-    quantity: item.quantity,
-    thumbnail: item.thumbnail,
-    productId: item.productId,
-    productTitle: item.productTitle,
-    productHandle: item.productHandle,
-    variantId: item.variantId,
-    variantTitle: item.variantTitle,
-    variantSku: item.variantSku,
-    unitPrice: item.unitPrice,
-    total: item.total,
-    selectedOptions: item.selectedOptions,
-  };
-}
-
-function hydratePickupRequestFromCart(pickupRequest: PickupRequestDetail, cart: Cart): PickupRequestDetail {
-  const mergedLineItems =
-    pickupRequest.lineItems.length > 0
-      ? pickupRequest.lineItems.map((lineItem) => {
-          const matchingCartItem =
-            cart.items.find((item) => lineItem.variantId && item.variantId === lineItem.variantId) ??
-            cart.items.find((item) => lineItem.productId && item.productId === lineItem.productId) ??
-            cart.items.find((item) => item.id === lineItem.id);
-
-          if (!matchingCartItem) {
-            return lineItem;
-          }
-
-          return {
-            ...lineItem,
-            quantity: lineItem.quantity > 0 ? lineItem.quantity : matchingCartItem.quantity,
-            thumbnail: lineItem.thumbnail ?? matchingCartItem.thumbnail,
-            productTitle: lineItem.productTitle ?? matchingCartItem.productTitle,
-            productHandle: lineItem.productHandle ?? matchingCartItem.productHandle,
-            variantTitle: lineItem.variantTitle ?? matchingCartItem.variantTitle,
-            variantSku: lineItem.variantSku ?? matchingCartItem.variantSku,
-            unitPrice: lineItem.unitPrice > 0 ? lineItem.unitPrice : matchingCartItem.unitPrice,
-            total: lineItem.total > 0 ? lineItem.total : matchingCartItem.total,
-            selectedOptions:
-              lineItem.selectedOptions.length > 0
-                ? lineItem.selectedOptions
-                : matchingCartItem.selectedOptions,
-          };
-        })
-      : cart.items.map((item) => mapCartItemToPickupLineItem(item));
-
-  return {
-    ...pickupRequest,
-    currencyCode: cart.summary.currencyCode,
-    itemCount: pickupRequest.itemCount > 0 ? pickupRequest.itemCount : cart.summary.itemCount,
-    subtotal: pickupRequest.subtotal > 0 ? pickupRequest.subtotal : cart.summary.subtotal,
-    total: pickupRequest.total > 0 ? pickupRequest.total : cart.summary.total,
-    lineItems: mergedLineItems,
-  };
-}
-
 async function resolvePickupRequestDetailSnapshot(pickupRequest: PickupRequestDetail) {
-  let currentPickupRequest = pickupRequest;
-  let resolvedOrderId = pickupRequest.orderId;
-  let recoveredFromLiveCart = false;
-
-  if (!pickupSnapshotLooksBroken(currentPickupRequest)) {
-    return {
-      pickupRequest: currentPickupRequest,
-      resolvedOrderId,
-      recoveredFromLiveCart,
-    };
-  }
-
-  if (!resolvedOrderId && currentPickupRequest.cartId) {
-    try {
-      resolvedOrderId = (await retrieveOrderByCartId(currentPickupRequest.cartId))?.id ?? null;
-    } catch {
-      resolvedOrderId = null;
-    }
-  }
-
-  if (resolvedOrderId && currentPickupRequest.cartId) {
-    try {
-      await syncPickupRequestFromOrder(currentPickupRequest.cartId, {
-        orderId: resolvedOrderId,
+  return repairPickupRequestSnapshot(pickupRequest, {
+    retrieveOrderByCartId,
+    retrieveCart,
+    syncPickupRequestFromOrder: async (cartId, orderId) => {
+      await syncPickupRequestFromOrder(cartId, {
+        orderId,
       });
 
-      const syncedPickupRequest = await getPickupRequestById(currentPickupRequest.id);
-
-      if (syncedPickupRequest) {
-        currentPickupRequest = syncedPickupRequest;
-      }
-    } catch {
-      // Keep rendering the original snapshot and try a live cart fallback below.
-    }
-  }
-
-  if (pickupSnapshotLooksBroken(currentPickupRequest) && currentPickupRequest.cartId) {
-    try {
-      const liveCart = await retrieveCart(currentPickupRequest.cartId);
-      currentPickupRequest = hydratePickupRequestFromCart(currentPickupRequest, liveCart);
-      recoveredFromLiveCart = true;
-    } catch {
-      recoveredFromLiveCart = false;
-    }
-  }
-
-  return {
-    pickupRequest: currentPickupRequest,
-    resolvedOrderId,
-    recoveredFromLiveCart,
-  };
+      return getPickupRequestById(pickupRequest.id);
+    },
+  });
 }
 
 export default async function DashboardStorePickupRequestDetailPage({
@@ -707,9 +600,14 @@ export default async function DashboardStorePickupRequestDetailPage({
                           ? `Enviado el ${formatDate(pickupRequest.emailSentAt)}`
                           : "Notificacion pendiente"}
                       </p>
+                      {pickupRequest.emailStatus === "failed" && pickupRequest.emailError ? (
+                        <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-[#b42318]">
+                          {pickupRequest.emailError}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
-                  <ResendPickupRequestEmailButton
+                  <PickupRequestEmailButton
                     pickupRequestId={pickupRequest.id}
                     emailStatus={pickupRequest.emailStatus}
                     size="sm"
@@ -734,6 +632,26 @@ export default async function DashboardStorePickupRequestDetailPage({
                     orderId={resolvedOrderId}
                     size="sm"
                     className="h-11 w-full rounded-none text-[10px] font-bold uppercase tracking-[0.1em]"
+                  />
+                </AdminSurface>
+              </div>
+
+              <div className="space-y-4 border-t border-black/10 pt-6">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
+                  Zona peligrosa
+                </p>
+                <AdminSurface inset className="border-red-200 bg-red-50 p-4">
+                  <p className="text-[13px] font-bold text-[#111111]">
+                    Eliminar solicitud pickup
+                  </p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-[#5f6368]">
+                    Borra el pedido pickup y arrastra sus anotaciones y cobros manuales asociados.
+                  </p>
+                  <DeletePickupRequestButton
+                    pickupRequestId={pickupRequest.id}
+                    title="Eliminar solicitud pickup"
+                    description={`Esta accion no se puede deshacer. Se eliminara el pedido ${pickupRequest.requestNumber} y su historial operativo asociado.`}
+                    className="mt-4 h-11 w-full rounded-none text-[10px] font-bold uppercase tracking-[0.1em]"
                   />
                 </AdminSurface>
               </div>

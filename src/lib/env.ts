@@ -92,8 +92,6 @@ const serverEnvSchema = publicEnvSchema.extend({
   PAYMENT_TEST_PHONE: optionalString(z.string().min(1)),
   PAYMENT_TEST_POSTAL_CODE: optionalString(z.string().min(1)),
   PAYMENT_TEST_STATE: optionalString(z.string().min(1)),
-  RESEND_API_KEY: optionalString(z.string().min(1)),
-  RESEND_FROM_EMAIL: optionalString(z.string().min(1)),
   SMTP_FROM_EMAIL: optionalString(z.string().min(1)),
   SMTP_HOST: optionalString(z.string().min(1)),
   SMTP_PASSWORD: optionalString(z.string().min(1)),
@@ -158,8 +156,6 @@ const serverEnv = serverEnvSchema.parse({
   PAYMENT_TEST_PHONE: process.env.PAYMENT_TEST_PHONE,
   PAYMENT_TEST_POSTAL_CODE: process.env.PAYMENT_TEST_POSTAL_CODE,
   PAYMENT_TEST_STATE: process.env.PAYMENT_TEST_STATE,
-  RESEND_API_KEY: process.env.RESEND_API_KEY,
-  RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
   SMTP_FROM_EMAIL: process.env.SMTP_FROM_EMAIL,
   SMTP_HOST: process.env.SMTP_HOST,
   SMTP_PASSWORD: process.env.SMTP_PASSWORD,
@@ -339,10 +335,6 @@ export function getMedusaAdminEnv() {
   };
 }
 
-export function hasResendEnv() {
-  return Boolean(serverEnv.RESEND_API_KEY);
-}
-
 export function hasSmtpEnv() {
   return Boolean(
     serverEnv.SMTP_HOST &&
@@ -350,17 +342,6 @@ export function hasSmtpEnv() {
       serverEnv.SMTP_USER &&
       serverEnv.SMTP_PASSWORD,
   );
-}
-
-export function getResendEnv() {
-  if (!serverEnv.RESEND_API_KEY) {
-    throw new Error("Missing RESEND_API_KEY. Configuralo para enviar emails con Resend.");
-  }
-
-  return {
-    apiKey: serverEnv.RESEND_API_KEY,
-    fromEmail: serverEnv.RESEND_FROM_EMAIL ?? "Nuova Forza <onboarding@resend.dev>",
-  };
 }
 
 export function getSmtpEnv() {

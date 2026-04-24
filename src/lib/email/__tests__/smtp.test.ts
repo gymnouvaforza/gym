@@ -110,8 +110,6 @@ describe("sendSmtpEmail", () => {
         html: "<p>Hola</p>",
         text: "Hola",
       }),
-    ).rejects.toThrow(
-      "SMTP no pudo enviar el email: EAUTH | code 535 | Authentication failed | Invalid login",
-    );
+    ).rejects.toThrow(/SMTP rechazo autenticacion para club@gmail.com en smtp\.gmail\.com:587\./);
   });
 });

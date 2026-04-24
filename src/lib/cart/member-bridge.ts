@@ -405,6 +405,21 @@ export async function markPickupRequestEmailResult(
   }
 }
 
+export async function deletePickupRequest(pickupRequestId: string) {
+  try {
+    return await getMedusaAdminSdk().client.fetch<{ id: string; object: "pickup_request"; deleted: boolean }>(
+      `/admin/gym/pickup-requests/${pickupRequestId}`,
+      {
+        method: "DELETE",
+      },
+    );
+  } catch (error) {
+    throw new Error(
+      `No se pudo eliminar la solicitud pickup: ${toBridgeError(error, "fallo desconocido")}`,
+    );
+  }
+}
+
 export async function resolveCartIdFromRequest(explicitCartId?: string | null) {
   return explicitCartId ?? (await getCartIdFromRequestCookies());
 }

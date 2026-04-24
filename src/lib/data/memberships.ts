@@ -402,15 +402,15 @@ async function sendMembershipRequestEmailIfPossible(
 
 async function syncMemberProfileMembership(client: MembershipClient, input: {
   memberId: string;
-  membershipPlanId: string;
-  status?: DBMemberProfile["status"] | null;
+  membershipPlanId: string | null;
+  status: DBMemberProfile["status"];
 }) {
   const payload: Pick<
     DBMemberProfile,
     "membership_plan_id" | "status"
   > = {
     membership_plan_id: input.membershipPlanId,
-    status: input.status ?? "active",
+    status: input.status,
   };
 
   const { error } = await client
@@ -420,6 +420,40 @@ async function syncMemberProfileMembership(client: MembershipClient, input: {
 
   if (error) {
     throw new Error(error.message);
+  }
+}
+
+function mapMembershipRequestStatusToMemberStatus(
+  status: MembershipRequestStatus,
+): DBMemberProfile["status"] {
+  switch (status) {
+    case "active":
+      return "active";
+    case "paused":
+      return "paused";
+    case "cancelled":
+    case "expired":
+      return "former";
+    case "requested":
+    case "confirmed":
+    default:
+      return "prospect";
+  }
+}
+
+function getFallbackMemberStatusAfterMembershipDeletion(
+  status: MembershipRequestStatus,
+): DBMemberProfile["status"] {
+  switch (status) {
+    case "requested":
+    case "confirmed":
+      return "prospect";
+    case "active":
+    case "paused":
+    case "expired":
+    case "cancelled":
+    default:
+      return "former";
   }
 }
 
@@ -896,6 +930,45 @@ export async function updateMembershipRequestStatus(
       status: "paused",
     });
   }
+}
+
+export async function deleteMembershipRequest(membershipRequestId: string) {
+  const client = createSupabaseAdminClient();
+  const request = await getMembershipRequestRowById(client, membershipRequestId);
+
+  if (!request) {
+    throw new Error("La solicitud de membresia ya no existe.");
+  }
+
+  const requestStatus = membershipRequestStatusSchema.parse(request.status);
+  const { error } = await client.from("membership_requests").delete().eq("id", membershipRequestId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const latestRemainingRequest = await getLatestMembershipRequestRowForMember(client, request.member_id);
+
+  if (latestRemainingRequest) {
+    await syncMemberProfileMembership(client, {
+      memberId: request.member_id,
+      membershipPlanId: latestRemainingRequest.membership_plan_id,
+      status: mapMembershipRequestStatusToMemberStatus(
+        membershipRequestStatusSchema.parse(latestRemainingRequest.status),
+      ),
+    });
+  } else {
+    await syncMemberProfileMembership(client, {
+      memberId: request.member_id,
+      membershipPlanId: null,
+      status: getFallbackMemberStatusAfterMembershipDeletion(requestStatus),
+    });
+  }
+
+  return {
+    id: request.id,
+    memberId: request.member_id,
+  };
 }
 
 export async function getPublicMembershipStatusByToken(

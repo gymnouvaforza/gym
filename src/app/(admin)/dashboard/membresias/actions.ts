@@ -8,6 +8,7 @@ import {
   addMembershipPaymentEntry,
   addMembershipRequestAnnotation,
   createMembershipRequest,
+  deleteMembershipRequest,
   updateMembershipRequestStatus,
 } from "@/lib/data/memberships";
 import {
@@ -118,4 +119,13 @@ export async function retryMembershipRequestCommerceSyncAction(
   await requireAdminUser();
   await syncMembershipRequestToMedusa(membershipRequestId);
   revalidateMembershipAdmin(membershipRequestId, memberId);
+}
+
+export async function deleteMembershipRequestAction(
+  membershipRequestId: string,
+  memberId?: string,
+) {
+  await requireAdminUser();
+  const deleted = await deleteMembershipRequest(membershipRequestId);
+  revalidateMembershipAdmin(membershipRequestId, memberId ?? deleted.memberId);
 }

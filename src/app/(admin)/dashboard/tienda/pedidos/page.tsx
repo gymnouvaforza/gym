@@ -18,6 +18,7 @@ import AdminSurface from "@/components/admin/AdminSurface";
 import DashboardEmptyState from "@/components/admin/DashboardEmptyState";
 import DashboardNotice from "@/components/admin/DashboardNotice";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
+import DeletePickupRequestButton from "@/components/admin/DeletePickupRequestButton";
 import DraggableHorizontalScroll from "@/components/admin/DraggableHorizontalScroll";
 import PickupRequestsToolbar from "@/components/admin/PickupRequestsToolbar";
 import { Badge } from "@/components/ui/badge";
@@ -208,16 +209,25 @@ export default async function DashboardStorePickupRequestsPage({
                         <p className="truncate">Cart: {pickupRequest.cartId}</p>
                       </div>
 
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        className="mt-4 h-10 w-full rounded-none text-[10px] font-black uppercase tracking-[0.14em]"
-                      >
-                        <Link href={`/dashboard/tienda/pedidos/${pickupRequest.id}`}>
-                          Abrir detalle
-                        </Link>
-                      </Button>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="h-10 w-full rounded-none text-[10px] font-black uppercase tracking-[0.14em]"
+                        >
+                          <Link href={`/dashboard/tienda/pedidos/${pickupRequest.id}`}>
+                            Abrir detalle
+                          </Link>
+                        </Button>
+                        <DeletePickupRequestButton
+                          pickupRequestId={pickupRequest.id}
+                          description={`Esta accion no se puede deshacer. Se eliminara el pedido ${pickupRequest.requestNumber} y su historial operativo asociado.`}
+                          label="Eliminar"
+                          size="sm"
+                          className="h-10 w-full rounded-none text-[10px] font-black uppercase tracking-[0.14em]"
+                        />
+                      </div>
                     </AdminSurface>
                   );
                 })}
@@ -367,20 +377,29 @@ export default async function DashboardStorePickupRequestsPage({
                               </p>
                             </TableCell>
                             <TableCell className="sticky right-0 z-10 bg-white px-5 py-4 text-right shadow-[-10px_0_18px_-18px_rgba(17,17,17,0.55)] group-hover:bg-[#fbfbf8]">
-                              <Button
-                                asChild
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 rounded-none px-3 text-[10px] font-black uppercase tracking-[0.14em] text-[#111111] opacity-70 group-hover:opacity-100"
-                              >
-                                <Link
-                                  href={`/dashboard/tienda/pedidos/${pickupRequest.id}`}
-                                  className="inline-flex items-center gap-2"
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  asChild
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-9 rounded-none px-3 text-[10px] font-black uppercase tracking-[0.14em] text-[#111111] opacity-70 group-hover:opacity-100"
                                 >
-                                  Ver
-                                  <ArrowUpRight className="h-4 w-4" />
-                                </Link>
-                              </Button>
+                                  <Link
+                                    href={`/dashboard/tienda/pedidos/${pickupRequest.id}`}
+                                    className="inline-flex items-center gap-2"
+                                  >
+                                    Ver
+                                    <ArrowUpRight className="h-4 w-4" />
+                                  </Link>
+                                </Button>
+                                <DeletePickupRequestButton
+                                  pickupRequestId={pickupRequest.id}
+                                  description={`Esta accion no se puede deshacer. Se eliminara el pedido ${pickupRequest.requestNumber} y su historial operativo asociado.`}
+                                  label="Eliminar"
+                                  size="sm"
+                                  className="h-9 rounded-none px-3 text-[10px] font-black uppercase tracking-[0.14em]"
+                                />
+                              </div>
                             </TableCell>
                           </TableRow>
                         );

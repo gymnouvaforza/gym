@@ -5,6 +5,7 @@ import { BellRing, QrCode } from "lucide-react";
 import AdminSection from "@/components/admin/AdminSection";
 import AdminSurface from "@/components/admin/AdminSurface";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
+import DeleteMembershipRequestButton from "@/components/admin/DeleteMembershipRequestButton";
 import MembershipCommerceSyncButton from "@/components/admin/MembershipCommerceSyncButton";
 import MembershipRequestAnnotationsForm from "@/components/admin/MembershipRequestAnnotationsForm";
 import MembershipRequestPaymentForm from "@/components/admin/MembershipRequestPaymentForm";
@@ -438,6 +439,28 @@ export default async function DashboardMembershipRequestDetailPage({
                       </p>
                     </div>
                   </div>
+                </AdminSurface>
+              </div>
+
+              <div className="space-y-4 border-t border-black/10 pt-6">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
+                  Zona peligrosa
+                </p>
+                <AdminSurface inset className="border-red-200 bg-red-50 p-4">
+                  <p className="text-[13px] font-bold text-[#111111]">
+                    Eliminar solicitud operativa
+                  </p>
+                  <p className="mt-2 text-[12px] leading-relaxed text-[#5f6368]">
+                    Borra la solicitud, sus anotaciones y cobros asociados. La ficha del socio se
+                    recalcula con el ultimo ciclo restante.
+                  </p>
+                  <DeleteMembershipRequestButton
+                    membershipRequestId={request.id}
+                    memberId={request.member.id}
+                    title="Eliminar solicitud de membresia"
+                    description={`Esta accion no se puede deshacer. Se eliminara la solicitud ${request.requestNumber} y su historial operativo asociado.`}
+                    className="mt-4 h-11 w-full rounded-none text-[10px] font-bold uppercase tracking-[0.1em]"
+                  />
                 </AdminSurface>
               </div>
             </div>

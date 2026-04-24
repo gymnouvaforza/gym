@@ -23,7 +23,14 @@ function normalizeReplyTo(value: string | string[] | null | undefined) {
   return Array.isArray(value) ? value : [value];
 }
 
-function formatSmtpError(error: unknown) {
+function formatSmtpError(
+  error: unknown,
+  smtp: {
+    host: string;
+    port: number;
+    user: string;
+  },
+) {
   if (!error || typeof error !== "object") {
     return "SMTP no pudo enviar el email.";
   }
@@ -44,6 +51,14 @@ function formatSmtpError(error: unknown) {
 
   if (details.length === 0) {
     return "SMTP no pudo enviar el email.";
+  }
+
+  if (smtpError.code === "EAUTH" || smtpError.responseCode === 535) {
+    return [
+      `SMTP rechazo autenticacion para ${smtp.user} en ${smtp.host}:${smtp.port}.`,
+      "Revisa SMTP_USER y SMTP_PASSWORD del buzón en entorno/hosting.",
+      `Detalle: ${details.join(" | ")}`,
+    ].join(" ");
   }
 
   return `SMTP no pudo enviar el email: ${details.join(" | ")}`;
@@ -75,6 +90,6 @@ export async function sendSmtpEmail(input: SendSmtpEmailInput) {
       id: info.messageId,
     };
   } catch (error) {
-    throw new Error(formatSmtpError(error));
+    throw new Error(formatSmtpError(error, smtp));
   }
 }

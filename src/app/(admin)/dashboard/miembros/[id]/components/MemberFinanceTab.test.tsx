@@ -75,7 +75,7 @@ describe("MemberFinanceTab", () => {
     vi.stubGlobal("open", vi.fn());
   });
 
-  it("renders empty state with initial membership action disabled", () => {
+  it("renders empty state and still exposes the manual membership request form", () => {
     render(
       <MemberFinanceTab
         financials={null}
@@ -88,7 +88,7 @@ describe("MemberFinanceTab", () => {
     );
 
     expect(screen.getByText("Sin membresia activa")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Alta Inicial No Disponible/i })).toBeDisabled();
+    expect(screen.getByTestId("membership-request-create-form")).toBeInTheDocument();
   });
 
   it("renders existing payment history", () => {

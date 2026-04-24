@@ -7,7 +7,10 @@ import {
   PUBLIC_CACHE_TAGS,
   revalidatePublicCacheTags,
 } from "@/lib/cache/public-cache";
+import { retrieveOrderByCartId } from "@/lib/cart/member-bridge";
+import { retrieveCart } from "@/lib/cart/medusa-store";
 import { mapPickupRequest } from "@/lib/cart/pickup-request";
+import { repairPickupRequestSnapshot } from "@/lib/cart/pickup-request-snapshot";
 import type { PickupRequestStatus } from "@/lib/cart/types";
 import {
   addPickupRequestAnnotation,
@@ -17,6 +20,7 @@ import {
 import { getStoreAdminRepository } from "@/lib/data/store-admin/repository";
 import { getStoreAdminWriteDisabledReason } from "@/lib/data/store-admin";
 import {
+  deletePickupRequest,
   markPickupRequestEmailResult,
   retrievePickupRequest,
   syncPickupRequestFromOrder,
@@ -186,6 +190,19 @@ export async function resendDashboardPickupRequestEmail(pickupRequestId: string)
 
   const pickupRequestResponse = await retrievePickupRequest(pickupRequestId);
   const pickupRequest = mapPickupRequest(pickupRequestResponse.pickup_request);
+  const repairedPickupRequest = (
+    await repairPickupRequestSnapshot(pickupRequest, {
+      retrieveOrderByCartId,
+      retrieveCart,
+      syncPickupRequestFromOrder: async (cartId, orderId) => {
+        const response = await syncPickupRequestFromOrder(cartId, {
+          orderId,
+        });
+
+        return mapPickupRequest(response.pickup_request);
+      },
+    })
+  ).pickupRequest;
   const { settings } = await getMarketingData();
   const siteName = settings.site_name ?? defaultSiteSettings.site_name;
   const internalRecipient =
@@ -200,7 +217,7 @@ export async function resendDashboardPickupRequestEmail(pickupRequestId: string)
 
   try {
     await sendPickupRequestEmails({
-      pickupRequest,
+      pickupRequest: repairedPickupRequest,
       siteName,
       internalRecipient,
       fromEmail: sender.fromEmail,
@@ -265,4 +282,12 @@ export async function syncPickupRequestFromMedusaOrderAction(
 
   revalidateStoreDashboard();
   revalidatePath(`/dashboard/tienda/pedidos/${pickupRequestId}`);
+}
+
+export async function deleteDashboardPickupRequestAction(pickupRequestId: string) {
+  await assertPickupRequestsAdminReady();
+  await deletePickupRequest(pickupRequestId);
+  revalidateStoreDashboard();
+  revalidatePath(`/dashboard/tienda/pedidos/${pickupRequestId}`);
+  revalidatePath("/mi-cuenta");
 }

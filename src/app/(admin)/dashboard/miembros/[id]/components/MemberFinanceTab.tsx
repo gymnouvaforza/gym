@@ -107,25 +107,41 @@ export default function MemberFinanceTab({
 
   if (!optimisticFinancials) {
     return (
-      <AdminSurface className="p-12 text-center border-dashed border-black/10">
-        <div className="size-16 rounded-full bg-black/5 flex items-center justify-center mx-auto mb-6">
-          <CreditCard className="size-8 text-[#7a7f87]" />
-        </div>
-        <p className="text-[#7a7f87] font-bold uppercase text-[10px] tracking-widest mb-6">
-          Sin membresia activa
-        </p>
-        <Button
-          variant="outline"
-          disabled
-          title="Alta inicial pendiente de integracion. Usa modulo de membresias."
-          className="border-black/10 font-black uppercase text-[10px] tracking-[0.2em] h-12 px-8 hover:bg-black/5"
-        >
-          Alta Inicial No Disponible
-        </Button>
-        <p className="mt-4 text-[10px] font-bold uppercase tracking-widest text-[#7a7f87]">
-          Usa modulo de membresias para abrir solicitud manual.
-        </p>
-      </AdminSurface>
+      <div className="space-y-8">
+        <AdminSurface className="p-12 text-center border-dashed border-black/10">
+          <div className="size-16 rounded-full bg-black/5 flex items-center justify-center mx-auto mb-6">
+            <CreditCard className="size-8 text-[#7a7f87]" />
+          </div>
+          <p className="text-[#7a7f87] font-bold uppercase text-[10px] tracking-widest mb-3">
+            Sin membresia activa
+          </p>
+          <p className="text-[11px] font-bold text-[#5f6368] uppercase tracking-widest">
+            Puedes abrir la solicitud manual desde este mismo panel.
+          </p>
+        </AdminSurface>
+
+        <AdminSurface className="p-8 border-black/5 rounded-[2rem] shadow-xl shadow-black/[0.02]">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="size-10 rounded-2xl bg-red-50 flex items-center justify-center">
+              <QrCode className="size-5 text-[#d71920]" />
+            </div>
+            <div>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#111111]">
+                Alta de Membresia
+              </h3>
+              <p className="text-[11px] font-bold text-[#7a7f87] uppercase">
+                Solicitud manual para este socio
+              </p>
+            </div>
+          </div>
+          <MembershipRequestCreateForm
+            memberId={memberId}
+            membershipPlans={membershipPlans}
+            defaultPlanId={null}
+            latestRequestId={null}
+          />
+        </AdminSurface>
+      </div>
     );
   }
 

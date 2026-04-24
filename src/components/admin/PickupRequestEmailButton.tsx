@@ -7,7 +7,7 @@ import FeedbackCallout, { type FeedbackTone } from "@/components/ui/feedback-cal
 import { Button, type ButtonProps } from "@/components/ui/button";
 import type { PickupRequestEmailStatus } from "@/lib/cart/types";
 
-interface ResendPickupRequestEmailButtonProps {
+interface PickupRequestEmailButtonProps {
   pickupRequestId: string;
   emailStatus?: PickupRequestEmailStatus;
   label?: string;
@@ -17,7 +17,7 @@ interface ResendPickupRequestEmailButtonProps {
   className?: string;
 }
 
-export default function ResendPickupRequestEmailButton({
+export default function PickupRequestEmailButton({
   pickupRequestId,
   emailStatus = "sent",
   label,
@@ -25,7 +25,7 @@ export default function ResendPickupRequestEmailButton({
   variant = "outline",
   size = "default",
   className,
-}: Readonly<ResendPickupRequestEmailButtonProps>) {
+}: Readonly<PickupRequestEmailButtonProps>) {
   const [isPending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{ tone: FeedbackTone; message: string } | null>(null);
   const resolvedLabel =

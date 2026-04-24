@@ -78,14 +78,14 @@ describe("pickup request emails", () => {
       pickupRequest,
       siteName: "Nuova Forza",
       internalRecipient: "club@novaforza.pe",
-      fromEmail: "Nuova Forza <onboarding@resend.dev>",
+      fromEmail: "Nuova Forza <info@nuovaforzagym.com>",
       replyTo: "pedidos@gmail.com",
     });
 
     expect(pickupEmailMocks.sendSmtpEmail).toHaveBeenCalledTimes(2);
     expect(pickupEmailMocks.sendSmtpEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        from: "Nuova Forza <onboarding@resend.dev>",
+        from: "Nuova Forza <info@nuovaforzagym.com>",
         replyTo: "pedidos@gmail.com",
         to: "socio@gym.com",
         subject: "Nuova Forza | Pedido pagado NF-20260322-ABC123",
@@ -95,7 +95,7 @@ describe("pickup request emails", () => {
     );
     expect(pickupEmailMocks.sendSmtpEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        from: "Nuova Forza <onboarding@resend.dev>",
+        from: "Nuova Forza <info@nuovaforzagym.com>",
         replyTo: "pedidos@gmail.com",
         to: "club@novaforza.pe",
         subject: "Nuova Forza | Nuevo pedido pagado NF-20260322-ABC123",
@@ -112,7 +112,7 @@ describe("pickup request emails", () => {
       pickupRequest: buildPickupRequest({ email: "club@novaforza.pe" }),
       siteName: "Nuova Forza",
       internalRecipient: "club@novaforza.pe",
-      fromEmail: "Nuova Forza <onboarding@resend.dev>",
+      fromEmail: "Nuova Forza <info@nuovaforzagym.com>",
       replyTo: "pedidos@gmail.com",
     });
 
@@ -129,7 +129,7 @@ describe("pickup request emails", () => {
         pickupRequest: buildPickupRequest(),
         siteName: "Nuova Forza",
         internalRecipient: "club@novaforza.pe",
-        fromEmail: "Nuova Forza <onboarding@resend.dev>",
+        fromEmail: "Nuova Forza <info@nuovaforzagym.com>",
         replyTo: "pedidos@gmail.com",
       }),
     ).resolves.toBeUndefined();
@@ -147,7 +147,7 @@ describe("pickup request emails", () => {
         pickupRequest: buildPickupRequest(),
         siteName: "Nuova Forza",
         internalRecipient: "club@novaforza.pe",
-        fromEmail: "Nuova Forza <onboarding@resend.dev>",
+        fromEmail: "Nuova Forza <info@nuovaforzagym.com>",
         replyTo: "pedidos@gmail.com",
       }),
     ).rejects.toThrow("SMTP timeout");
@@ -161,7 +161,7 @@ describe("pickup request emails", () => {
         pickupRequest: buildPickupRequest({ email: "" }),
         siteName: "Nuova Forza",
         internalRecipient: "club@novaforza.pe",
-        fromEmail: "Nuova Forza <onboarding@resend.dev>",
+        fromEmail: "Nuova Forza <info@nuovaforzagym.com>",
         replyTo: "pedidos@gmail.com",
       }),
     ).rejects.toThrow("La solicitud pickup no tiene email de cliente.");

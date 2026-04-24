@@ -64,11 +64,6 @@ Si cambias rutas o middlewares custom de Medusa, reinicia Medusa antes de seguir
 
 ### Email pickup
 
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
-
-o, si se usa SMTP:
-
 - `SMTP_HOST`
 - `SMTP_PORT`
 - `SMTP_USER`
@@ -224,13 +219,13 @@ Referencias utiles:
 Sintomas habituales:
 
 - `email_status=failed`
-- errores de Resend o SMTP en el timeline
+- errores SMTP en el timeline
 - el pedido existe pero la notificacion no salio
 
 Comprobaciones:
 
-1. Revisa `RESEND_API_KEY` o la configuracion SMTP.
-2. Verifica remitente valido en `RESEND_FROM_EMAIL` o `SMTP_FROM_EMAIL`.
+1. Revisa la configuracion SMTP.
+2. Verifica remitente valido en `SMTP_FROM_EMAIL`.
 3. Confirma si el fallo es de proveedor externo y no de creacion del pickup request.
 
 Recuperacion:

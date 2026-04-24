@@ -1,6 +1,7 @@
 import type { AuthUser as User } from "@/lib/auth-user";
 
 import { mapPickupRequest } from "@/lib/cart/pickup-request";
+import { repairPickupRequestSnapshot } from "@/lib/cart/pickup-request-snapshot";
 import type { Cart, PickupRequestDetail } from "@/lib/cart/types";
 import { defaultSiteSettings } from "@/lib/data/default-content";
 import { getMarketingData } from "@/lib/data/site";
@@ -262,6 +263,22 @@ async function finalizePickupRequestEmail(
     smtp.fromEmail,
     [smtp.user],
   );
+  pickupRequest = (
+    await repairPickupRequestSnapshot(pickupRequest, {
+      retrieveOrderByCartId,
+      retrieveCart,
+      syncPickupRequestFromOrder: async (cartId, orderId) => {
+        const response = await syncPickupRequestFromOrder(cartId, {
+          orderId,
+          paypalOrderId: pickupRequest.paypalOrderId,
+          supabaseUserId: pickupRequest.supabaseUserId,
+          notes: pickupRequest.notes,
+        });
+
+        return mapPickupRequest(response.pickup_request);
+      },
+    })
+  ).pickupRequest;
 
   if (pickupRequest.emailStatus === "pending") {
     try {

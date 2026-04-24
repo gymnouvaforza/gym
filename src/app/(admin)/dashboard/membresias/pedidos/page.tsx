@@ -15,6 +15,7 @@ import Link from "next/link";
 
 import AdminMetricCard from "@/components/admin/AdminMetricCard";
 import AdminSection from "@/components/admin/AdminSection";
+import DeleteMembershipRequestButton from "@/components/admin/DeleteMembershipRequestButton";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
 import MembershipOpsSubnav from "@/components/admin/MembershipOpsSubnav";
 import { Badge } from "@/components/ui/badge";
@@ -338,12 +339,22 @@ export default async function DashboardMembershipRequestsPage({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Link
-                        href={`/dashboard/membresias/pedidos/${request.id}`}
-                        className="inline-flex h-9 items-center border border-black/10 bg-white px-4 text-[9px] font-black uppercase tracking-widest text-[#111111] transition-colors hover:bg-[#111111] hover:text-white"
-                      >
-                        Ver detalle
-                      </Link>
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/dashboard/membresias/pedidos/${request.id}`}
+                          className="inline-flex h-9 items-center border border-black/10 bg-white px-4 text-[9px] font-black uppercase tracking-widest text-[#111111] transition-colors hover:bg-[#111111] hover:text-white"
+                        >
+                          Ver detalle
+                        </Link>
+                        <DeleteMembershipRequestButton
+                          membershipRequestId={request.id}
+                          memberId={request.member.id}
+                          description={`Esta accion no se puede deshacer. Se eliminara la solicitud ${request.requestNumber} y su historial operativo asociado.`}
+                          label="Eliminar"
+                          size="sm"
+                          className="h-9 rounded-none px-4 text-[9px] font-black uppercase tracking-widest"
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

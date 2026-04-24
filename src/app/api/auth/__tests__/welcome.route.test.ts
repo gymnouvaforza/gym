@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const welcomeRouteMocks = vi.hoisted(() => ({
-  hasResendEnv: vi.fn(),
-  getResendEnv: vi.fn(),
+  hasSmtpEnv: vi.fn(),
+  getSmtpEnv: vi.fn(),
   getFirebaseAdminAuth: vi.fn(),
   getMarketingData: vi.fn(),
   sendMemberWelcomeEmail: vi.fn(),
 }));
 
 vi.mock("@/lib/env", () => ({
-  hasResendEnv: welcomeRouteMocks.hasResendEnv,
-  getResendEnv: welcomeRouteMocks.getResendEnv,
+  hasSmtpEnv: welcomeRouteMocks.hasSmtpEnv,
+  getSmtpEnv: welcomeRouteMocks.getSmtpEnv,
 }));
 
 vi.mock("@/lib/firebase/server", () => ({
@@ -29,9 +29,9 @@ import { POST } from "@/app/api/auth/welcome/route";
 
 describe("POST /api/auth/welcome", () => {
   beforeEach(() => {
-    welcomeRouteMocks.hasResendEnv.mockReturnValue(true);
-    welcomeRouteMocks.getResendEnv.mockReturnValue({
-      fromEmail: "Nuova Forza <onboarding@resend.dev>",
+    welcomeRouteMocks.hasSmtpEnv.mockReturnValue(true);
+    welcomeRouteMocks.getSmtpEnv.mockReturnValue({
+      fromEmail: "Nuova Forza <info@nuovaforzagym.com>",
     });
     welcomeRouteMocks.getFirebaseAdminAuth.mockReturnValue({
       getUserByEmail: vi.fn().mockResolvedValue({
@@ -67,14 +67,14 @@ describe("POST /api/auth/welcome", () => {
     expect(welcomeRouteMocks.sendMemberWelcomeEmail).toHaveBeenCalledWith(
       "member@gym.com",
       "Nuova Forza",
-      "Nuova Forza <onboarding@resend.dev>",
+      "Nuova Forza <info@nuovaforzagym.com>",
       "pedidos@gmail.com",
     );
     expect(payload).toEqual({ queued: true });
   });
 
-  it("returns a non-blocking response when resend is not configured", async () => {
-    welcomeRouteMocks.hasResendEnv.mockReturnValue(false);
+  it("returns a non-blocking response when SMTP is not configured", async () => {
+    welcomeRouteMocks.hasSmtpEnv.mockReturnValue(false);
 
     const response = await POST(
       new Request("http://localhost/api/auth/welcome", {

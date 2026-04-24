@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getResendEnv, hasResendEnv } from "@/lib/env";
+import { getSmtpEnv, hasSmtpEnv } from "@/lib/env";
 import { sendMemberWelcomeEmail } from "@/lib/email/welcome-member";
 import { resolveTransactionalSender } from "@/lib/email/policy";
 import { getFirebaseAdminAuth } from "@/lib/firebase/server";
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email invalido." }, { status: 400 });
   }
 
-  if (!hasResendEnv()) {
+  if (!hasSmtpEnv()) {
     return NextResponse.json({ queued: false, skipped: true }, { status: 202 });
   }
 
@@ -36,11 +36,11 @@ export async function POST(request: Request) {
 
     const { settings } = await getMarketingData();
 
-    const resend = getResendEnv();
+    const smtp = getSmtpEnv();
     const sender = resolveTransactionalSender(
       settings.site_name,
       settings.transactional_from_email,
-      resend.fromEmail,
+      smtp.fromEmail,
     );
 
     await sendMemberWelcomeEmail(

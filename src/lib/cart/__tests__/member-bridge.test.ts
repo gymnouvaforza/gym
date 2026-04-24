@@ -28,6 +28,7 @@ vi.mock("@/lib/cart/server", () => ({
 import {
   attachCartToMember,
   createPickupRequest,
+  deletePickupRequest,
   listPickupRequests,
   markPickupRequestEmailResult,
   retrieveActiveCartForMember,
@@ -207,6 +208,31 @@ describe("member commerce bridge", () => {
         },
       },
     );
+  });
+
+  it("deletes a pickup request through the Medusa admin route", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      id: "pick_01",
+      object: "pickup_request",
+      deleted: true,
+    });
+
+    memberBridgeMocks.getMedusaAdminSdk.mockReturnValue({
+      client: {
+        fetch: fetchMock,
+      },
+    });
+
+    const response = await deletePickupRequest("pick_01");
+
+    expect(fetchMock).toHaveBeenCalledWith("/admin/gym/pickup-requests/pick_01", {
+      method: "DELETE",
+    });
+    expect(response).toEqual({
+      id: "pick_01",
+      object: "pickup_request",
+      deleted: true,
+    });
   });
 
   it("syncs a paid Medusa order into the pickup request projection", async () => {

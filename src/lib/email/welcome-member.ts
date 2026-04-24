@@ -1,6 +1,6 @@
 import { defaultSiteSettings } from "@/lib/data/default-content";
 
-import { sendResendEmail } from "./resend";
+import { sendSmtpEmail } from "./smtp";
 
 function escapeHtml(value: string) {
   return value
@@ -22,7 +22,7 @@ export async function sendMemberWelcomeEmail(
   const safeSiteName = escapeHtml(resolvedSiteName);
   const loginUrl = "/acceso";
 
-  await sendResendEmail({
+  await sendSmtpEmail({
     to: email,
     from: fromEmail ?? undefined,
     replyTo: replyTo ?? undefined,
