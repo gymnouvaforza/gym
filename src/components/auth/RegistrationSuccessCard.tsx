@@ -11,7 +11,7 @@ import {
   buildMemberRegistrationCompleteUrl,
 } from "@/lib/member-auth-flow";
 
-const RESEND_COOLDOWN_SECONDS = 45;
+const VERIFICATION_EMAIL_COOLDOWN_SECONDS = 45;
 
 type RegistrationStatus = "pending" | "confirmed" | "error";
 
@@ -58,7 +58,7 @@ export default function RegistrationSuccessCard({
 }: Readonly<RegistrationSuccessCardProps>) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [isResending, setIsResending] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [currentStatus, setCurrentStatus] = useState<RegistrationStatus>(status);
   const [hasResent, setHasResent] = useState(resent);
@@ -74,13 +74,13 @@ export default function RegistrationSuccessCard({
     };
   }, []);
 
-  async function handleResend() {
-    if (!email || isResending || secondsLeft > 0) {
+  async function handleVerificationRetry() {
+    if (!email || isSendingEmail || secondsLeft > 0) {
       return;
     }
 
     setError(null);
-    setIsResending(true);
+    setIsSendingEmail(true);
 
     try {
       const response = await fetch("/api/auth/email-verification", {
@@ -104,7 +104,7 @@ export default function RegistrationSuccessCard({
 
       setCurrentStatus("pending");
       setHasResent(true);
-      setSecondsLeft(RESEND_COOLDOWN_SECONDS);
+      setSecondsLeft(VERIFICATION_EMAIL_COOLDOWN_SECONDS);
 
       if (cooldownIntervalRef.current !== null) {
         window.clearInterval(cooldownIntervalRef.current);
@@ -132,7 +132,7 @@ export default function RegistrationSuccessCard({
         }),
       );
     } finally {
-      setIsResending(false);
+      setIsSendingEmail(false);
     }
   }
 
@@ -191,8 +191,8 @@ export default function RegistrationSuccessCard({
 
         {currentStatus === "pending" ? (
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button onClick={handleResend} disabled={!email || isResending || secondsLeft > 0}>
-              {isResending ? "Reenviando enlace" : "Reenviar enlace"}
+            <Button onClick={handleVerificationRetry} disabled={!email || isSendingEmail || secondsLeft > 0}>
+              {isSendingEmail ? "Reenviando enlace" : "Reenviar enlace"}
             </Button>
             <Button asChild variant="outline">
               <Link href={email ? `/acceso?email=${encodeURIComponent(email)}` : "/acceso"}>Ir a acceso</Link>
@@ -216,8 +216,8 @@ export default function RegistrationSuccessCard({
 
             <div className="flex flex-col gap-3 sm:flex-row">
               {email ? (
-                <Button onClick={handleResend} disabled={isResending || secondsLeft > 0}>
-                  {isResending ? "Reenviando enlace" : "Reenviar enlace"}
+                <Button onClick={handleVerificationRetry} disabled={isSendingEmail || secondsLeft > 0}>
+                  {isSendingEmail ? "Reenviando enlace" : "Reenviar enlace"}
                 </Button>
               ) : null}
               <Button asChild variant="outline">

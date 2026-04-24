@@ -1,17 +1,10 @@
-"use client";
+import TrainingZonesCarousel from "@/components/marketing/TrainingZonesCarousel";
+import type { TrainingZone } from "@/data/training-zones";
 
-import dynamic from "next/dynamic";
+interface TrainingZonesSectionProps {
+  zones: TrainingZone[];
+}
 
-import TrainingZonesSectionFallback from "@/components/marketing/TrainingZonesSectionFallback";
-
-const TrainingZonesCarousel = dynamic(
-  () => import("@/components/marketing/TrainingZonesCarousel"),
-  {
-    ssr: false,
-    loading: () => <TrainingZonesSectionFallback />,
-  },
-);
-
-export default function TrainingZonesSection() {
-  return <TrainingZonesCarousel />;
+export default function TrainingZonesSection({ zones }: Readonly<TrainingZonesSectionProps>) {
+  return <TrainingZonesCarousel zones={zones} />;
 }

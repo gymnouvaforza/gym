@@ -6,6 +6,7 @@ import {
   ChevronRight,
   ClipboardList,
   Database,
+  Dumbbell,
   FileText,
   Globe,
   LayoutGrid,
@@ -186,7 +187,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "Campanas",
     icon: CalendarClock,
     module: "marketing",
-    activeMatch: ["/dashboard/marketing", "/dashboard/marketing/planes"],
+    activeMatch: ["/dashboard/marketing", "/dashboard/marketing/planes", "/dashboard/marketing/zonas"],
     children: [
       {
         href: "/dashboard/marketing",
@@ -199,6 +200,12 @@ const NAV_ITEMS: NavItem[] = [
         href: "/dashboard/marketing/planes",
         label: "Planes",
         icon: Tag,
+        module: "marketing",
+      },
+      {
+        href: "/dashboard/marketing/zonas",
+        label: "Zonas entrenamiento",
+        icon: Dumbbell,
         module: "marketing",
       },
     ],

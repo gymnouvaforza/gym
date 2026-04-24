@@ -1,5 +1,7 @@
 import type { MarketingTeamMember, MarketingPlan, MarketingScheduleRow } from "@/lib/data/marketing-content";
 import type { MarketingTeamValues, MarketingPlansValues, MarketingScheduleValues } from "@/lib/validators/marketing";
+import type { TrainingZone } from "@/data/training-zones";
+import type { TrainingZonesValues } from "@/lib/validators/training-zone";
 
 // Team Members
 export function toMarketingTeamFormValues(members: MarketingTeamMember[]): MarketingTeamValues {
@@ -88,5 +90,26 @@ export function createEmptyScheduleRow(order: number) {
     closes_at: "22:00",
     is_active: true,
     order,
+  };
+}
+
+// Training Zones
+export function toTrainingZonesFormValues(zones: TrainingZone[]): TrainingZonesValues {
+  return {
+    trainingZones: zones.map((zone) => ({
+      id: zone.id,
+      slug: zone.slug,
+      title: zone.title,
+      short_label: zone.short_label,
+      subtitle: zone.subtitle ?? "",
+      description: zone.description,
+      icon: zone.icon,
+      video_url: zone.video_url,
+      poster_url: zone.poster_url ?? "",
+      cta_label: zone.cta_label ?? "",
+      cta_href: zone.cta_href ?? "",
+      order_index: zone.order_index,
+      active: zone.active,
+    })),
   };
 }

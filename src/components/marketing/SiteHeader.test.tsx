@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type { ComponentProps, ReactNode } from "react";
 import { vi } from "vitest";
 
@@ -48,6 +48,7 @@ describe("SiteHeader", () => {
       screen.getByRole("link", { name: normalizeSiteName(defaultSiteSettings.site_name) }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Abrir carrito/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Abrir menu/i }));
     expect(screen.getAllByText("Header auth actions")).toHaveLength(2);
   });
 });

@@ -25,6 +25,11 @@ import {
   type MarketingTestimonial,
   type MarketingTestimonialModerationStatus,
 } from "@/lib/data/marketing-content";
+import {
+  trainingZones as defaultTrainingZones,
+  type TrainingZone,
+  type TrainingZoneIcon,
+} from "@/data/training-zones";
 import { hasSupabasePublicEnv, hasSupabaseServiceRole } from "@/lib/env";
 import { parseSeoKeywordsInput } from "@/lib/seo";
 import { resolveTopbarVariant, toIsoDateTimeOrNull } from "@/lib/topbar";
@@ -32,6 +37,7 @@ import type { ContactFormValues } from "@/lib/validators/contact";
 import type { CmsDocumentValues } from "@/lib/validators/cms-document";
 import type { LeadFollowUpValues } from "@/lib/validators/lead";
 import type { MarketingContentValues } from "@/lib/validators/marketing";
+import type { TrainingZoneValues } from "@/lib/validators/training-zone";
 import type { SiteSettingsValues } from "@/lib/validators/settings";
 import { trimToNull } from "@/lib/utils";
 import { defaultThemeConfig, type ThemeConfig } from "@/lib/validators/theme";
@@ -44,6 +50,7 @@ import type {
   DBSiteSettingsRow,
   DBMarketingTeamMember,
   DBMarketingTestimonial,
+  DBTrainingZone,
   Json,
   Lead,
   LeadStatus,
@@ -65,6 +72,7 @@ export interface MarketingSnapshot {
   scheduleRows: MarketingScheduleRow[];
   teamMembers: MarketingTeamMember[];
   testimonials: MarketingTestimonial[];
+  trainingZones: TrainingZone[];
   isFallback: boolean;
   warning: string | null;
 }
@@ -124,6 +132,46 @@ export function normalizeMarketingPlan(
     created_at: row?.created_at ?? fallback.created_at,
     updated_at: row?.updated_at ?? fallback.updated_at,
   };
+}
+
+function isTrainingZoneIcon(value: string | null | undefined): value is TrainingZoneIcon {
+  return value === "dumbbell" || value === "flame" || value === "heart-pulse" || value === "users" || value === "bike";
+}
+
+export function normalizeTrainingZone(
+  row: Partial<DBTrainingZone> | null | undefined,
+  index = 0,
+): TrainingZone {
+  const fallback = defaultTrainingZones[index] ?? defaultTrainingZones[0];
+
+  return {
+    ...fallback,
+    id: row?.id ?? fallback.id,
+    slug: safeString(row?.slug, fallback.slug),
+    title: safeString(row?.title, fallback.title),
+    short_label: safeString(row?.short_label, fallback.short_label),
+    subtitle: trimToNull(row?.subtitle) ?? fallback.subtitle,
+    description: safeString(row?.description, fallback.description),
+    icon: isTrainingZoneIcon(row?.icon) ? row.icon : fallback.icon,
+    video_url: safeString(row?.video_url, fallback.video_url),
+    poster_url: trimToNull(row?.poster_url) ?? fallback.poster_url,
+    cta_label: trimToNull(row?.cta_label) ?? fallback.cta_label,
+    cta_href: trimToNull(row?.cta_href) ?? fallback.cta_href,
+    order_index: row?.order_index ?? fallback.order_index,
+    active: row?.active ?? fallback.active,
+  };
+}
+
+export function normalizeTrainingZones(
+  rows: Partial<DBTrainingZone>[] | null | undefined,
+): TrainingZone[] {
+  if (!rows?.length) {
+    return defaultTrainingZones.map((zone) => ({ ...zone }));
+  }
+
+  return rows
+    .map((row, index) => normalizeTrainingZone(row, index))
+    .sort((left, right) => left.order_index - right.order_index);
 }
 
 export function normalizeMarketingPlans(
@@ -562,6 +610,26 @@ function buildMarketingTeamMemberPayload(
   };
 }
 
+function buildTrainingZonePayload(
+  values: TrainingZoneValues,
+): Database["public"]["Tables"]["training_zones"]["Update"] {
+  return {
+    slug: values.slug.trim(),
+    title: values.title.trim(),
+    short_label: values.short_label.trim(),
+    subtitle: trimToNull(values.subtitle),
+    description: values.description.trim(),
+    icon: values.icon,
+    video_url: values.video_url.trim(),
+    poster_url: trimToNull(values.poster_url),
+    cta_label: trimToNull(values.cta_label),
+    cta_href: trimToNull(values.cta_href),
+    order_index: values.order_index,
+    active: values.active,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 function mapSupabaseError(error: PostgrestError | Error | null | undefined, entityName: string) {
   const errorRecord = error as { message?: string } | null | undefined;
   const message = error instanceof Error ? error.message : errorRecord?.message;
@@ -580,6 +648,7 @@ async function loadMarketingSnapshot(): Promise<MarketingSnapshot> {
       scheduleRows: defaultMarketingScheduleRows,
       teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
+      trainingZones: defaultTrainingZones,
       isFallback: true,
       warning: "Supabase no esta configurado. Se muestran datos fallback.",
     };
@@ -601,7 +670,13 @@ async function loadMarketingSnapshot(): Promise<MarketingSnapshot> {
 
     const actualSettingsId = settings?.id;
 
-    const [ { data: plans, error: plansError }, { data: scheduleRows, error: scheduleError }, { data: teamMembers, error: teamMembersError }, { data: testimonials, error: testimonialsError } ] =
+    const [
+      { data: plans, error: plansError },
+      { data: scheduleRows, error: scheduleError },
+      { data: teamMembers, error: teamMembersError },
+      { data: testimonials, error: testimonialsError },
+      { data: trainingZones, error: trainingZonesError },
+    ] =
       await Promise.all([
       // If we have a settings ID, use it. If not, fetch all (as per flexibility requirement)
       actualSettingsId 
@@ -629,6 +704,7 @@ async function loadMarketingSnapshot(): Promise<MarketingSnapshot> {
             .order("approved_at", { ascending: false })
             .order("updated_at", { ascending: false })
             .limit(3),
+      supabase.from("training_zones").select("*").eq("active", true).order("order_index", { ascending: true }),
       ]);
 
     if (plansError) console.error("Error fetching marketing_plans:", plansError);
@@ -637,6 +713,9 @@ async function loadMarketingSnapshot(): Promise<MarketingSnapshot> {
       console.error("Error fetching marketing_team_members:", teamMembersError);
     }
     if (testimonialsError) console.error("Error fetching marketing_testimonials:", testimonialsError);
+    if (trainingZonesError && !isMissingTableError(trainingZonesError)) {
+      console.error("Error fetching training_zones:", trainingZonesError);
+    }
 
     const normalizedPlans = normalizeMarketingPlans(plans).filter((plan) => plan.is_active);
 
@@ -646,6 +725,9 @@ async function loadMarketingSnapshot(): Promise<MarketingSnapshot> {
       scheduleRows: normalizeMarketingScheduleRows(scheduleRows).filter((row) => row.is_active),
       teamMembers: normalizeMarketingTeamMembers(teamMembers).filter((member) => member.is_active),
       testimonials: normalizeMarketingTestimonials(testimonials),
+      trainingZones: trainingZonesError
+        ? defaultTrainingZones
+        : normalizeTrainingZones(trainingZones).filter((zone) => zone.active),
       isFallback: false,
       warning: null,
     };
@@ -657,6 +739,7 @@ async function loadMarketingSnapshot(): Promise<MarketingSnapshot> {
       scheduleRows: defaultMarketingScheduleRows,
       teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
+      trainingZones: defaultTrainingZones,
       isFallback: true,
       warning: "No se pudieron cargar los datos reales de Supabase. Se muestra contenido fallback.",
     };
@@ -685,6 +768,7 @@ export const getDashboardMarketingSnapshot = cache(
       scheduleRows: defaultMarketingScheduleRows,
       teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
+      trainingZones: defaultTrainingZones,
       isFallback: true,
       warning: "Supabase no esta configurado. Marketing usa contenido fallback.",
     };
@@ -702,7 +786,7 @@ export const getDashboardMarketingSnapshot = cache(
 
     const actualSettingsId = settings?.id;
 
-    const [{ data: plans }, { data: scheduleRows }, { data: teamMembers }] = await Promise.all([
+    const [{ data: plans }, { data: scheduleRows }, { data: teamMembers }, { data: trainingZones }] = await Promise.all([
       actualSettingsId
         ? publicSupabase.from("marketing_plans").select("*").eq("site_settings_id", actualSettingsId)
         : publicSupabase.from("marketing_plans").select("*"),
@@ -718,6 +802,7 @@ export const getDashboardMarketingSnapshot = cache(
             .select("*")
             .eq("site_settings_id", actualSettingsId)
         : publicSupabase.from("marketing_team_members").select("*"),
+      publicSupabase.from("training_zones").select("*").order("order_index", { ascending: true }),
     ]);
 
     let testimonials: MarketingTestimonial[] = [];
@@ -737,6 +822,7 @@ export const getDashboardMarketingSnapshot = cache(
       scheduleRows: normalizeMarketingScheduleRows(scheduleRows),
       teamMembers: normalizeMarketingTeamMembers(teamMembers),
       testimonials,
+      trainingZones: normalizeTrainingZones(trainingZones),
       isFallback: false,
       warning: null,
     };
@@ -748,6 +834,7 @@ export const getDashboardMarketingSnapshot = cache(
       scheduleRows: defaultMarketingScheduleRows,
       teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
+      trainingZones: defaultTrainingZones,
       isFallback: true,
       warning: "No se pudo cargar el marketing real. Se muestra contenido fallback.",
     };
@@ -775,6 +862,7 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
       scheduleRows: defaultMarketingScheduleRows,
       teamMembers: defaultMarketingTeamMembers,
       testimonials: defaultMarketingTestimonials,
+      trainingZones: defaultTrainingZones,
       leads: [],
       isFallback: true,
       warning: "Supabase no esta configurado. El dashboard usa contenido fallback.",
@@ -789,6 +877,7 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
     { data: scheduleRows, error: scheduleRowsError },
     { data: teamMembers, error: teamMembersError },
     { data: testimonials, error: testimonialsError },
+    { data: trainingZones, error: trainingZonesError },
   ] = await Promise.all([
     publicSupabase.from("site_settings").select("*").limit(1).maybeSingle(),
     publicSupabase.from("marketing_plans").select("*"), // Fetch all for dashboard flexibility
@@ -801,6 +890,7 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
       .order("approved_at", { ascending: false })
       .order("updated_at", { ascending: false })
       .limit(3),
+    publicSupabase.from("training_zones").select("*").order("order_index", { ascending: true }),
   ]);
 
   const warnings: string[] = [];
@@ -815,6 +905,10 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
 
   if (testimonialsError) {
     warnings.push("No se pudieron cargar las reseñas aprobadas de marketing.");
+  }
+
+  if (trainingZonesError && !isMissingTableError(trainingZonesError)) {
+    warnings.push("No se pudieron cargar las zonas de entrenamiento.");
   }
 
   if (!hasSupabaseServiceRole()) {
@@ -836,6 +930,7 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
       testimonials: testimonialsError
         ? defaultMarketingTestimonials
         : normalizeMarketingTestimonials(testimonials),
+      trainingZones: trainingZonesError ? defaultTrainingZones : normalizeTrainingZones(trainingZones),
       leads: [],
       isFallback: true,
       warning: warnings.join(" "),
@@ -864,6 +959,7 @@ export const getDashboardSnapshot = cache(async function getDashboardSnapshot():
     testimonials: testimonialsError
       ? defaultMarketingTestimonials
       : normalizeMarketingTestimonials(testimonials),
+    trainingZones: trainingZonesError ? defaultTrainingZones : normalizeTrainingZones(trainingZones),
     leads: leadsError ? [] : normalizeLeads(leads),
     isFallback: warnings.length > 0,
     warning: warnings.length > 0 ? warnings.join(" ") : null,
@@ -1281,6 +1377,37 @@ export async function saveMarketingContentRecord(
   await saveMarketingPlansRecord(supabase, values.plans);
   await saveMarketingScheduleRowsRecord(supabase, values.scheduleRows);
   await saveMarketingTeamMembersRecord(supabase, values.teamMembers);
+}
+
+export async function listTrainingZonesRecord(
+  supabase: GymSupabaseClient,
+  options?: { activeOnly?: boolean },
+) {
+  let query = supabase.from("training_zones").select("*").order("order_index", { ascending: true });
+
+  if (options?.activeOnly) {
+    query = query.eq("active", true);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(mapSupabaseError(error, "las zonas de entrenamiento"));
+  }
+
+  return normalizeTrainingZones(data);
+}
+
+export async function updateTrainingZoneRecord(
+  supabase: GymSupabaseClient,
+  values: TrainingZoneValues,
+) {
+  const payload = buildTrainingZonePayload(values);
+  const { error } = await supabase.from("training_zones").update(payload).eq("id", values.id);
+
+  if (error) {
+    throw new Error(mapSupabaseError(error, "la zona de entrenamiento"));
+  }
 }
 
 export async function listCmsDocumentsRecord(

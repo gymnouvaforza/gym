@@ -112,6 +112,7 @@ src/
 - No reintroduzcas i18n ni AI si no forman parte del objetivo inmediato.
 - No agregues dashboards, seeds o demos que no aporten al vertical gym.
 - Si una tarea toca dominio, piensa primero si pertenece a web publica, admin o backend.
+- Si una tarea toca UI, revisa primero `DESIGN.md` y usalo como contrato visual principal antes de proponer o implementar cambios.
 - Reutiliza `components/ui` antes de crear primitives nuevas.
 - Manten `strict` TypeScript limpio.
 - Prefiere server components por defecto y `"use client"` solo cuando haga falta.

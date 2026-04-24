@@ -5,6 +5,7 @@ import { Loader2, Trash2, Upload, Info } from "lucide-react";
 import { useState } from "react";
 
 import { uploadAdminMedia, type AdminMediaUploadScope } from "@/lib/media/admin-upload";
+import { convertToJpeg } from "@/lib/media/client-image-utils";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -39,13 +40,15 @@ export default function NFImageUploader({
   const [error, setError] = useState<string | null>(null);
 
   const onUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const rawFile = event.target.files?.[0];
+    if (!rawFile) return;
 
     setIsUploading(true);
     setError(null);
 
     try {
+      // Normalizar a JPEG antes de subir para evitar errores de MIME
+      const file = await convertToJpeg(rawFile);
       const uploaded = await uploadAdminMedia(file, scope);
       onChange(uploaded.url);
     } catch (err) {

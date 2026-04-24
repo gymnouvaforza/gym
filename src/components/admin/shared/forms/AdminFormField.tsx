@@ -63,6 +63,9 @@ export function AdminFormField({
               type={type}
               placeholder={placeholder}
               disabled={disabled}
+              onChange={(event) => {
+                field.onChange(type === "number" ? event.target.valueAsNumber : event.target.value);
+              }}
               value={field.value ?? ""}
               className={cn(
                 "h-12 border-black/10 focus:ring-1 focus:ring-[#d71920]/20",

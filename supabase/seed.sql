@@ -952,3 +952,108 @@ where slug = 'botella-termica-nova';
 update public.products
 set category_id = (select id from public.store_categories where slug = 'movilidad')
 where slug = 'banda-elastica-tela-nova';
+
+insert into public.training_zones (
+  id,
+  slug,
+  title,
+  short_label,
+  subtitle,
+  description,
+  icon,
+  video_url,
+  poster_url,
+  cta_label,
+  cta_href,
+  order_index,
+  active
+)
+values
+  (
+    '00000000-0000-4000-8000-000000000001',
+    'peso-libre',
+    'Zona de peso libre',
+    'Fuerza',
+    'Racks, barras olimpicas y mancuernas para meterle en serio.',
+    'El espacio clave para construir fuerza real con libertad de movimiento, buena tecnica y progresion bien medida.',
+    'dumbbell',
+    '/video/train/peso_libre.mp4',
+    '/video/train/posters/peso_libre.jpg',
+    'Ver planes',
+    '#planes',
+    1,
+    true
+  ),
+  (
+    '00000000-0000-4000-8000-000000000002',
+    'alta-intensidad',
+    'Alta intensidad',
+    'HIIT',
+    'Sesiones explosivas para subir pulsaciones y sostener ritmo.',
+    'Bloques dinamicos para quienes quieren salir drenados, trabajar fuerte y llevar su resistencia a otro nivel.',
+    'flame',
+    '/video/train/alta_intensidad.mp4',
+    '/video/train/posters/alta_intensidad.jpg',
+    'Reservar prueba',
+    '#contacto',
+    2,
+    false
+  ),
+  (
+    '00000000-0000-4000-8000-000000000003',
+    'cardio',
+    'Acondicionamiento cardio',
+    'Cardio',
+    'Base aerobia y capacidad para complementar cualquier objetivo.',
+    'Cintas, remos y estaciones de trabajo para quemar, mejorar fondo fisico y sumar condicion sin perder foco.',
+    'heart-pulse',
+    '/video/train/cardio.mp4',
+    '/video/train/posters/cardio.jpg',
+    'Ver horarios',
+    '#horarios',
+    3,
+    false
+  ),
+  (
+    '00000000-0000-4000-8000-000000000004',
+    'actividades-dirigidas',
+    'Actividades dirigidas',
+    'Clases',
+    'Energia compartida, guia clara y sesiones con buen ritmo.',
+    'Entrena en grupo con sesiones guiadas que te ayudan a mantener constancia, tecnica y motivacion sin perder calidad.',
+    'users',
+    '/video/train/actividades_dirigidas.mp4',
+    '/video/train/posters/actividades_dirigidas.jpg',
+    'Hablar con un asesor',
+    '#contacto',
+    4,
+    false
+  ),
+  (
+    '00000000-0000-4000-8000-000000000005',
+    'ciclo-indoor',
+    'Ciclo indoor',
+    'Ciclo',
+    'Trabajo intenso con musica, ritmo y una sala que empuja.',
+    'Una experiencia inmersiva para quienes quieren quemar calorias, sumar resistencia y salir con la cabeza limpia.',
+    'bike',
+    '/video/train/ciclo.mp4',
+    '/video/train/posters/ciclo.jpg',
+    'Agendar visita',
+    '#contacto',
+    5,
+    false
+  )
+on conflict (slug) do update set
+  title = excluded.title,
+  short_label = excluded.short_label,
+  subtitle = excluded.subtitle,
+  description = excluded.description,
+  icon = excluded.icon,
+  video_url = excluded.video_url,
+  poster_url = excluded.poster_url,
+  cta_label = excluded.cta_label,
+  cta_href = excluded.cta_href,
+  order_index = excluded.order_index,
+  active = excluded.active,
+  updated_at = timezone('utc', now());

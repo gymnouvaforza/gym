@@ -18,6 +18,7 @@ import {
   saveMarketingScheduleRowsRecord,
   saveMarketingTeamMembersRecord,
   saveSiteSettingsRecord,
+  updateTrainingZoneRecord,
   updateLeadFollowUpRecord,
   updateLeadStatusRecord,
   deleteLeadRecord,
@@ -27,6 +28,7 @@ import {
 import { cmsDocumentSchema, type CmsDocumentValues } from "@/lib/validators/cms-document";
 import { leadFollowUpSchema, type LeadFollowUpValues, leadStatusSchema } from "@/lib/validators/lead";
 import { marketingContentSchema, type MarketingContentValues } from "@/lib/validators/marketing";
+import { trainingZoneSchema, type TrainingZoneValues } from "@/lib/validators/training-zone";
 import {
   moderateMarketingTestimonialSchema,
   type MarketingTestimonialModerationStatus,
@@ -140,6 +142,22 @@ export async function saveMarketingTeamMembers(members: MarketingContentValues["
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error al guardar el equipo.";
+    return { success: false, error: message };
+  }
+}
+
+export async function saveTrainingZone(values: TrainingZoneValues): Promise<ActionResponse> {
+  try {
+    const parsed = trainingZoneSchema.parse(values);
+    const supabase = await getAuthenticatedSupabase();
+
+    await updateTrainingZoneRecord(supabase, parsed);
+    revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    revalidatePath("/dashboard/marketing/zonas");
+
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error al guardar la zona.";
     return { success: false, error: message };
   }
 }

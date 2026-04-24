@@ -1,6 +1,12 @@
 import sharp from "sharp";
 
-const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const SUPPORTED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/pjpeg",
+]);
 const DEFAULT_MAX_DIMENSION = 2400;
 const DEFAULT_JPEG_QUALITY = 82;
 const DEFAULT_WEBP_QUALITY = 80;

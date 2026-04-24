@@ -8,7 +8,6 @@ import useEmblaCarousel from "embla-carousel-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  getOrderedTrainingZones,
   trainingZonesSectionCopy,
   type TrainingZone,
   type TrainingZoneIcon,
@@ -40,9 +39,9 @@ function ZoneCard({
       className="group relative flex h-[500px] w-[300px] shrink-0 flex-col overflow-hidden bg-secondary sm:h-[600px] sm:w-[340px] md:h-[640px] md:w-[360px] rounded-[var(--radius-base)]"
     >
       <div className="absolute inset-0 z-0">
-        {zone.poster ? (
+        {zone.poster_url ? (
           <Image
-            src={zone.poster}
+            src={zone.poster_url}
             alt={zone.title}
             fill
             className="object-cover opacity-90 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-100"
@@ -67,11 +66,11 @@ function ZoneCard({
             loop
             playsInline
             preload="none"
-            poster={zone.poster}
+            poster={zone.poster_url ?? undefined}
             className="h-full w-full object-cover opacity-90 transition-transform duration-700 ease-out group-hover:scale-105 group-hover:opacity-100"
             onError={() => setVideoFailed(true)}
           >
-            <source src={zone.video} type="video/mp4" />
+            <source src={zone.video_url} />
           </video>
         ) : null}
       </div>
@@ -124,8 +123,17 @@ function ZoneCard({
   );
 }
 
-export default function TrainingZonesCarousel() {
-  const zones = useMemo(() => getOrderedTrainingZones(), []);
+interface TrainingZonesCarouselProps {
+  zones: TrainingZone[];
+}
+
+export default function TrainingZonesCarousel({
+  zones: providedZones,
+}: Readonly<TrainingZonesCarouselProps>) {
+  const zones = useMemo(
+    () => [...providedZones].filter((zone) => zone.active).sort((left, right) => left.order_index - right.order_index),
+    [providedZones],
+  );
   const sectionRef = useRef<HTMLElement | null>(null);
   const [hasEnteredViewport, setHasEnteredViewport] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);

@@ -51,7 +51,7 @@ describe("RegistrationSuccessCard", () => {
     );
   });
 
-  it("shows the error state without a resend CTA when the email is missing", () => {
+  it("shows the error state without an email retry CTA when the email is missing", () => {
     render(<RegistrationSuccessCard status="error" />);
 
     expect(screen.getByText("No pudimos confirmar tu correo")).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe("RegistrationSuccessCard", () => {
     expect(screen.getByText("Necesitamos tu email para reenviar")).toBeInTheDocument();
   });
 
-  it("resends the confirmation link and updates the URL state", async () => {
+  it("retries the confirmation email and updates the URL state", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: vi.fn().mockResolvedValue({}),

@@ -22,6 +22,7 @@ export type DBMarketingPlan = Database["public"]["Tables"]["marketing_plans"]["R
 export type DBMarketingScheduleRow = Database["public"]["Tables"]["marketing_schedule_rows"]["Row"];
 export type DBMarketingTeamMember = Database["public"]["Tables"]["marketing_team_members"]["Row"];
 export type DBMarketingTestimonial = Database["public"]["Tables"]["marketing_testimonials"]["Row"];
+export type DBTrainingZone = Database["public"]["Tables"]["training_zones"]["Row"];
 export type Lead = Database["public"]["Tables"]["leads"]["Row"];
 export type LeadStatus = Database["public"]["Enums"]["lead_status"];
 export type DBSiteSettingsRow = Database["public"]["Tables"]["site_settings"]["Row"];
@@ -2011,6 +2012,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      training_zones: {
+        Row: {
+          active: boolean
+          created_at: string
+          cta_href: string | null
+          cta_label: string | null
+          description: string
+          icon: string
+          id: string
+          order_index: number
+          poster_url: string | null
+          short_label: string
+          slug: string
+          subtitle: string | null
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          description: string
+          icon: string
+          id?: string
+          order_index?: number
+          poster_url?: string | null
+          short_label: string
+          slug: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          order_index?: number
+          poster_url?: string | null
+          short_label?: string
+          slug?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: []
       }
       marketing_testimonials: {
         Row: {

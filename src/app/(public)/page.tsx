@@ -34,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PublicHomePage() {
-  const [{ settings, scheduleRows, teamMembers, testimonials }, membershipPlans] = await Promise.all([
+  const [{ settings, scheduleRows, teamMembers, testimonials, trainingZones }, membershipPlans] = await Promise.all([
     getMarketingData(),
     listMembershipPlans({ activeOnly: true }),
   ]);
@@ -61,7 +61,7 @@ export default async function PublicHomePage() {
         <TeamSection members={teamMembers} />
         <ProductsSection />
         <TestimonialsSection testimonials={testimonials} />
-        <TrainingZonesSection />
+        <TrainingZonesSection zones={trainingZones} />
         <ContactSection settings={settings} />
       </div>
     </>

@@ -5,14 +5,14 @@ export interface TrainingZone {
   slug: string;
   title: string;
   short_label: string;
-  subtitle?: string;
+  subtitle: string | null;
   description: string;
   icon: TrainingZoneIcon;
-  video: string;
-  poster?: string;
-  cta_label?: string;
-  cta_href?: string;
-  order: number;
+  video_url: string;
+  poster_url: string | null;
+  cta_label: string | null;
+  cta_href: string | null;
+  order_index: number;
   active: boolean;
 }
 
@@ -26,11 +26,11 @@ export const trainingZones: TrainingZone[] = [
     description:
       "El espacio clave para construir fuerza real con libertad de movimiento, buena tecnica y progresion bien medida.",
     icon: "dumbbell",
-    video: "/video/train/peso_libre.mp4",
-    poster: "/video/train/posters/peso_libre.jpg",
+    video_url: "/video/train/peso_libre.mp4",
+    poster_url: "/video/train/posters/peso_libre.jpg",
     cta_label: "Ver planes",
     cta_href: "#planes",
-    order: 1,
+    order_index: 1,
     active: true,
   },
   {
@@ -42,11 +42,11 @@ export const trainingZones: TrainingZone[] = [
     description:
       "Bloques dinamicos para quienes quieren salir drenados, trabajar fuerte y llevar su resistencia a otro nivel.",
     icon: "flame",
-    video: "/video/train/alta_intensidad.mp4",
-    poster: "/video/train/posters/alta_intensidad.jpg",
+    video_url: "/video/train/alta_intensidad.mp4",
+    poster_url: "/video/train/posters/alta_intensidad.jpg",
     cta_label: "Reservar prueba",
     cta_href: "#contacto",
-    order: 2,
+    order_index: 2,
     active: false,
   },
   {
@@ -58,11 +58,11 @@ export const trainingZones: TrainingZone[] = [
     description:
       "Cintas, remos y estaciones de trabajo para quemar, mejorar fondo fisico y sumar condicion sin perder foco.",
     icon: "heart-pulse",
-    video: "/video/train/cardio.mp4",
-    poster: "/video/train/posters/cardio.jpg",
+    video_url: "/video/train/cardio.mp4",
+    poster_url: "/video/train/posters/cardio.jpg",
     cta_label: "Ver horarios",
     cta_href: "#horarios",
-    order: 3,
+    order_index: 3,
     active: false,
   },
   {
@@ -74,11 +74,11 @@ export const trainingZones: TrainingZone[] = [
     description:
       "Entrena en grupo con sesiones guiadas que te ayudan a mantener constancia, tecnica y motivacion sin perder calidad.",
     icon: "users",
-    video: "/video/train/actividades_dirigidas.mp4",
-    poster: "/video/train/posters/actividades_dirigidas.jpg",
+    video_url: "/video/train/actividades_dirigidas.mp4",
+    poster_url: "/video/train/posters/actividades_dirigidas.jpg",
     cta_label: "Hablar con un asesor",
     cta_href: "#contacto",
-    order: 4,
+    order_index: 4,
     active: false,
   },
   {
@@ -90,11 +90,11 @@ export const trainingZones: TrainingZone[] = [
     description:
       "Una experiencia inmersiva para quienes quieren quemar calorias, sumar resistencia y salir con la cabeza limpia.",
     icon: "bike",
-    video: "/video/train/ciclo.mp4",
-    poster: "/video/train/posters/ciclo.jpg",
+    video_url: "/video/train/ciclo.mp4",
+    poster_url: "/video/train/posters/ciclo.jpg",
     cta_label: "Agendar visita",
     cta_href: "#contacto",
-    order: 5,
+    order_index: 5,
     active: false,
   },
 ];
@@ -107,7 +107,7 @@ export const trainingZonesSectionCopy = {
 };
 
 export function getOrderedTrainingZones() {
-  return [...trainingZones].sort((left, right) => left.order - right.order);
+  return [...trainingZones].sort((left, right) => left.order_index - right.order_index);
 }
 
 export function getInitialTrainingZone() {

@@ -7,10 +7,11 @@ describe("training zones data", () => {
     expect(initialZone.slug).toBe("peso-libre");
   });
 
-  it("keeps training videos under the expected folder", () => {
+  it("keeps fallback seed shape aligned with Supabase fields", () => {
     const zones = getOrderedTrainingZones();
 
     expect(zones).toHaveLength(5);
-    expect(zones.every((zone) => zone.video.startsWith("/video/train/"))).toBe(true);
+    expect(zones.every((zone) => zone.video_url.startsWith("/video/train/"))).toBe(true);
+    expect(zones.every((zone) => typeof zone.order_index === "number")).toBe(true);
   });
 });

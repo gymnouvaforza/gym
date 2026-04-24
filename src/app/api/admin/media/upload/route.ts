@@ -15,6 +15,7 @@ const BUCKETS = {
   team: PRODUCT_IMAGES_BUCKET,
   branding: "branding",
   favicon: "branding",
+  "training-zone": "media",
 } as const;
 
 const SCOPE_PREFIX: Record<keyof typeof BUCKETS, string> = {
@@ -22,10 +23,17 @@ const SCOPE_PREFIX: Record<keyof typeof BUCKETS, string> = {
   team: "marketing/team",
   branding: "logos",
   favicon: "favicons",
+  "training-zone": "training-zones/posters",
 };
 
 function isValidScope(value: FormDataEntryValue | null): value is keyof typeof BUCKETS {
-  return value === "product" || value === "team" || value === "branding" || value === "favicon";
+  return (
+    value === "product" ||
+    value === "team" ||
+    value === "branding" ||
+    value === "favicon" ||
+    value === "training-zone"
+  );
 }
 
 function buildStorageObjectPath(scope: keyof typeof BUCKETS, extension: string) {

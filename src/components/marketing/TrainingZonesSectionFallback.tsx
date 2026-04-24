@@ -30,9 +30,9 @@ export default function TrainingZonesSectionFallback() {
               className="group relative overflow-hidden border border-white/8 bg-black rounded-[var(--radius-base)]"
             >
               <div className="relative aspect-[5/6]">
-                {zone.poster ? (
+                {zone.poster_url ? (
                   <Image
-                    src={zone.poster}
+                    src={zone.poster_url}
                     alt={zone.title}
                     fill
                     className="object-cover opacity-80 transition-transform duration-500 group-hover:scale-105"

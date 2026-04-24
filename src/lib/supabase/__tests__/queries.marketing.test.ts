@@ -11,8 +11,10 @@ import {
   normalizeMarketingScheduleRows,
   normalizeMarketingTeamMembers,
   normalizeMarketingTestimonials,
+  normalizeTrainingZones,
   saveMarketingContentRecord,
 } from "@/lib/supabase/queries";
+import { trainingZones as defaultTrainingZones } from "@/data/training-zones";
 import type { MarketingContentValues } from "@/lib/validators/marketing";
 
 describe("normalizeMarketingPlans", () => {
@@ -141,6 +143,50 @@ describe("normalizeMarketingTeamMembers", () => {
 
     expect(members.map((member) => member.name)).toEqual(["Entrenador A", "Entrenadora B"]);
     expect(normalizeMarketingTeamMembers(null)).toHaveLength(defaultMarketingTeamMembers.length);
+  });
+});
+
+describe("normalizeTrainingZones", () => {
+  it("falls back safely and keeps zones ordered", () => {
+    const zones = normalizeTrainingZones([
+      {
+        id: "00000000-0000-4000-8000-000000000002",
+        slug: "zona-b",
+        title: "Zona B",
+        short_label: "B",
+        subtitle: "Sub B",
+        description: "Descripcion suficiente para zona B.",
+        icon: "flame",
+        video_url: "/video/train/b.mp4",
+        poster_url: "/video/train/posters/b.jpg",
+        cta_label: "Ir",
+        cta_href: "#contacto",
+        order_index: 2,
+        active: true,
+        created_at: new Date(0).toISOString(),
+        updated_at: new Date(0).toISOString(),
+      },
+      {
+        id: "00000000-0000-4000-8000-000000000001",
+        slug: "zona-a",
+        title: "Zona A",
+        short_label: "A",
+        subtitle: "Sub A",
+        description: "Descripcion suficiente para zona A.",
+        icon: "dumbbell",
+        video_url: "/video/train/a.mp4",
+        poster_url: "/video/train/posters/a.jpg",
+        cta_label: "Ver",
+        cta_href: "#planes",
+        order_index: 1,
+        active: true,
+        created_at: new Date(0).toISOString(),
+        updated_at: new Date(0).toISOString(),
+      },
+    ]);
+
+    expect(zones.map((zone) => zone.slug)).toEqual(["zona-a", "zona-b"]);
+    expect(normalizeTrainingZones(null)).toHaveLength(defaultTrainingZones.length);
   });
 });
 
