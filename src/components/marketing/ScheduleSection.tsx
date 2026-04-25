@@ -41,10 +41,18 @@ export default function ScheduleSection({ rows }: Readonly<ScheduleSectionProps>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{row.description}</p>
               ) : null}
               <div className="mt-4 grid grid-cols-2 gap-4 text-sm font-semibold uppercase tracking-wide">
-                <p className="text-muted-foreground">Apertura</p>
-                <p className="text-right text-accent">{row.opens_at}</p>
-                <p className="text-muted-foreground">Cierre</p>
-                <p className="text-right text-accent">{row.closes_at}</p>
+                {row.opens_at && row.closes_at ? (
+                  <>
+                    <p className="text-muted-foreground">Apertura</p>
+                    <p className="text-right text-accent">{row.opens_at}</p>
+                    <p className="text-muted-foreground">Cierre</p>
+                    <p className="text-right text-accent">{row.closes_at}</p>
+                  </>
+                ) : (
+                  <p className="col-span-2 text-center text-accent py-2 bg-accent/5 border border-accent/10 rounded-md">
+                    Cerrado
+                  </p>
+                )}
               </div>
             </article>
           ))}
@@ -72,10 +80,18 @@ export default function ScheduleSection({ rows }: Readonly<ScheduleSectionProps>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">{row.description}</p>
                     ) : null}
                   </div>
-                  <p className="text-lg font-medium text-muted">{row.opens_at}</p>
-                  <p className="text-right font-display text-xl font-medium text-accent">
-                    {row.closes_at}
-                  </p>
+                  {row.opens_at && row.closes_at ? (
+                    <>
+                      <p className="text-lg font-medium text-muted">{row.opens_at}</p>
+                      <p className="text-right font-display text-xl font-medium text-accent">
+                        {row.closes_at}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="col-span-2 text-right font-display text-xl font-bold uppercase text-accent/50 tracking-widest">
+                      Cerrado
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

@@ -54,9 +54,13 @@ export function MarketingScheduleItem({
               <span className="truncate text-sm font-black uppercase tracking-tight text-[#111111]">
                 {row?.label || `Horario ${index + 1}`}
               </span>
-              {row?.opens_at && row?.closes_at && (
+              {row?.opens_at && row?.closes_at ? (
                 <span className="text-[10px] font-bold uppercase text-[#7a7f87] tracking-widest">
                    / {row.opens_at} - {row.closes_at}
+                </span>
+              ) : (
+                <span className="text-[10px] font-black uppercase text-[#d71920] tracking-widest bg-[#d71920]/5 px-2 py-0.5 rounded border border-[#d71920]/10">
+                   / CERRADO
                 </span>
               )}
             </div>

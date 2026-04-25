@@ -6,7 +6,11 @@ import {
   PUBLIC_CACHE_TAGS,
   publicDataCache,
 } from "@/lib/cache/public-cache";
-import { ensureMemberProfileForUser } from "@/lib/data/gym-management";
+import {
+  ensureMemberProfileForUser,
+  getMemberProfileById,
+  ensureMemberProfileQrToken,
+} from "@/lib/data/gym-management";
 import { syncMembershipRequestToMedusa } from "@/lib/data/membership-commerce";
 import { defaultSiteSettings } from "@/lib/data/default-content";
 import { getMarketingData } from "@/lib/data/site";
@@ -48,11 +52,13 @@ import {
   membershipPaymentEntrySchema,
   membershipPlanReserveSchema,
   membershipRequestAnnotationSchema,
+  membershipRequestDatesSchema,
   membershipRequestStatusSchema,
   type MembershipAdminCreateRequestInput,
   type MembershipPaymentEntryInput,
   type MembershipPlanReserveInput,
   type MembershipRequestAnnotationInput,
+  type MembershipRequestDatesInput,
 } from "@/lib/validators/memberships";
 import { trimToNull } from "@/lib/utils";
 
@@ -884,9 +890,8 @@ export async function addMembershipPaymentEntry(input: {
     throw new Error("La solicitud de membresia ya no existe.");
   }
 
-  if (request.manual_payment_status === "paid" && request.manual_balance_due <= 0) {
-    throw new Error("Esta membresia ya figura como cubierta al completo.");
-  }
+  // Se permite el registro de pagos incluso si el saldo es 0 o negativo (sobrepago/ajuste manual)
+  // Eliminamos el bloqueo duro anterior para dar flexibilidad operativa a recepcion.
 
   const { data, error } = await client
     .from("membership_payment_entries")
@@ -951,6 +956,27 @@ export async function updateMembershipRequestStatus(
       membershipPlanId: request.membership_plan_id,
       status: "paused",
     });
+  }
+}
+
+export async function updateMembershipRequestDates(
+  membershipRequestId: string,
+  input: MembershipRequestDatesInput,
+) {
+  const parsed = membershipRequestDatesSchema.parse(input);
+  const client = createSupabaseAdminClient();
+  
+  const { error } = await client
+    .from("membership_requests")
+    .update({
+      cycle_starts_on: parsed.cycleStartsOn,
+      cycle_ends_on: parsed.cycleEndsOn,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", membershipRequestId);
+
+  if (error) {
+    throw new Error(error.message);
   }
 }
 
@@ -1080,6 +1106,22 @@ export function buildMembershipValidationUrl(token: string) {
 
 export function parseMembershipQrScanToken(input: string) {
   return parseMembershipQrScannedValue(input);
+}
+
+export async function activateMembershipQr(membershipRequestId: string) {
+  const client = createSupabaseAdminClient();
+  const request = await getMembershipRequestRowById(client, membershipRequestId);
+
+  if (!request) {
+    throw new Error("La solicitud de membresia ya no existe.");
+  }
+
+  const member = await getMemberProfileById(client, request.member_id);
+  if (!member) {
+    throw new Error("No se encontro la ficha del socio.");
+  }
+
+  return await ensureMemberProfileQrToken(client, member);
 }
 
 export async function getDashboardMembershipScanResultByToken(token: string) {

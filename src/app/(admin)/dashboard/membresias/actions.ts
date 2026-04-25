@@ -11,7 +11,32 @@ import {
   deleteMembershipRequest,
   resendMembershipRequestEmail,
   updateMembershipRequestStatus,
+  updateMembershipRequestDates,
+  activateMembershipQr,
 } from "@/lib/data/memberships";
+
+import {
+  type MembershipRequestDatesInput,
+} from "@/lib/validators/memberships";
+
+export async function activateMembershipQrAction(
+  membershipRequestId: string,
+  memberId?: string,
+) {
+  await requireAdminUser();
+  await activateMembershipQr(membershipRequestId);
+  revalidateMembershipAdmin(membershipRequestId, memberId);
+}
+
+export async function updateMembershipRequestDatesAction(
+  membershipRequestId: string,
+  values: MembershipRequestDatesInput,
+  memberId?: string,
+) {
+  await requireAdminUser();
+  await updateMembershipRequestDates(membershipRequestId, values);
+  revalidateMembershipAdmin(membershipRequestId, memberId);
+}
 import {
   membershipAdminCreateRequestSchema,
   membershipPaymentEntrySchema,

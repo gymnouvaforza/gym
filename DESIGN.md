@@ -10,6 +10,7 @@ Este documento sigue la idea de `DESIGN.md` popularizada por Stitch: un sistema 
 - No reemplaza al codigo. Si hay tension entre este documento y implementacion actual, primero manda patron real ya consolidado en `src/styles/tokens.css`, `src/app/globals.css` y layouts activos.
 - No obliga a redisenar pantallas existentes en esta fase.
 - Si una tarea solo toca logica, API o datos, este documento puede ignorarse.
+- Tambien sirve para armonizar web publica y dashboard sin forzar que ambas superficies se vean iguales.
 
 ## Superficies que cubre
 
@@ -17,6 +18,8 @@ Este documento sigue la idea de `DESIGN.md` popularizada por Stitch: un sistema 
 - Dashboard operativo en `src/app/(admin)/dashboard`.
 
 Ambas comparten misma marca base. No comparten mismo ritmo visual.
+
+La web publica vende. El dashboard opera. Pero ambas deben parecer parte del mismo gimnasio, no dos productos distintos.
 
 ## North Star
 
@@ -27,6 +30,7 @@ Producto de gimnasio local serio. Debe sentirse:
 - sobrio
 - confiable
 - con energia controlada
+- operativo con personalidad de marca
 
 No debe sentirse:
 
@@ -103,6 +107,13 @@ Regla principal: sharp corners.
 - si hace falta suavidad puntual, usarla como excepcion funcional, no como tono base.
 - bordes suelen ser finos, discretos y de alto orden visual, no pesados.
 
+Compatibilidad con dashboard actual:
+
+- se aceptan radios pequenos o medios en piezas concretas del admin cuando ya exista patron consolidado de componente.
+- ejemplos validos: metric cards destacadas, alertas operativas, paneles sticky o bloques de accion secundaria.
+- esos radios son excepcion de modulo, no nuevo default del sistema.
+- si una vista nueva del dashboard usa `AdminSurface`, `DashboardPageHeader` o componentes admin consolidados, se respeta su forma actual antes que forzar esquinas totalmente rectas.
+
 ### Spacing y densidad
 
 Ritmo general:
@@ -115,6 +126,7 @@ Reglas:
 - no comprimir marketing hasta parecer dashboard.
 - no inflar dashboard con heroes enormes o vacios excesivos.
 - mantener jerarquia por spacing antes que por decoracion.
+- en dashboard se permite una capa corta de dramatizacion visual al inicio de pagina si mejora escaneo: header, metricas, alertas o quick actions.
 
 ### Motion
 
@@ -185,6 +197,7 @@ Patrones:
 - header claro y operativo
 - cards y paneles limpios
 - estados, metricas, avisos y tablas con lectura rapida
+- acentos de marca visibles en headers, metricas, alerts y CTAs clave
 
 Reglas:
 
@@ -193,6 +206,33 @@ Reglas:
 - evitar heroes de marketing dentro del panel.
 - usar rojo para puntos de control y enfasis, no para pintar toda pantalla.
 - mantener bloques informativos compactos y comparables.
+- aceptar que el dashboard actual ya usa un tono editorial-operativo: tipografia display fuerte en headers, iconografia roja, fondos blancos con acentos y algun bloque premium u oscuro.
+- nuevas pantallas admin deben encajar con ese lenguaje existente antes que rebajarlo artificialmente a un SaaS neutro.
+- no mezclar en la misma vista demasiados subestilos admin.
+- elegir un dominante segun objetivo:
+- sobrio para tablas, formularios, detalle y mantenimiento
+- expresivo para overview, metricas, headers, quick actions y alertas
+- cuando convivan ambos, el expresivo abre o destaca; el sobrio sostiene lectura y trabajo.
+
+### Lenguaje visual del dashboard actual
+
+Patrones ya validados por implementacion real:
+
+- `DashboardPageHeader` con display fuerte, eyebrow roja, icono en bloque claro y presencia de marca.
+- `AdminSurface` como base de panel: blanco, borde fino, sombra contenida y densidad media.
+- metric cards con un poco mas de caracter que el resto del admin.
+- badges compactos, uppercase y de lectura rapida.
+- labels de formulario pequenas, uppercase y de alto contraste contextual.
+- sidebar oscura con sensacion de consola operativa, no de producto enterprise generico.
+
+Reglas para extender ese estilo:
+
+- reutilizar primero `components/admin/*` antes de crear otro lenguaje.
+- si una pagina admin necesita impacto visual, hacerlo con tipografia, icono, acento rojo y ritmo de superficies; no con gradientes aleatorios ni color excesivo.
+- fondos del admin deben seguir claros en contenido y oscuros en navegacion o bloques de enfasis, no invertir todo el panel sin necesidad.
+- sombras admin: visibles pero cortas. Deben separar capas, no parecer marketing glossy.
+- uppercase en admin esta permitido y ya es parte del sistema, pero reservarlo para labels, badges, encabezados cortos y CTAs compactos. No para parrafos largos.
+- display en admin se acepta en headers, metricas y modulos de entrada. Para tablas, forms, ayudas y detalle fino, seguir con sans.
 
 ## Componentes y patrones
 
@@ -215,6 +255,8 @@ Reglas:
 - marketing: cards mas atmosfericas, pero limpias
 - admin: cards mas funcionales, densas y con escaneo rapido
 - no usar sombras blandas enormes como recurso principal
+- en admin se permite una card mas expresiva si ya cumple funcion de resumen, alerta o quick action.
+- cuando haya mezcla de cards expresivas y funcionales, las funcionales deben ser mayoria.
 
 ### Buttons
 
@@ -222,6 +264,8 @@ Reglas:
 - label corta, directa, de accion
 - marketing puede usar `font-display` y uppercase
 - admin prioriza claridad; uppercase solo si no empeora legibilidad
+- en dashboard actual son validos botones compactos uppercase de alto peso visual para acciones operativas.
+- mantener consistencia dentro de la misma pantalla: no mezclar boton blando redondeado con boton sharp industrial sin motivo.
 
 ### Forms
 
@@ -236,6 +280,7 @@ Reglas:
 - filas limpias, contraste sobrio, spacing comedido
 - acciones visibles sin ruido
 - badges y estados deben ser interpretables de un vistazo
+- cabeceras uppercase compactas y pequenos acentos rojos son validos si ya siguen patron de modulo admin.
 
 ### Empty states
 
@@ -278,7 +323,9 @@ Si tarea de UI no especifica estilo, asumir:
 - `Oswald` para impacto y `Inter` para lectura
 - publico = mas aspiracional y narrativo
 - admin = mas sobrio, denso y operativo
+- admin puede ser expresivo dentro del lenguaje actual del dashboard
 - reutilizar `components/ui` y patrones existentes antes de crear primitives nuevas
+- si tarea cae en dashboard, revisar primero `components/admin/*`, `DashboardPageHeader`, `AdminSurface` y vistas hermanas del modulo
 
 ## Criterio de resolucion de conflictos
 
@@ -296,5 +343,6 @@ Una tarea de UI queda alineada cuando:
 - respeta paleta, tipografia y forma base
 - no mezcla lenguaje de marketing con lenguaje operativo
 - reutiliza patron existente o amplia uno de forma coherente
+- si toca dashboard, no rebaja ni rompe el lenguaje admin ya consolidado
 - mantiene contraste, jerarquia y accion clara
 - puede ser continuada por otro agente sin redecidir estilo desde cero

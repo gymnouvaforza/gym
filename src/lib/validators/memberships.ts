@@ -31,6 +31,13 @@ export const membershipRequestStatusSchema = z.enum([
   "cancelled",
 ]);
 
+export const membershipRequestDatesSchema = z.object({
+  cycleStartsOn: z.string().trim().min(10, "La fecha de inicio es obligatoria."),
+  cycleEndsOn: z.string().trim().min(10, "La fecha de fin es obligatoria."),
+});
+
+export type MembershipRequestDatesInput = z.input<typeof membershipRequestDatesSchema>;
+
 export const membershipPlanReserveSchema = z.object({
   membershipPlanId: z.string().uuid(),
   notes: nullableTrimmedString(1000).optional(),

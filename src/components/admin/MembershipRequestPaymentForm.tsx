@@ -37,6 +37,9 @@ export default function MembershipRequestPaymentForm({
   const parsedAmount = Number.parseFloat(amount.replace(",", "."));
   const hasValidPartialAmount = Number.isFinite(parsedAmount) && parsedAmount > 0;
 
+  const isOverpaying = hasValidPartialAmount && parsedAmount > normalizedBalance && normalizedBalance > 0;
+  const isAdjustment = hasValidPartialAmount && normalizedBalance <= 0;
+
   function submitPayment(mode: "partial" | "full") {
     const resolvedAmount = mode === "full" ? normalizedBalance : parsedAmount;
     setFeedback(null);
@@ -53,11 +56,17 @@ export default function MembershipRequestPaymentForm({
         );
         setAmount("");
         setNote("");
-        setFeedback(
-          mode === "full"
-            ? "Membresia cubierta al completo. La ficha recalculo el estado automaticamente."
-            : "Abono parcial registrado en el ledger manual.",
-        );
+        
+        let successMessage = "Abono parcial registrado en el ledger manual.";
+        if (mode === "full") {
+          successMessage = "Membresia cubierta al completo. La ficha recalculo el estado automáticamente.";
+        } else if (isAdjustment) {
+          successMessage = "Ajuste manual registrado correctamente.";
+        } else if (isOverpaying) {
+          successMessage = "Sobrepago registrado. El saldo resultará a favor del socio.";
+        }
+
+        setFeedback(successMessage);
         router.refresh();
       } catch (error) {
         setFeedback(
@@ -89,9 +98,22 @@ export default function MembershipRequestPaymentForm({
             onChange={(event) => setAmount(event.target.value)}
             placeholder={normalizedBalance > 0 ? `${normalizedBalance}` : "0.00"}
           />
+          
+          {isOverpaying && (
+            <p className="text-[10px] font-bold text-[#d71920] uppercase tracking-wider">
+              Aviso: El importe supera el saldo pendiente. Se registrará como sobrepago.
+            </p>
+          )}
+          
+          {isAdjustment && (
+            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+              Info: El saldo actual es 0. Se registrará como ajuste o pago extra.
+            </p>
+          )}
+
           <p className="text-xs leading-relaxed text-[#5f6368]">
-            El cobro se registra de forma manual y acumulativa. Puedes añadir abonos pequenos
-            hasta completar el total o cubrirlo de una vez.
+            El cobro se registra de forma manual y acumulativa. Puedes añadir abonos pequeños
+            o ajustes sin depender de la sincronización externa.
           </p>
         </div>
 
@@ -107,7 +129,7 @@ export default function MembershipRequestPaymentForm({
             rows={3}
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            placeholder="Ejemplo: abono en efectivo, yape, transferencia o acuerdo manual por WhatsApp."
+            placeholder="Ejemplo: abono en efectivo, transferencia o ajuste manual."
           />
         </div>
       </div>
@@ -127,7 +149,7 @@ export default function MembershipRequestPaymentForm({
             ) : (
               <Wallet className="h-4 w-4" />
             )}
-            Registrar abono parcial
+            {isAdjustment ? "Registrar ajuste" : "Registrar abono"}
           </Button>
           <Button
             type="button"
@@ -141,13 +163,13 @@ export default function MembershipRequestPaymentForm({
             ) : (
               <CircleDollarSign className="h-4 w-4" />
             )}
-            Marcar pago completo
+            Cubrir saldo pendiente
           </Button>
         </div>
 
         <p className="text-sm text-[#5f6368]" aria-live="polite">
           {isPending
-            ? "Registrando cobro manual..."
+            ? "Procesando pago manual..."
             : feedback ?? `Saldo pendiente actual: ${formatCartAmount(normalizedBalance, currencyCode)}.`}
         </p>
       </div>

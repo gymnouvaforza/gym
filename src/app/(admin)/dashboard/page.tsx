@@ -7,6 +7,7 @@ import { SectionSkeleton } from "@/components/ui/loading-state";
 
 import DashboardLeadSection, { DashboardLeadSectionFallback } from "@/components/admin/dashboard/DashboardLeadSection";
 import DashboardCommerceSection, { DashboardCommerceSectionFallback } from "@/components/admin/dashboard/DashboardCommerceSection";
+import DashboardQuickAccess from "@/components/admin/dashboard/DashboardQuickAccess";
 import DashboardOverviewAlerts from "@/components/admin/dashboard/DashboardOverviewAlerts";
 import { getActiveModules } from "@/lib/data/modules";
 import { getDashboardData } from "@/lib/data/site";
@@ -72,6 +73,8 @@ export default function DashboardPage() {
       <Suspense fallback={<SectionSkeleton lines={4} />}>
          <DashboardOverviewAlerts activeModulesPromise={activeModulesPromise} />
       </Suspense>
+
+      <DashboardQuickAccess />
 
       <div className="space-y-12">
         <Suspense fallback={<DashboardLeadSectionFallback />}>

@@ -254,6 +254,16 @@ export function deriveMembershipValidation(input: {
     };
   }
 
+  if (input.requestStatus === "active") {
+    return {
+      status: "al_dia",
+      label: "Membresia activa",
+      tone: "success",
+      cycleStartsOn: input.cycleStartsOn,
+      cycleEndsOn: input.cycleEndsOn,
+    };
+  }
+
   if (cycleEndsMs !== null && cycleEndsMs < todayMs) {
     return {
       status: "vencido",

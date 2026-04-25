@@ -127,7 +127,7 @@ export default function MemberProfileForm({
               }}
               className="h-14 px-8 border-black/10 font-black uppercase tracking-[0.2em] text-[#7a7f87] hover:bg-black/5 transition-all"
             >
-              <Save className="mr-2 h-4 w-4" />
+              {draft.isSaving ? <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               {draft.isSaving ? "Guardando..." : "Guardar Borrador"}
             </Button>
             <Button 

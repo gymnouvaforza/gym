@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const loginSchema = z.object({
   identity: z.string().trim().min(2, "Introduce un email o usuario valido."),
-  password: z.string().min(4, "La contrasena es obligatoria."),
+  password: z.string().min(6, "La contrasena debe tener al menos 6 caracteres."),
 });
 
 export type LoginValues = z.infer<typeof loginSchema>;

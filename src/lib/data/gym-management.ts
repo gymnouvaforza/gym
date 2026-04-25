@@ -209,7 +209,7 @@ function normalizeMemberEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-async function ensureMemberProfileQrToken(
+export async function ensureMemberProfileQrToken(
   client: GymAdminClient,
   member: DBMemberProfile,
 ): Promise<DBMemberProfile> {
@@ -342,7 +342,7 @@ async function listMemberProfiles(
   return (data ?? []) as DBMemberProfile[];
 }
 
-async function getMemberProfileById(client: GymAdminClient, memberId: string) {
+export async function getMemberProfileById(client: GymAdminClient, memberId: string) {
   const { data, error } = await client
     .from("member_profiles")
     .select(

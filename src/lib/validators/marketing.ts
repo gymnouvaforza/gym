@@ -38,8 +38,8 @@ export const marketingScheduleRowSchema = z.object({
   id: z.string().min(1, "El identificador es obligatorio."),
   label: z.string().trim().min(2, "El titulo del horario es obligatorio.").max(80, "Maximo 80 caracteres."),
   description: optionalShortText,
-  opens_at: z.string().trim().min(2, "La hora de apertura es obligatoria.").max(40, "Maximo 40 caracteres."),
-  closes_at: z.string().trim().min(2, "La hora de cierre es obligatoria.").max(40, "Maximo 40 caracteres."),
+  opens_at: z.string().trim().max(40, "Maximo 40 caracteres.").optional().or(z.literal("")),
+  closes_at: z.string().trim().max(40, "Maximo 40 caracteres.").optional().or(z.literal("")),
   is_active: z.boolean(),
   order: z.number().int().min(0),
 });

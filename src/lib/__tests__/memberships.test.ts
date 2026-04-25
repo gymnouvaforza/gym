@@ -30,12 +30,12 @@ describe("memberships helpers", () => {
     expect(validation.tone).toBe("warning");
   });
 
-  it("marks a membership as vencido when the cycle is already past", () => {
+  it("marks a membership as vencido when the cycle is already past and not active", () => {
     const validation = deriveMembershipValidation({
       cycleStartsOn: "2025-01-01",
       cycleEndsOn: "2025-01-31",
       manualPaymentStatus: "paid",
-      requestStatus: "active",
+      requestStatus: "confirmed",
     });
 
     expect(validation.status).toBe("vencido");
