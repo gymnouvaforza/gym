@@ -32,7 +32,7 @@ async function applyMigration() {
   
   // En Supabase, a menudo se configura una función RPC 'exec_sql' para automatización
   // Si no existe, intentaremos vía CLI o informaremos el método manual.
-  const { data, error } = await supabase.rpc('exec_sql', { sql_query: sql });
+  const { error } = await supabase.rpc('exec_sql', { sql_query: sql });
 
   if (error) {
     if (error.message.includes('function "exec_sql" does not exist')) {
@@ -43,7 +43,7 @@ async function applyMigration() {
         // Intento desesperado: buscar el binario en rutas comunes o usar npx local
         const output = execSync('npx supabase --version').toString();
         console.log('CLI detectado vía npx local:', output);
-      } catch (e) {
+      } catch {
         console.error('No se pudo ejecutar vía RPC ni detectar CLI.');
       }
     } else {

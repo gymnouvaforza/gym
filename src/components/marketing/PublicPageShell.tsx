@@ -43,7 +43,6 @@ export default function PublicPageShell({
       <SiteFooter
         settings={settings}
         legalLinks={legalLinks}
-        activeModules={activeModules}
       />
       <CookieConsentBanner document={cookieDocument} initialConsent={initialConsent} />
     </div>

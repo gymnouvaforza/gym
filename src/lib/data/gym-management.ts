@@ -201,7 +201,7 @@ function getAssignmentStatusLabel(status: string) {
   }
 }
 
-function generateMemberNumber() {
+export function generateMemberNumber() {
   return `NF-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 }
 

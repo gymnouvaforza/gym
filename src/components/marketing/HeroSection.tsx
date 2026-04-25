@@ -4,7 +4,6 @@ import Link from "next/link";
 import HeroPhoneMedia from "@/components/marketing/HeroPhoneMedia";
 import { Button } from "@/components/ui/button";
 import type { SiteSettings } from "@/lib/supabase/database.types";
-import { cn } from "@/lib/utils";
 
 const FALLBACK_IMAGE = "/images/hero/banner-1.webp";
 const DEFAULT_VIDEO_PATH = "/video/video.mp4";
@@ -18,20 +17,6 @@ function splitHeroTitle(title: string | null) {
     left: words.slice(0, splitIndex),
     right: words.slice(splitIndex),
   };
-}
-
-function renderTitleLines(words: string[], accentLastWord = false) {
-  return words.map((word, index) => (
-    <span
-      key={`${word}-${index}`}
-      className={cn(
-        "block text-white",
-        accentLastWord && index === words.length - 1 && words.length > 1 && "text-primary",
-      )}
-    >
-      {word}
-    </span>
-  ));
 }
 
 interface HeroSectionProps {

@@ -76,6 +76,7 @@ function revalidateApp(tags: PublicCacheTag[] = []) {
 }
 
 export async function saveSiteSettings(values: SiteSettingsValues) {
+  await requireAdminUser();
   const parsed = siteSettingsSchema.parse(values);
   const supabase = await getAuthenticatedSupabase();
   await saveSiteSettingsRecord(supabase, parsed);
@@ -89,6 +90,7 @@ export type ActionResponse = {
 
 export async function saveMarketingContent(values: MarketingContentValues): Promise<ActionResponse> {
   try {
+    await requireAdminUser();
     const parsed = marketingContentSchema.parse(values);
     const supabase = await getAuthenticatedSupabase();
 
@@ -112,6 +114,7 @@ export async function saveMarketingContent(values: MarketingContentValues): Prom
 
 export async function saveMarketingPlans(plans: MarketingContentValues["plans"]): Promise<ActionResponse> {
   try {
+    await requireAdminUser();
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingPlansRecord(supabase, plans);
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
@@ -124,6 +127,7 @@ export async function saveMarketingPlans(plans: MarketingContentValues["plans"])
 
 export async function saveMarketingSchedule(rows: MarketingContentValues["scheduleRows"]): Promise<ActionResponse> {
   try {
+    await requireAdminUser();
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingScheduleRowsRecord(supabase, rows);
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
@@ -136,6 +140,7 @@ export async function saveMarketingSchedule(rows: MarketingContentValues["schedu
 
 export async function saveMarketingTeamMembers(members: MarketingContentValues["teamMembers"]): Promise<ActionResponse> {
   try {
+    await requireAdminUser();
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingTeamMembersRecord(supabase, members);
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
@@ -148,6 +153,7 @@ export async function saveMarketingTeamMembers(members: MarketingContentValues["
 
 export async function saveTrainingZone(values: TrainingZoneValues): Promise<ActionResponse> {
   try {
+    await requireAdminUser();
     const parsed = trainingZoneSchema.parse(values);
     const supabase = await getAuthenticatedSupabase();
 
@@ -163,6 +169,7 @@ export async function saveTrainingZone(values: TrainingZoneValues): Promise<Acti
 }
 
 export async function updateLeadStatus(id: string, status: "new" | "contacted" | "closed") {
+  await requireAdminUser();
   const parsed = leadStatusSchema.parse({ status });
   const supabase = await getAuthenticatedSupabase();
   await updateLeadStatusRecord(supabase, id, parsed.status);
@@ -171,6 +178,7 @@ export async function updateLeadStatus(id: string, status: "new" | "contacted" |
 }
 
 export async function saveLeadFollowUp(id: string, values: LeadFollowUpValues) {
+  await requireAdminUser();
   const parsed = leadFollowUpSchema.parse(values);
   const supabase = await getAuthenticatedSupabase();
   await updateLeadFollowUpRecord(supabase, id, parsed);
@@ -179,6 +187,7 @@ export async function saveLeadFollowUp(id: string, values: LeadFollowUpValues) {
 }
 
 export async function saveCmsDocument(values: CmsDocumentValues) {
+  await requireAdminUser();
   const parsed = cmsDocumentSchema.parse(values);
   const supabase = await getAuthenticatedSupabase();
   await saveCmsDocumentRecord(supabase, parsed);
@@ -189,6 +198,7 @@ export async function moderateMarketingTestimonial(
   id: string,
   moderationStatus: Extract<MarketingTestimonialModerationStatus, "approved" | "rejected">,
 ) {
+  await requireAdminUser();
   const parsed = moderateMarketingTestimonialSchema.parse({
     id,
     moderationStatus,
@@ -207,6 +217,7 @@ export async function moderateMarketingTestimonial(
 }
 
 export async function deleteLeadAction(id: string) {
+  await requireAdminUser();
   const supabase = await getAuthenticatedSupabase();
   await deleteLeadRecord(supabase, id);
   revalidatePath("/dashboard");
@@ -215,6 +226,7 @@ export async function deleteLeadAction(id: string) {
 
 export async function updateBrandingAction(values: BrandingValues): Promise<ActionResponse> {
   try {
+    await requireAdminUser();
     const parsed = brandingSchema.parse(values);
     const supabase = await getAuthenticatedSupabase();
 
@@ -239,6 +251,7 @@ export async function updateBrandingAction(values: BrandingValues): Promise<Acti
 
 export async function updateThemeAction(config: ThemeConfig): Promise<ActionResponse> {
   try {
+    await requireAdminUser();
     const parsed = themeConfigSchema.parse(config);
     const supabase = await getAuthenticatedSupabase();
 

@@ -1,13 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, RotateCcw, Palette, Info, FileCode } from "lucide-react";
+import { RotateCcw, Palette, Info, FileCode } from "lucide-react";
 import { useTransition, useEffect } from "react";
 import { useForm, useFormContext, type Path } from "react-hook-form";
 import { toast } from "sonner";
 
 import { updateThemeAction } from "@/app/(admin)/dashboard/actions";
-import AdminSurface from "@/components/admin/AdminSurface";
 import { AdminSection } from "@/components/admin/shared/layout/AdminSection";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -57,7 +56,7 @@ export default function ThemeEditorForm({ initialConfig, isReadOnly }: ThemeEdit
         } else {
           toast.error(result.error ?? "Error al guardar.");
         }
-      } catch (err) {
+      } catch {
         toast.error("Error de conexión con el servidor.");
       }
     });

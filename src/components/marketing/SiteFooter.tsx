@@ -3,8 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import type { SystemModuleStateMap } from "@/lib/module-flags";
-import { cn } from "@/lib/utils";
 import type { SiteSettings } from "@/lib/supabase/database.types";
 
 interface SiteFooterProps {
@@ -14,7 +12,6 @@ interface SiteFooterProps {
     href: string;
     label: string;
   }>;
-  activeModules: SystemModuleStateMap;
 }
 
 const EXPLORE_LINKS = [
@@ -40,7 +37,6 @@ const SUPPORT_LINKS = [
 export default function SiteFooter({
   settings,
   legalLinks,
-  activeModules,
 }: Readonly<SiteFooterProps>) {
   return (
     <footer 
