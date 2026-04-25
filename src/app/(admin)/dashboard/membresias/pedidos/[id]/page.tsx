@@ -7,6 +7,7 @@ import AdminSurface from "@/components/admin/AdminSurface";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
 import DeleteMembershipRequestButton from "@/components/admin/DeleteMembershipRequestButton";
 import MembershipCommerceSyncButton from "@/components/admin/MembershipCommerceSyncButton";
+import MembershipRequestEmailButton from "@/components/admin/MembershipRequestEmailButton";
 import MembershipRequestAnnotationsForm from "@/components/admin/MembershipRequestAnnotationsForm";
 import MembershipRequestPaymentForm from "@/components/admin/MembershipRequestPaymentForm";
 import MembershipRequestStatusControl from "@/components/admin/MembershipRequestStatusControl";
@@ -241,7 +242,15 @@ export default async function DashboardMembershipRequestDetailPage({
                 >
                   {membershipManualPaymentStatusLabels[request.manualPaymentSummary.status]}
                 </Badge>
-                <Badge variant={request.emailStatus === "sent" ? "success" : "muted"}>
+                <Badge
+                  variant={
+                    request.emailStatus === "sent"
+                      ? "success"
+                      : request.emailStatus === "failed"
+                        ? "warning"
+                        : "muted"
+                  }
+                >
                   {membershipEmailStatusLabels[request.emailStatus]}
                 </Badge>
                 <Badge
@@ -426,19 +435,49 @@ export default async function DashboardMembershipRequestDetailPage({
                   Comunicacion
                 </p>
                 <AdminSurface inset className="border-black/5 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center border border-black/5 bg-white text-[#111111]">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div
+                      className={cn(
+                        "flex h-10 w-10 items-center justify-center border border-black/5 bg-white text-[#111111]",
+                        request.emailStatus === "sent"
+                          ? "text-emerald-600"
+                          : request.emailStatus === "failed"
+                            ? "text-red-600"
+                            : "text-[#7a7f87]",
+                      )}
+                    >
                       <BellRing className="h-4 w-4" />
                     </div>
-                    <div className="space-y-1">
+                    <div className="min-w-0 space-y-1">
                       <p className="text-[13px] font-bold text-[#111111]">
-                        Email: {membershipEmailStatusLabels[request.emailStatus]}
+                        {request.emailStatus === "sent"
+                          ? "Socio notificado"
+                          : request.emailStatus === "failed"
+                            ? "Error de envio"
+                            : "Sin notificar"}
                       </p>
                       <p className="text-[12px] text-[#5f6368]">
-                        Ultimo envio: {formatDate(request.emailSentAt)}
+                        {request.emailStatus === "sent"
+                          ? `Enviado el ${formatDate(request.emailSentAt)}`
+                          : request.emailStatus === "failed"
+                            ? `Ultimo intento: ${formatDate(request.emailSentAt)}`
+                            : "Notificacion pendiente"}
                       </p>
+                      {request.emailStatus === "failed" && request.emailError ? (
+                        <p className="line-clamp-3 text-[11px] leading-relaxed text-[#b42318]">
+                          {request.emailError}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
+
+                  <MembershipRequestEmailButton
+                    membershipRequestId={request.id}
+                    memberId={request.member.id}
+                    emailStatus={request.emailStatus}
+                    size="sm"
+                    className="h-11 w-full rounded-none text-[10px] font-bold uppercase tracking-[0.1em]"
+                  />
                 </AdminSurface>
               </div>
 

@@ -223,6 +223,15 @@ export function getMembershipOperationalHint(request: MembershipRequestDetail) {
     };
   }
 
+  if (request.emailStatus === "failed") {
+    return {
+      label: "Reintentar email",
+      description:
+        "El ultimo intento de envio del QR fallo. Conviene revisar el error registrado y relanzar la notificacion.",
+      tone: "warning" as const,
+    };
+  }
+
   if (request.validation.status === "vencido" || request.status === "expired") {
     return {
       label: "Renovar o cerrar ciclo",

@@ -9,6 +9,7 @@ import {
   addMembershipRequestAnnotation,
   createMembershipRequest,
   deleteMembershipRequest,
+  resendMembershipRequestEmail,
   updateMembershipRequestStatus,
 } from "@/lib/data/memberships";
 import {
@@ -118,6 +119,15 @@ export async function retryMembershipRequestCommerceSyncAction(
 ) {
   await requireAdminUser();
   await syncMembershipRequestToMedusa(membershipRequestId);
+  revalidateMembershipAdmin(membershipRequestId, memberId);
+}
+
+export async function resendMembershipRequestEmailAction(
+  membershipRequestId: string,
+  memberId?: string,
+) {
+  await requireAdminUser();
+  await resendMembershipRequestEmail(membershipRequestId);
   revalidateMembershipAdmin(membershipRequestId, memberId);
 }
 

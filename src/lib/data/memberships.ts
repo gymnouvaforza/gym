@@ -354,11 +354,13 @@ async function sendMembershipRequestEmailIfPossible(
   client: MembershipClient,
   request: MembershipRequestDetail,
 ) {
+  const attemptedAt = new Date().toISOString();
+
   if (!hasSmtpEnv()) {
     await markMembershipRequestEmailResult(client, request.id, {
       emailError:
         "Configura SMTP_HOST, SMTP_PORT, SMTP_USER y SMTP_PASSWORD para enviar el QR de membresias.",
-      emailSentAt: null,
+      emailSentAt: attemptedAt,
       emailStatus: "failed",
     });
     return;
@@ -385,7 +387,7 @@ async function sendMembershipRequestEmailIfPossible(
 
     await markMembershipRequestEmailResult(client, request.id, {
       emailError: null,
-      emailSentAt: new Date().toISOString(),
+      emailSentAt: attemptedAt,
       emailStatus: "sent",
     });
   } catch (error) {
@@ -394,10 +396,30 @@ async function sendMembershipRequestEmailIfPossible(
         error instanceof Error
           ? error.message
           : "No se pudo enviar el email del QR de la membresia.",
-      emailSentAt: null,
+      emailSentAt: attemptedAt,
       emailStatus: "failed",
     });
   }
+}
+
+export async function resendMembershipRequestEmail(membershipRequestId: string) {
+  const client = createSupabaseAdminClient();
+  const request = await getMembershipRequestRowById(client, membershipRequestId);
+
+  if (!request) {
+    throw new Error("La solicitud de membresia ya no existe.");
+  }
+
+  const detailBeforeEmail = await buildMembershipRequestDetail(client, request);
+  await sendMembershipRequestEmailIfPossible(client, detailBeforeEmail);
+
+  const refreshedRequest = await getMembershipRequestRowById(client, membershipRequestId);
+
+  if (!refreshedRequest) {
+    throw new Error("La solicitud de membresia ya no se pudo recargar tras el intento de email.");
+  }
+
+  return buildMembershipRequestDetail(client, refreshedRequest);
 }
 
 async function syncMemberProfileMembership(client: MembershipClient, input: {

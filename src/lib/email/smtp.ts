@@ -30,9 +30,12 @@ function formatSmtpError(
     port: number;
     user: string;
   },
+  attempts: number,
 ) {
   if (!error || typeof error !== "object") {
-    return "SMTP no pudo enviar el email.";
+    return attempts > 1
+      ? `SMTP no pudo enviar el email tras ${attempts} intentos.`
+      : "SMTP no pudo enviar el email.";
   }
 
   const smtpError = error as Partial<Error> & {
@@ -50,7 +53,9 @@ function formatSmtpError(
   ].filter(Boolean);
 
   if (details.length === 0) {
-    return "SMTP no pudo enviar el email.";
+    return attempts > 1
+      ? `SMTP no pudo enviar el email tras ${attempts} intentos.`
+      : "SMTP no pudo enviar el email.";
   }
 
   if (smtpError.code === "EAUTH" || smtpError.responseCode === 535) {
@@ -61,35 +66,96 @@ function formatSmtpError(
     ].join(" ");
   }
 
-  return `SMTP no pudo enviar el email: ${details.join(" | ")}`;
+  return attempts > 1
+    ? `SMTP no pudo enviar el email tras ${attempts} intentos: ${details.join(" | ")}`
+    : `SMTP no pudo enviar el email: ${details.join(" | ")}`;
+}
+
+const RETRYABLE_SMTP_ERROR_CODES = new Set([
+  "ECONNECTION",
+  "ECONNRESET",
+  "ESOCKET",
+  "ETIMEDOUT",
+  "EPIPE",
+  "EAI_AGAIN",
+]);
+
+function isRetryableSmtpError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const smtpError = error as {
+    code?: string;
+    responseCode?: number;
+  };
+
+  if (smtpError.code && RETRYABLE_SMTP_ERROR_CODES.has(smtpError.code)) {
+    return true;
+  }
+
+  return typeof smtpError.responseCode === "number" && smtpError.responseCode >= 400 && smtpError.responseCode < 500;
+}
+
+function getRetryDelayMs(attempt: number) {
+  if (process.env.NODE_ENV === "test" || process.env.VITEST === "true") {
+    return 0;
+  }
+
+  return attempt * 250;
+}
+
+async function waitBeforeRetry(attempt: number) {
+  const delayMs = getRetryDelayMs(attempt);
+
+  if (delayMs <= 0) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
 }
 
 export async function sendSmtpEmail(input: SendSmtpEmailInput) {
   const smtp = getSmtpEnv();
-  const transporter = nodemailer.createTransport({
-    host: smtp.host,
-    port: smtp.port,
-    secure: smtp.secure,
-    auth: {
-      user: smtp.user,
-      pass: smtp.password,
-    },
-  });
+  const maxAttempts = 3;
+  let lastError: unknown = null;
 
-  try {
-    const info = await transporter.sendMail({
-      from: input.from ?? smtp.fromEmail,
-      to: normalizeRecipients(input.to),
-      replyTo: normalizeReplyTo(input.replyTo),
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const transporter = nodemailer.createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      auth: {
+        user: smtp.user,
+        pass: smtp.password,
+      },
     });
 
-    return {
-      id: info.messageId,
-    };
-  } catch (error) {
-    throw new Error(formatSmtpError(error, smtp));
+    try {
+      const info = await transporter.sendMail({
+        from: input.from ?? smtp.fromEmail,
+        to: normalizeRecipients(input.to),
+        replyTo: normalizeReplyTo(input.replyTo),
+        subject: input.subject,
+        html: input.html,
+        text: input.text,
+      });
+
+      return {
+        id: info.messageId,
+      };
+    } catch (error) {
+      lastError = error;
+
+      if (attempt >= maxAttempts || !isRetryableSmtpError(error)) {
+        break;
+      }
+
+      await waitBeforeRetry(attempt);
+    }
   }
+
+  throw new Error(formatSmtpError(lastError, smtp, maxAttempts));
 }

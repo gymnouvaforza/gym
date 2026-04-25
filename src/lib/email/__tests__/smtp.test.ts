@@ -111,5 +111,41 @@ describe("sendSmtpEmail", () => {
         text: "Hola",
       }),
     ).rejects.toThrow(/SMTP rechazo autenticacion para club@gmail.com en smtp\.gmail\.com:587\./);
+
+    expect(smtpMocks.createTransport).toHaveBeenCalledTimes(1);
+    expect(smtpMocks.sendMail).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries transient SMTP errors before failing", async () => {
+    smtpMocks.sendMail
+      .mockRejectedValueOnce({
+        code: "ETIMEDOUT",
+        responseCode: 421,
+        response: "Temporary timeout",
+        message: "socket timeout",
+      })
+      .mockRejectedValueOnce({
+        code: "ECONNECTION",
+        responseCode: 421,
+        response: "Temporary connection issue",
+        message: "Connection lost",
+      })
+      .mockResolvedValueOnce({
+        messageId: "smtp_message_03",
+      });
+
+    await expect(
+      sendSmtpEmail({
+        to: "member@gym.com",
+        subject: "Pedido listo",
+        html: "<p>Hola</p>",
+        text: "Hola",
+      }),
+    ).resolves.toEqual({
+      id: "smtp_message_03",
+    });
+
+    expect(smtpMocks.createTransport).toHaveBeenCalledTimes(3);
+    expect(smtpMocks.sendMail).toHaveBeenCalledTimes(3);
   });
 });
