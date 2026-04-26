@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
-
 import { NextResponse } from "next/server";
 
 import { PRODUCT_IMAGES_BUCKET } from "@/lib/commerce/image-urls";
 import { hasSupabaseServiceRole } from "@/lib/env";
-import { getCurrentAdminUser } from "@/lib/auth";
+import { requireRoles, withApiErrorHandling } from "@/lib/api-utils";
 import { optimizeImage } from "@/lib/media/optimize-image";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { DASHBOARD_ADMIN_ROLE, SUPERADMIN_ROLE } from "@/lib/user-roles";
 
 export const runtime = "nodejs";
 
@@ -40,28 +40,18 @@ function buildStorageObjectPath(scope: keyof typeof BUCKETS, extension: string) 
   return `${SCOPE_PREFIX[scope]}/${randomUUID()}.${extension}`;
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "No se pudo subir la imagen.";
-}
-
 export async function POST(request: Request) {
-  const user = await getCurrentAdminUser();
+  return withApiErrorHandling(async () => {
+    const auth = await requireRoles([DASHBOARD_ADMIN_ROLE, SUPERADMIN_ROLE]);
+    if (!auth.success) return auth.errorResponse;
 
-  if (!user) {
-    return NextResponse.json(
-      { error: "Necesitas iniciar sesion para subir imagenes." },
-      { status: 401 },
-    );
-  }
+    if (!hasSupabaseServiceRole()) {
+      return NextResponse.json(
+        { error: "Configura SUPABASE_SERVICE_ROLE_KEY para subir imagenes al storage." },
+        { status: 503 },
+      );
+    }
 
-  if (!hasSupabaseServiceRole()) {
-    return NextResponse.json(
-      { error: "Configura SUPABASE_SERVICE_ROLE_KEY para subir imagenes al storage." },
-      { status: 503 },
-    );
-  }
-
-  try {
     const formData = await request.formData();
     const scope = formData.get("scope");
     const file = formData.get("file");
@@ -79,8 +69,6 @@ export async function POST(request: Request) {
 
     const bucketName = BUCKETS[scope];
 
-    // Favicon doesn't need to be converted to WebP necessarily, but optimizeImage handles it.
-    // For favicon we might want to keep ICO/PNG but let's stick to the current pipeline for now.
     const optimized = await optimizeImage({
       buffer: Buffer.from(await file.arrayBuffer()),
       contentType: file.type,
@@ -112,7 +100,5 @@ export async function POST(request: Request) {
       height: optimized.height,
       bytes: optimized.bytes,
     });
-  } catch (error) {
-    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
-  }
+  });
 }

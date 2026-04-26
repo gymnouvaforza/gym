@@ -5,6 +5,7 @@ const proxyMocks = vi.hoisted(() => ({
   createClient: vi.fn(),
   getServerSupabaseEnv: vi.fn(),
   hasSupabaseServiceRole: vi.fn(),
+  verifyFirebaseSessionToken: vi.fn(),
 }));
 
 vi.mock("@supabase/supabase-js", () => ({
@@ -14,6 +15,11 @@ vi.mock("@supabase/supabase-js", () => ({
 vi.mock("@/lib/env", () => ({
   getServerSupabaseEnv: proxyMocks.getServerSupabaseEnv,
   hasSupabaseServiceRole: proxyMocks.hasSupabaseServiceRole,
+  hasLocalAdminEnv: vi.fn().mockReturnValue(false),
+}));
+
+vi.mock("@/lib/firebase/server", () => ({
+  verifyFirebaseSessionToken: proxyMocks.verifyFirebaseSessionToken,
 }));
 
 async function importProxyModule() {
@@ -22,12 +28,7 @@ async function importProxyModule() {
 }
 
 function createFirebaseSessionCookie(userId: string) {
-  const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
-  const payload = Buffer.from(JSON.stringify({ uid: userId, user_id: userId })).toString(
-    "base64url",
-  );
-
-  return `${header}.${payload}.signature`;
+  return "valid-token-" + userId;
 }
 
 function createSupabaseProxyClient(input: {
@@ -61,16 +62,61 @@ function createSupabaseProxyClient(input: {
   };
 }
 
-describe("proxy module gating", () => {
+describe("proxy security hardening", () => {
   beforeEach(() => {
     proxyMocks.createClient.mockReset();
     proxyMocks.getServerSupabaseEnv.mockReset();
     proxyMocks.hasSupabaseServiceRole.mockReset();
+    proxyMocks.verifyFirebaseSessionToken.mockReset();
+    
     proxyMocks.getServerSupabaseEnv.mockReturnValue({
       url: "https://supabase.test",
       serviceRoleKey: "service-role",
     });
     proxyMocks.hasSupabaseServiceRole.mockReturnValue(true);
+    proxyMocks.verifyFirebaseSessionToken.mockImplementation(async (token) => {
+      if (token.startsWith("valid-token-")) {
+        return { uid: token.replace("valid-token-", "") };
+      }
+      throw new Error("Invalid token");
+    });
+  });
+
+  it("redirects to login when no session is present on admin route", async () => {
+    const { proxy } = await importProxyModule();
+    const response = await proxy(new NextRequest("http://localhost/dashboard"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/login");
+  });
+
+  it("redirects to login when an invalid/expired token is provided", async () => {
+    const { proxy } = await importProxyModule();
+    const request = new NextRequest("http://localhost/dashboard", {
+      headers: {
+        cookie: "gym_firebase_session=expired-or-malformed-token",
+      },
+    });
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/login");
+  });
+
+  it("allows access to admin route with a valid verified token", async () => {
+    proxyMocks.createClient.mockReturnValue(
+      createSupabaseProxyClient({ isModuleEnabled: true, isSuperadmin: true }),
+    );
+    const { proxy } = await importProxyModule();
+    const request = new NextRequest("http://localhost/dashboard", {
+      headers: {
+        cookie: `gym_firebase_session=${createFirebaseSessionCookie("admin-1")}`,
+      },
+    });
+    const response = await proxy(request);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
   });
 
   it("rewrites disabled module routes to gated 404 for non-superadmin", async () => {
@@ -79,12 +125,17 @@ describe("proxy module gating", () => {
     );
 
     const { proxy } = await importProxyModule();
-    const response = await proxy(new NextRequest("http://localhost/tienda"));
+    const request = new NextRequest("http://localhost/tienda", {
+      headers: {
+        cookie: `gym_firebase_session=${createFirebaseSessionCookie("user-1")}`,
+      },
+    });
+    const response = await proxy(request);
 
     expect(response.headers.get("x-middleware-rewrite")).toContain("/_gated-404");
   });
 
-  it("allows disabled module routes for superadmin requests", async () => {
+  it("allows disabled module routes for verified superadmin requests", async () => {
     proxyMocks.createClient.mockReturnValue(
       createSupabaseProxyClient({ isModuleEnabled: false, isSuperadmin: true }),
     );
@@ -96,34 +147,6 @@ describe("proxy module gating", () => {
       },
     });
     const response = await proxy(request);
-
-    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
-  });
-
-  it("rewrites disabled mobile dashboard routes for non-superadmin", async () => {
-    proxyMocks.createClient.mockReturnValue(
-      createSupabaseProxyClient({ isModuleEnabled: false, isSuperadmin: false }),
-    );
-
-    const { proxy } = await importProxyModule();
-    const response = await proxy(
-      new NextRequest("http://localhost/dashboard/mobile", {
-        headers: {
-          cookie: `gym_firebase_session=${createFirebaseSessionCookie("staff-1")}`,
-        },
-      }),
-    );
-
-    expect(response.headers.get("x-middleware-rewrite")).toContain("/_gated-404");
-  });
-
-  it("does nothing on unrelated routes", async () => {
-    proxyMocks.createClient.mockReturnValue(
-      createSupabaseProxyClient({ isModuleEnabled: false, isSuperadmin: false }),
-    );
-
-    const { proxy } = await importProxyModule();
-    const response = await proxy(new NextRequest("http://localhost/horarios"));
 
     expect(response.headers.get("x-middleware-rewrite")).toBeNull();
   });

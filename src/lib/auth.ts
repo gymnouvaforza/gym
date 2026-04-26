@@ -4,12 +4,19 @@ import { cache } from "react";
 
 import { ADMIN_LOGIN_PATH } from "@/lib/admin";
 import type { AuthUser } from "@/lib/auth-user";
-import { getCurrentFirebaseUserFromCookies } from "@/lib/firebase/server";
 import {
+  getFirebaseAdminEnv,
+  getFirebasePublicEnv,
+  hasFirebaseAdminEnv,
   getLocalAdminEnv,
   hasLocalAdminEnv,
   hasSupabaseServiceRole,
 } from "@/lib/env";
+import { 
+  getFirebaseUserFromIdToken,
+  getCurrentFirebaseUserFromCookies, 
+  verifyFirebaseSessionToken 
+} from "@/lib/firebase/server";
 import {
   countUsersWithRole,
   SUPERADMIN_ROLE,
@@ -21,6 +28,7 @@ import {
 
 export const LOCAL_ADMIN_COOKIE = "gym_admin_session";
 export const DASHBOARD_ROLE_OVERRIDE_COOKIE = "gym_e2e_dashboard_role";
+export const FIREBASE_SESSION_COOKIE = "gym_firebase_session";
 export const MEMBER_LOGIN_PATH = "/acceso";
 
 export interface LocalAdminUser {
@@ -67,6 +75,9 @@ function createLocalAdminUser(user: string): LocalAdminUser {
   };
 }
 
+/**
+ * Verifica si la sesión actual es de un admin local (solo desarrollo).
+ */
 export const isLocalAdminSession = cache(async function isLocalAdminSession() {
   if (!hasLocalAdminEnv()) {
     return false;
@@ -76,19 +87,55 @@ export const isLocalAdminSession = cache(async function isLocalAdminSession() {
   const cookieStore = await cookies();
   const localSession = cookieStore.get(LOCAL_ADMIN_COOKIE)?.value;
 
+  // IMPORTANTE: hasLocalAdminEnv ya garantiza que no sea produccion
   return Boolean(adminEnv && localSession === adminEnv.user);
 });
 
-export const getAuthenticatedUser = cache(async function getAuthenticatedUser() {
-  return getCurrentFirebaseUserFromCookies();
+/**
+ * Obtiene el usuario autenticado validando el token de Firebase.
+ * No confía en la simple presencia de la cookie.
+ */
+export const getAuthenticatedUser = cache(async function getAuthenticatedUser(): Promise<AuthUser | null> {
+  if (process.env.VITEST_AUTH_MOCK === "true") return null;
+  if (!hasFirebaseAdminEnv()) {
+    return null;
+  }
+
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(FIREBASE_SESSION_COOKIE)?.value;
+
+  if (!sessionToken) {
+    return null;
+  }
+
+  try {
+    // Validamos el token con Firebase Admin (firma y estado de revocación)
+    await verifyFirebaseSessionToken(sessionToken);
+    
+    // Si el token es valido, obtenemos el usuario completo (cached)
+    return await getFirebaseUserFromIdToken(sessionToken);
+  } catch (error) {
+    // Si el token es invalido o expirado, no permitimos el acceso
+    return null;
+  }
 });
 
 export async function getCurrentMemberUser() {
   return getAuthenticatedUser();
 }
 
-async function canBootstrapDashboardAccess() {
+const ADMIN_ALLOWED_EMAILS = process.env.ADMIN_ALLOWED_EMAILS?.split(",") || [];
+
+async function canBootstrapDashboardAccess(userEmail?: string | null) {
   if (!hasSupabaseServiceRole()) {
+    return false;
+  }
+
+  // Si se ha configurado una lista blanca, el usuario debe estar en ella para bootstrapear
+  if (
+    ADMIN_ALLOWED_EMAILS.length > 0 &&
+    (!userEmail || !ADMIN_ALLOWED_EMAILS.includes(userEmail))
+  ) {
     return false;
   }
 
@@ -98,11 +145,6 @@ async function canBootstrapDashboardAccess() {
     if (isUserRolesSchemaError(error)) {
       return true;
     }
-
-    console.warn(
-      "Supabase admin role count could not be resolved while determining dashboard bootstrap access.",
-      error instanceof Error ? error.message : String(error),
-    );
 
     return false;
   }
@@ -114,6 +156,7 @@ export const getDashboardAccessState = cache(
   const roleOverride = resolveDashboardRoleOverride(
     cookieStore.get(DASHBOARD_ROLE_OVERRIDE_COOKIE)?.value,
   );
+  
   const authenticatedUser = await getAuthenticatedUser();
 
   if (authenticatedUser?.id) {
@@ -139,45 +182,36 @@ export const getDashboardAccessState = cache(
         };
       }
 
-      if (await canBootstrapDashboardAccess()) {
+      if (await canBootstrapDashboardAccess(authenticatedUser.email)) {
         return {
           user: authenticatedUser,
           accessMode: "bootstrap",
           accessWarning:
-            "El dashboard esta en modo bootstrap: todavia no existe ningun admin persistente en Supabase. Crea el rol `admin` en `public.user_roles` para cerrar este acceso provisional.",
+            "El dashboard esta en modo bootstrap: todavia no existe ningun admin persistente en Supabase.",
         };
       }
     } catch (error) {
       if (isUserRolesSchemaError(error)) {
-        return {
-          user: authenticatedUser,
-          accessMode: "bootstrap",
-          accessWarning:
-            "La tabla `public.user_roles` aun no esta disponible para el dashboard. Se habilita acceso provisional mientras terminas la migracion de roles.",
-        };
-      }
+        const canBootstrap = ADMIN_ALLOWED_EMAILS.length === 0 || 
+          (authenticatedUser.email && ADMIN_ALLOWED_EMAILS.includes(authenticatedUser.email));
 
-      console.warn(
-        "Supabase dashboard roles could not be resolved while determining admin access.",
-        error instanceof Error ? error.message : String(error),
-      );
+        if (canBootstrap) {
+          return {
+            user: authenticatedUser,
+            accessMode: "bootstrap",
+            accessWarning: "Acceso bootstrap habilitado por error de esquema.",
+          };
+        }
+      }
     }
   }
 
   if (await isLocalAdminSession()) {
     const adminEnv = getLocalAdminEnv();
     if (adminEnv) {
-      if (roleOverride) {
-        return {
-          user: createLocalAdminUser(adminEnv.user),
-          accessMode: roleOverride,
-          accessWarning: null,
-        };
-      }
-
       return {
         user: createLocalAdminUser(adminEnv.user),
-        accessMode: "local",
+        accessMode: roleOverride || "local",
         accessWarning: null,
       };
     }
@@ -191,29 +225,23 @@ export const getDashboardAccessState = cache(
   },
 );
 
-export async function getCurrentAdminUser(): Promise<AuthUser | LocalAdminUser | null> {
-  const accessState = await getDashboardAccessState();
-  return accessState.user;
-}
-
-export async function requireMemberUser(redirectTo = MEMBER_LOGIN_PATH) {
-  const user = await getCurrentMemberUser();
-
+export async function requireAuthenticatedUser() {
+  const user = await getAuthenticatedUser();
   if (!user) {
-    redirect(redirectTo);
+    throw new Error("No autenticado.");
   }
-
   return user;
 }
+
 
 export async function requireAdminUser(redirectTo = `${ADMIN_LOGIN_PATH}?error=admin-only`) {
-  const user = await getCurrentAdminUser();
+  const accessState = await getDashboardAccessState();
 
-  if (!user) {
+  if (!accessState.user || !accessState.accessMode) {
     redirect(redirectTo);
   }
 
-  return user;
+  return accessState.user;
 }
 
 export async function requireSuperadminUser(

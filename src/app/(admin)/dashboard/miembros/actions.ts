@@ -10,7 +10,8 @@ import {
   deleteMemberProfile,
 } from "@/lib/data/gym-management";
 import type { AssignRoutineInput } from "@mobile-contracts";
-import type { MemberFormValues } from "@/lib/validators/gym-members";
+import { memberFormSchema, type MemberFormValues } from "@/lib/validators/gym-members";
+import { assignRoutineFormSchema } from "@/lib/validators/gym-routines";
 
 function revalidateMembers() {
   revalidatePath("/dashboard/miembros");
@@ -32,12 +33,13 @@ export async function deleteMemberAction(memberId: string) {
 }
 
 export async function saveMemberProfileAction(values: MemberFormValues, memberId?: string) {
-  await requireAdminUser();
+  const user = await requireAdminUser();
+  const validatedValues = memberFormSchema.parse(values);
 
   if (memberId) {
-    await updateMemberProfile(memberId, values);
+    await updateMemberProfile(memberId, validatedValues);
   } else {
-    await createMemberProfile(values);
+    await createMemberProfile(validatedValues);
   }
 
   revalidateMembers();
@@ -45,7 +47,8 @@ export async function saveMemberProfileAction(values: MemberFormValues, memberId
 
 export async function assignRoutineFromDashboardAction(values: AssignRoutineInput) {
   const user = await requireAdminUser();
-  await assignRoutineToMember(values, resolveActorUserId(user));
+  const validatedValues = assignRoutineFormSchema.parse(values);
+  await assignRoutineToMember(validatedValues, resolveActorUserId(user));
   revalidateMembers();
   revalidatePath(`/dashboard/miembros/${values.memberId}`);
   revalidatePath("/dashboard/rutinas");

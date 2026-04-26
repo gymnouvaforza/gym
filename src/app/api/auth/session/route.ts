@@ -5,6 +5,7 @@ import {
   verifyFirebaseSessionToken,
 } from "@/lib/firebase/server";
 import { hasFirebaseAdminEnv } from "@/lib/env";
+import { SESSION_COOKIE_OPTIONS } from "@/lib/cookie-policy";
 
 function buildResponse() {
   return NextResponse.json({ success: true });
@@ -15,11 +16,8 @@ export async function POST(request: Request) {
 
   if (!hasFirebaseAdminEnv()) {
     response.cookies.set(FIREBASE_SESSION_COOKIE, "", {
-      httpOnly: true,
+      ...SESSION_COOKIE_OPTIONS,
       maxAge: 0,
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
     });
     return response;
   }
@@ -29,11 +27,8 @@ export async function POST(request: Request) {
 
   if (!idToken) {
     response.cookies.set(FIREBASE_SESSION_COOKIE, "", {
-      httpOnly: true,
+      ...SESSION_COOKIE_OPTIONS,
       maxAge: 0,
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
     });
     return response;
   }
@@ -45,11 +40,8 @@ export async function POST(request: Request) {
   }
 
   response.cookies.set(FIREBASE_SESSION_COOKIE, idToken, {
-    httpOnly: true,
+    ...SESSION_COOKIE_OPTIONS,
     maxAge: 60 * 60,
-    path: "/",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
   });
 
   return response;
@@ -58,11 +50,8 @@ export async function POST(request: Request) {
 export async function DELETE() {
   const response = buildResponse();
   response.cookies.set(FIREBASE_SESSION_COOKIE, "", {
-    httpOnly: true,
+    ...SESSION_COOKIE_OPTIONS,
     maxAge: 0,
-    path: "/",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
   });
   return response;
 }

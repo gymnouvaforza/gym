@@ -11,7 +11,7 @@ const modulesMocks = vi.hoisted(() => ({
   notFound: vi.fn(),
 }));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock(\"@/lib/auth\", async (importOriginal) => { const actual = await importOriginal<typeof import(\"@/lib/auth\")>(); return { ...actual, 
   getDashboardAccessState: modulesMocks.getDashboardAccessState,
   requireSuperadminUser: modulesMocks.requireSuperadminUser,
 }));
@@ -196,3 +196,4 @@ describe("modules data service", () => {
     expect(modulesMocks.revalidatePublicCacheTags).toHaveBeenCalledWith(["store-catalog"]);
   });
 });
+

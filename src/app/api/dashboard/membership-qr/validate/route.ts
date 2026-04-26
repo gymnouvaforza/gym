@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { getCurrentAdminUser } from "@/lib/auth";
 import {
   getDashboardMembershipScanResultByToken,
   parseMembershipQrScanToken,
@@ -14,13 +13,18 @@ import {
 } from "@/lib/membership-qr";
 import { SITE_URL } from "@/lib/seo";
 
-function resolveDashboardUserHeaders(user: Awaited<ReturnType<typeof getCurrentAdminUser>>) {
+import type { AuthUser } from "@/lib/auth-user";
+import { type LocalAdminUser } from "@/lib/auth";
+import { requireRoles, withApiErrorHandling } from "@/lib/api-utils";
+import { DASHBOARD_ADMIN_ROLE, SUPERADMIN_ROLE, TRAINER_ROLE } from "@/lib/user-roles";
+
+function resolveDashboardUserHeaders(user: AuthUser | LocalAdminUser) {
   const userId =
-    user && "id" in user && typeof user.id === "string" && MEMBERSHIP_QR_UUID_PATTERN.test(user.id)
+    "id" in user && typeof user.id === "string" && MEMBERSHIP_QR_UUID_PATTERN.test(user.id)
       ? user.id
       : "";
   const userEmail =
-    user && "email" in user && typeof user.email === "string" ? user.email : "";
+    "email" in user && typeof user.email === "string" ? user.email : "";
 
   return {
     userId,
@@ -112,71 +116,89 @@ async function resolveMembershipQrFallback(scannedValue: string) {
 }
 
 export async function POST(request: Request) {
-  const user = await getCurrentAdminUser();
+  return withApiErrorHandling(async () => {
+    const auth = await requireRoles([TRAINER_ROLE, DASHBOARD_ADMIN_ROLE, SUPERADMIN_ROLE]);
+    if (!auth.success) return auth.errorResponse;
+    const user = auth.user;
 
-  if (!user) {
-    return NextResponse.json(
-      createMembershipQrErrorResponse({
-        errorMessage: "Necesitas acceso al dashboard para validar un QR.",
-        reasonCode: "forbidden",
-        validationLabel: "Acceso restringido",
-      }),
-      { status: 401 },
-    );
-  }
+    const { serviceRoleKey, url } = getServerSupabaseEnv();
 
-  const { serviceRoleKey, url } = getServerSupabaseEnv();
+    if (!serviceRoleKey) {
+      return NextResponse.json(
+        createMembershipQrErrorResponse({
+          errorMessage:
+            "Falta SUPABASE_SERVICE_ROLE_KEY para conectar el dashboard con la validacion QR.",
+        }),
+        { status: 500 },
+      );
+    }
 
-  if (!serviceRoleKey) {
-    return NextResponse.json(
-      createMembershipQrErrorResponse({
-        errorMessage:
-          "Falta SUPABASE_SERVICE_ROLE_KEY para conectar el dashboard con la validacion QR.",
-      }),
-      { status: 500 },
-    );
-  }
+    const body = await request.json().catch(() => ({}));
+    const scannedValue =
+      typeof body?.scannedValue === "string" ? body.scannedValue.trim() : "";
 
-  const body = await request.json().catch(() => ({}));
-  const scannedValue =
-    typeof body?.scannedValue === "string" ? body.scannedValue.trim() : "";
+    if (!scannedValue) {
+      return NextResponse.json(
+        createMembershipQrErrorResponse({
+          errorMessage: "Escanea un QR valido antes de continuar.",
+          validationLabel: "Lectura vacia",
+        }),
+        { status: 400 },
+      );
+    }
 
-  if (!scannedValue) {
-    return NextResponse.json(
-      createMembershipQrErrorResponse({
-        errorMessage: "Escanea un QR valido antes de continuar.",
-        validationLabel: "Lectura vacia",
-      }),
-      { status: 400 },
-    );
-  }
+    const { userEmail, userId } = resolveDashboardUserHeaders(user);
 
-  const { userEmail, userId } = resolveDashboardUserHeaders(user);
+    try {
+      const functionResponse = await fetch(`${url}/functions/v1/membership-qr-validate`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${serviceRoleKey}`,
+          "Content-Type": "application/json",
+          "x-dashboard-user-email": userEmail,
+          "x-dashboard-user-id": userId,
+          "x-site-url": SITE_URL,
+        },
+        body: JSON.stringify({
+          scannedValue,
+        }),
+        cache: "no-store",
+      });
 
-  try {
-    const functionResponse = await fetch(`${url}/functions/v1/membership-qr-validate`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${serviceRoleKey}`,
-        "Content-Type": "application/json",
-        "x-dashboard-user-email": userEmail,
-        "x-dashboard-user-id": userId,
-        "x-site-url": SITE_URL,
-      },
-      body: JSON.stringify({
-        scannedValue,
-      }),
-      cache: "no-store",
-    });
+      const payload = await functionResponse.json().catch(() => null);
 
-    const payload = await functionResponse.json().catch(() => null);
+      if (!isMembershipQrValidationResponse(payload)) {
+        if (functionResponse.status === 404) {
+          const fallback = await resolveMembershipQrFallback(scannedValue);
+          return NextResponse.json(fallback, { status: fallback.canEnter ? 200 : 422 });
+        }
 
-    if (!isMembershipQrValidationResponse(payload)) {
-      if (functionResponse.status === 404) {
-        const fallback = await resolveMembershipQrFallback(scannedValue);
-        return NextResponse.json(fallback, { status: fallback.canEnter ? 200 : 422 });
+        const fallback = await resolveMembershipQrFallback(scannedValue).catch(() => null);
+
+        if (fallback) {
+          return NextResponse.json(fallback, { status: fallback.canEnter ? 200 : 422 });
+        }
+
+        return NextResponse.json(
+          createMembershipQrErrorResponse({
+            errorMessage:
+              "Supabase devolvio una respuesta invalida durante la validacion QR.",
+          }),
+          { status: 502 },
+        );
       }
 
+      return NextResponse.json(payload, {
+        status:
+          payload.status === "ok"
+            ? 200
+            : payload.reasonCode === "forbidden"
+              ? 403
+              : payload.status === "error"
+                ? 503
+                : 422,
+      });
+    } catch (error) {
       const fallback = await resolveMembershipQrFallback(scannedValue).catch(() => null);
 
       if (fallback) {
@@ -186,37 +208,12 @@ export async function POST(request: Request) {
       return NextResponse.json(
         createMembershipQrErrorResponse({
           errorMessage:
-            "Supabase devolvio una respuesta invalida durante la validacion QR.",
+            error instanceof Error
+              ? error.message
+              : "No se pudo contactar con la validacion QR de Supabase.",
         }),
-        { status: 502 },
+        { status: 503 },
       );
     }
-
-    return NextResponse.json(payload, {
-      status:
-        payload.status === "ok"
-          ? 200
-          : payload.reasonCode === "forbidden"
-            ? 403
-            : payload.status === "error"
-              ? 503
-              : 422,
-    });
-  } catch (error) {
-    const fallback = await resolveMembershipQrFallback(scannedValue).catch(() => null);
-
-    if (fallback) {
-      return NextResponse.json(fallback, { status: fallback.canEnter ? 200 : 422 });
-    }
-
-    return NextResponse.json(
-      createMembershipQrErrorResponse({
-        errorMessage:
-          error instanceof Error
-            ? error.message
-            : "No se pudo contactar con la validacion QR de Supabase.",
-      }),
-      { status: 503 },
-    );
-  }
+  });
 }

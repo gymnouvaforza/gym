@@ -10,7 +10,7 @@ import {
   resolveOrCreateMemberCommerceCustomer,
 } from "@/lib/cart/member-bridge";
 import { isMissingCartMessage, STALE_CART_MESSAGE } from "@/lib/cart/runtime";
-import { getCurrentMemberUser } from "@/lib/auth";
+import { withApiErrorHandling, requireFirebaseUser } from "@/lib/api-utils";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "No se pudo sincronizar el carrito del miembro.";
@@ -64,73 +64,70 @@ function clearCartCookie(response: NextResponse) {
 }
 
 export async function POST(request: Request) {
-  const user = await getCurrentMemberUser();
+  return withApiErrorHandling(async () => {
+    const auth = await requireFirebaseUser();
+    if (!auth.success) return auth.errorResponse;
+    const { user } = auth;
 
-  if (!user?.email) {
-    return NextResponse.json(
-      { error: "Necesitas iniciar sesion para vincular el carrito a tu cuenta." },
-      { status: 401 },
-    );
-  }
+    const body = (await request.json().catch(() => ({}))) as { cartId?: string };
+    const cartId = await resolveCartIdFromRequest(body.cartId);
 
-  const body = (await request.json().catch(() => ({}))) as { cartId?: string };
-  const cartId = await resolveCartIdFromRequest(body.cartId);
+    try {
+      let customerBridge = await resolveOrCreateMemberCommerceCustomer(user);
+      let cartResponse = null;
+      let fallbackCart = null;
 
-  try {
-    let customerBridge = await resolveOrCreateMemberCommerceCustomer(user);
-    let cartResponse = null;
-    let fallbackCart = null;
-
-    if (cartId) {
-      try {
-        cartResponse = await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email);
-      } catch (attachError) {
-        const attachMessage = getErrorMessage(attachError);
-
-        if (!isMissingCartMessage(attachMessage) && !isRecoverableAttachBridgeError(attachError)) {
-          throw attachError;
-        }
-
+      if (cartId) {
         try {
-          customerBridge = await revalidateMemberCommerceCustomer(user);
           cartResponse = await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email);
-        } catch (retryError) {
+        } catch (attachError) {
+          const attachMessage = getErrorMessage(attachError);
+
+          if (!isMissingCartMessage(attachMessage) && !isRecoverableAttachBridgeError(attachError)) {
+            throw attachError;
+          }
+
           try {
-            fallbackCart = await retrieveCart(cartId);
-          } catch {
-            throw retryError;
+            customerBridge = await revalidateMemberCommerceCustomer(user);
+            cartResponse = await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email);
+          } catch (retryError) {
+            try {
+              fallbackCart = await retrieveCart(cartId);
+            } catch {
+              throw retryError;
+            }
           }
         }
-      }
-    } else {
-      try {
-        const activeCartResponse = await retrieveActiveCartForMember(
-          customerBridge.medusa_customer_id,
-        );
+      } else {
+        try {
+          const activeCartResponse = await retrieveActiveCartForMember(
+            customerBridge.medusa_customer_id,
+          );
 
-        cartResponse = activeCartResponse?.cart ? { cart: activeCartResponse.cart } : null;
-      } catch (activeCartError) {
-        if (!isRecoverableActiveCartLookupError(activeCartError)) {
-          throw activeCartError;
+          cartResponse = activeCartResponse?.cart ? { cart: activeCartResponse.cart } : null;
+        } catch (activeCartError) {
+          if (!isRecoverableActiveCartLookupError(activeCartError)) {
+            throw activeCartError;
+          }
+
+          cartResponse = null;
         }
-
-        cartResponse = null;
       }
+
+      return NextResponse.json({
+        customer: customerBridge,
+        cart: fallbackCart ?? (cartResponse ? mapMedusaCart(cartResponse.cart) : null),
+      });
+    } catch (error) {
+      const message = getErrorMessage(error);
+
+      if (cartId && isMissingCartMessage(message)) {
+        return clearCartCookie(
+          NextResponse.json({ error: STALE_CART_MESSAGE }, { status: 409 }),
+        );
+      }
+
+      return NextResponse.json({ error: message }, { status: 500 });
     }
-
-    return NextResponse.json({
-      customer: customerBridge,
-      cart: fallbackCart ?? (cartResponse ? mapMedusaCart(cartResponse.cart) : null),
-    });
-  } catch (error) {
-    const message = getErrorMessage(error);
-
-    if (cartId && isMissingCartMessage(message)) {
-      return clearCartCookie(
-        NextResponse.json({ error: STALE_CART_MESSAGE }, { status: 409 }),
-      );
-    }
-
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  });
 }

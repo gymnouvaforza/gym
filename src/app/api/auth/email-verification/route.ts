@@ -1,33 +1,28 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { sendFirebaseVerificationEmail } from "@/lib/firebase/email-actions";
 import { sanitizeMemberRedirectPath } from "@/lib/member-auth-flow";
+import { validateBody, withApiErrorHandling } from "@/lib/api-utils";
+
+const EmailVerificationSchema = z.object({
+  email: z.string().trim().email(),
+  next: z.string().optional(),
+});
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as {
-    email?: string;
-    next?: string;
-  };
+  return withApiErrorHandling(async () => {
+    const validated = await validateBody(request, EmailVerificationSchema);
+    if ("errorResponse" in validated) return validated.errorResponse;
+    const { email, next } = validated.data;
 
-  const email = body.email?.trim().toLowerCase();
-
-  if (!email) {
-    return NextResponse.json({ error: "Necesitamos un email valido." }, { status: 400 });
-  }
-
-  try {
     const origin = new URL(request.url).origin;
     await sendFirebaseVerificationEmail({
       absoluteOrigin: origin,
-      email,
-      nextPath: sanitizeMemberRedirectPath(body.next) || "/registro/completado?confirmed=1",
+      email: email.toLowerCase(),
+      nextPath: sanitizeMemberRedirectPath(next) || "/registro/completado?confirmed=1",
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "No se pudo enviar el correo de confirmacion." },
-      { status: 400 },
-    );
-  }
+  });
 }

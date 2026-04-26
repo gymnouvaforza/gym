@@ -27,9 +27,21 @@ vi.mock("@/lib/cart/medusa", () => ({
   retrieveCart: memberRouteMocks.retrieveCart,
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getCurrentMemberUser: memberRouteMocks.getCurrentMemberUser,
+vi.mock("next/headers", () => ({
+  cookies: vi.fn().mockReturnValue({
+    get: vi.fn(),
+    set: vi.fn(),
+  }),
 }));
+
+vi.mock("@/lib/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth")>();
+  return {
+    ...actual,
+    getCurrentMemberUser: memberRouteMocks.getCurrentMemberUser,
+    getAuthenticatedUser: memberRouteMocks.getCurrentMemberUser,
+  };
+});
 
 import { POST } from "@/app/api/cart/member/route";
 

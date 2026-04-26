@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { requireMemberUser } from "@/lib/auth";
+import { requireAuthenticatedUser } from "@/lib/auth";
 import {
   createMembershipRequest,
   createMembershipRequestForUser,
@@ -22,7 +22,7 @@ export async function reserveMembershipPlanAction(input: {
   notes?: string | null;
   renewsFromRequestId?: string | null;
 }) {
-  const user = await requireMemberUser("/acceso?next=/planes");
+  const user = await requireAuthenticatedUser();
   const parsed = membershipPlanReserveSchema.parse({
     membershipPlanId: input.membershipPlanId,
     notes: input.notes ?? null,

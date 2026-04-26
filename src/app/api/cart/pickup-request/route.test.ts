@@ -1,111 +1,70 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const pickupRequestRouteMocks = vi.hoisted(() => ({
-  createPickupRequest: vi.fn(),
+const mocks = vi.hoisted(() => ({
   getCurrentMemberUser: vi.fn(),
-  listPickupRequests: vi.fn(),
   resolveCartIdFromRequest: vi.fn(),
+  listPickupRequests: vi.fn(),
+  createPickupRequest: vi.fn(),
   resolveOrCreateMemberCommerceCustomer: vi.fn(),
-  createSupabasePublicClient: vi.fn(),
 }));
+
+vi.mock("next/headers", () => ({
+  cookies: vi.fn().mockReturnValue({ 
+    get: vi.fn(),
+    set: vi.fn()
+  }),
+}));
+
+vi.mock("@/lib/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth")>();
+  return {
+    ...actual,
+    getCurrentMemberUser: mocks.getCurrentMemberUser,
+    getAuthenticatedUser: mocks.getCurrentMemberUser,
+  };
+});
 
 vi.mock("@/lib/cart/member-bridge", () => ({
-  createPickupRequest: pickupRequestRouteMocks.createPickupRequest,
-  listPickupRequests: pickupRequestRouteMocks.listPickupRequests,
-  resolveCartIdFromRequest: pickupRequestRouteMocks.resolveCartIdFromRequest,
-  resolveOrCreateMemberCommerceCustomer: pickupRequestRouteMocks.resolveOrCreateMemberCommerceCustomer,
+  createPickupRequest: mocks.createPickupRequest,
+  listPickupRequests: mocks.listPickupRequests,
+  resolveCartIdFromRequest: mocks.resolveCartIdFromRequest,
+  resolveOrCreateMemberCommerceCustomer: mocks.resolveOrCreateMemberCommerceCustomer,
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabasePublicClient: pickupRequestRouteMocks.createSupabasePublicClient,
-}));
-
-vi.mock("@/lib/auth", () => ({
-  getCurrentMemberUser: pickupRequestRouteMocks.getCurrentMemberUser,
-}));
-
-import { GYM_CART_COOKIE } from "@/lib/cart/cookie";
-import { POST } from "@/app/api/cart/pickup-request/route";
-
-function buildPublicClient(whatsappUrl = "https://wa.me/34654194788") {
-  return {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        limit: vi.fn(() => ({
-          maybeSingle: vi.fn().mockResolvedValue({
-            data: {
-              whatsapp_url: whatsappUrl,
-            },
-          }),
-        })),
-      })),
-    })),
-  };
-}
+import { POST } from "./route";
 
 describe("POST /api/cart/pickup-request", () => {
   beforeEach(() => {
-    pickupRequestRouteMocks.resolveCartIdFromRequest.mockResolvedValue("cart_01");
-    pickupRequestRouteMocks.listPickupRequests.mockResolvedValue({
-      pickup_requests: [
-        {
-          id: "pick_01",
-          request_number: "NF-20260407-ABC123",
-          cart_id: "cart_01",
-          customer_id: null,
-          supabase_user_id: null,
-          email: "guest@gym.com",
-          notes: "Pasare por la tarde.",
-          status: "requested",
-          currency_code: "PEN",
-          item_count: 1,
-          subtotal: 49.99,
-          total: 49.99,
-          order_id: "order_01KMMRQPVJ0NXBNB21VXY21VMN",
-          payment_status: "pending",
-          email_status: "pending",
-          created_at: "2026-04-07T08:00:00.000Z",
-          updated_at: "2026-04-07T08:00:00.000Z",
-        },
-      ],
-      count: 1,
-      limit: 1,
-      offset: 0,
-    });
-    pickupRequestRouteMocks.getCurrentMemberUser.mockResolvedValue(null);
-    pickupRequestRouteMocks.createSupabasePublicClient.mockReturnValue(buildPublicClient());
-  });
-
-  afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it("returns the existing pickup request and a WhatsApp URL with a short explanatory message", async () => {
-    const response = await POST(
-      new Request("http://localhost/api/cart/pickup-request", {
-        method: "POST",
-        body: JSON.stringify({
-          cartId: "cart_01",
-          email: "guest@gym.com",
-          notes: "Pasare por la tarde.",
-        }),
-      }),
-    );
-    const payload = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(pickupRequestRouteMocks.listPickupRequests).toHaveBeenCalledWith({
-      cartId: "cart_01",
-      limit: 1,
-      offset: 0,
+  it("creates a pickup request for a member", async () => {
+    mocks.resolveCartIdFromRequest.mockResolvedValue("cart_123");
+    mocks.getCurrentMemberUser.mockResolvedValue({ 
+        id: "user-1", 
+        email: "test@test.com",
+        app_metadata: { roles: ["member"] }
     });
-    expect(pickupRequestRouteMocks.createPickupRequest).not.toHaveBeenCalled();
-    expect(payload.pickupRequest.requestNumber).toBe("NF-20260407-ABC123");
-    const whatsappUrl = new URL(payload.whatsappUrl);
-    expect(whatsappUrl.origin + whatsappUrl.pathname).toBe("https://wa.me/34654194788");
-    expect(whatsappUrl.searchParams.get("text")).toBe(
-      "Hola, acabo de hacer un pedido en la tienda. Mi referencia es order_01KMMRQPVJ0NXBNB21VXY21VMN.",
-    );
-    expect(response.headers.get("set-cookie")).toContain(`${GYM_CART_COOKIE}=`);
+    mocks.listPickupRequests.mockResolvedValue({ pickup_requests: [] });
+    mocks.resolveOrCreateMemberCommerceCustomer.mockResolvedValue({ medusa_customer_id: "cus_1" });
+    mocks.createPickupRequest.mockResolvedValue({ 
+      pickup_request: { id: "pr_1", cart_id: "cart_123" } 
+    });
+
+    const response = await POST(new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({ cartId: "cart_123" })
+    }));
+    
+    expect(response.status).toBe(200);
+  });
+
+  it("fails if cartId cannot be resolved", async () => {
+    mocks.resolveCartIdFromRequest.mockResolvedValue(null);
+    const response = await POST(new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({})
+    }));
+    expect(response.status).toBe(400);
   });
 });

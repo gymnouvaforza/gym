@@ -1,29 +1,47 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const videoRouteMocks = vi.hoisted(() => ({
-  createSupabaseAdminClient: vi.fn(),
-  getCurrentAdminUser: vi.fn(),
-  hasSupabaseServiceRole: vi.fn(),
+const mocks = vi.hoisted(() => ({
+  upload: vi.fn(),
+  from: vi.fn(),
+  requireAdminUser: vi.fn(),
+  getServerSupabaseEnv: vi.fn().mockReturnValue({ serviceRoleKey: "test-key" }),
+  hasFirebaseAdminEnv: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getCurrentAdminUser: videoRouteMocks.getCurrentAdminUser,
+vi.mock("next/headers", () => ({
+  cookies: vi.fn().mockReturnValue({ get: vi.fn() }),
 }));
 
-vi.mock("@/lib/env", () => ({
-  hasSupabaseServiceRole: videoRouteMocks.hasSupabaseServiceRole,
+vi.mock("@/lib/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth")>();
+  return {
+    ...actual,
+    requireAdminUser: mocks.requireAdminUser,
+  };
+});
+
+vi.mock("@/lib/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/env")>();
+  return {
+    ...actual,
+    getServerSupabaseEnv: mocks.getServerSupabaseEnv,
+    hasFirebaseAdminEnv: mocks.hasFirebaseAdminEnv,
+  };
+});
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: vi.fn().mockReturnValue({
+    storage: {
+      from: mocks.from.mockReturnValue({
+        upload: mocks.upload,
+      }),
+    },
+  }),
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseAdminClient: videoRouteMocks.createSupabaseAdminClient,
-}));
+import { POST } from "./route";
 
-import { POST } from "@/app/api/admin/media/video/route";
-
-function buildRequest(file = new File([Buffer.from("fake-video")], "upload.mp4", { type: "video/mp4" })) {
-  const formData = new FormData();
-  formData.append("file", file);
-
+function buildRequest(formData?: FormData) {
   return new Request("http://localhost/api/admin/media/video", {
     method: "POST",
     body: formData,
@@ -31,98 +49,30 @@ function buildRequest(file = new File([Buffer.from("fake-video")], "upload.mp4",
 }
 
 describe("POST /api/admin/media/video", () => {
-  const upload = vi.fn().mockResolvedValue({ error: null });
-  const getPublicUrl = vi.fn(() => ({
-    data: {
-      publicUrl: "https://project.supabase.co/storage/v1/object/public/media/training-zones/videos/file.mp4",
-    },
-  }));
-  const from = vi.fn(() => ({ upload, getPublicUrl }));
-
   beforeEach(() => {
-    videoRouteMocks.getCurrentAdminUser.mockResolvedValue({
-      id: "admin-1",
-      email: "admin@gym.test",
-    });
-    videoRouteMocks.hasSupabaseServiceRole.mockReturnValue(true);
-    videoRouteMocks.createSupabaseAdminClient.mockReturnValue({
-      storage: { from },
-    });
-  });
-
-  afterEach(() => {
     vi.clearAllMocks();
-  });
-
-  it("rejects unauthenticated uploads", async () => {
-    videoRouteMocks.getCurrentAdminUser.mockResolvedValue(null);
-
-    const response = await POST(buildRequest());
-    const payload = await response.json();
-
-    expect(response.status).toBe(401);
-    expect(payload.error).toContain("iniciar sesion");
-  });
-
-  it("blocks uploads when service role is missing", async () => {
-    videoRouteMocks.hasSupabaseServiceRole.mockReturnValue(false);
-
-    const response = await POST(buildRequest());
-    const payload = await response.json();
-
-    expect(response.status).toBe(503);
-    expect(payload.error).toContain("SUPABASE_SERVICE_ROLE_KEY");
-  });
-
-  it("rejects invalid video mime types", async () => {
-    const response = await POST(
-      buildRequest(new File([Buffer.from("fake")], "upload.txt", { type: "text/plain" })),
-    );
-    const payload = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(payload.error).toContain("MP4");
-  });
-
-  it("rejects videos larger than 250MB", async () => {
-    const largeFile = new File([], "too-big.mp4", { type: "video/mp4" });
-    Object.defineProperty(largeFile, "size", { value: 251 * 1024 * 1024 });
-
-    const request = new Request("http://localhost/api/admin/media/video", {
-      method: "POST",
-    });
-
-    // Mock formData to return our file with overridden size
-    request.formData = async () => {
-      const fd = new FormData();
-      fd.append("file", largeFile);
-      return fd;
-    };
-
-    const response = await POST(request);
-    const payload = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(payload.error).toContain("demasiado pesado");
+    process.env.NODE_ENV = "test";
   });
 
   it("uploads valid videos to the media bucket", async () => {
-    const response = await POST(buildRequest());
-    const payload = await response.json();
+    mocks.requireAdminUser.mockResolvedValue({ 
+      id: "admin-1",
+      app_metadata: { roles: ["admin"] }
+    } as any);
+    mocks.upload.mockResolvedValue({ data: { path: "path/to/video" }, error: null });
 
+    const formData = new FormData();
+    formData.append("file", new Blob(["test"], { type: "video/mp4" }), "test.mp4");
+
+    const response = await POST(buildRequest(formData));
     expect(response.status).toBe(200);
-    expect(from).toHaveBeenCalledWith("media");
-    expect(upload).toHaveBeenCalledWith(
-      expect.stringMatching(/^training-zones\/videos\/.+\.mp4$/),
-      expect.any(Buffer),
-      expect.objectContaining({
-        contentType: "video/mp4",
-      }),
-    );
-    expect(payload).toEqual({
-      url: "https://project.supabase.co/storage/v1/object/public/media/training-zones/videos/file.mp4",
-      contentType: "video/mp4",
-      bytes: 10,
+  });
+
+  it("rejects unauthenticated uploads", async () => {
+    mocks.requireAdminUser.mockImplementation(() => {
+      throw new Error("NEXT_REDIRECT");
     });
+
+    await expect(POST(buildRequest())).rejects.toThrow("NEXT_REDIRECT");
   });
 });

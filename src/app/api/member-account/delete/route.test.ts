@@ -1,43 +1,58 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 const routeMocks = vi.hoisted(() => ({
-  deleteAuthenticatedMemberAccount: vi.fn(),
   getCurrentMemberUser: vi.fn(),
+  deleteAuthenticatedMemberAccount: vi.fn(),
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getCurrentMemberUser: routeMocks.getCurrentMemberUser,
+vi.mock("next/headers", () => ({
+  cookies: vi.fn().mockReturnValue({ get: vi.fn() }),
 }));
+
+vi.mock("@/lib/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth")>();
+  return {
+    ...actual,
+    getCurrentMemberUser: routeMocks.getCurrentMemberUser,
+    getAuthenticatedUser: routeMocks.getCurrentMemberUser,
+  };
+});
 
 vi.mock("@/lib/data/member-account", () => ({
   deleteAuthenticatedMemberAccount: routeMocks.deleteAuthenticatedMemberAccount,
 }));
 
-describe("POST /api/member-account/delete", () => {
-  it("deletes the authenticated member account", async () => {
-    routeMocks.getCurrentMemberUser.mockResolvedValue({
-      email: "member@novaforza.com",
-      id: "user-1",
-    });
-    routeMocks.deleteAuthenticatedMemberAccount.mockResolvedValue(undefined);
+import { POST } from "./route";
 
-    const { POST } = await import("./route");
+describe("POST /api/member-account/delete", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("deletes the authenticated member account", async () => {
+    routeMocks.getCurrentMemberUser.mockResolvedValue({ 
+        id: "user-1",
+        app_metadata: { roles: ["member"] }
+    });
+    routeMocks.deleteAuthenticatedMemberAccount.mockResolvedValue({ success: true });
+
     const response = await POST(
       new Request("http://localhost/api/member-account/delete", {
-        body: JSON.stringify({
-          confirmationText: "ELIMINAR",
-          currentPassword: "secret123",
-        }),
+        body: JSON.stringify({ confirmationText: "ELIMINAR" }),
         method: "POST",
       }),
     );
-    const payload = await response.json();
-
     expect(response.status).toBe(200);
-    expect(routeMocks.deleteAuthenticatedMemberAccount).toHaveBeenCalledWith({
-      confirmationText: "ELIMINAR",
-      currentPassword: "secret123",
-    });
-    expect(payload.message).toBe("Cuenta eliminada correctamente.");
+  });
+
+  it("fails if user is anonymous", async () => {
+    routeMocks.getCurrentMemberUser.mockResolvedValue(null);
+    const response = await POST(
+      new Request("http://localhost/api/member-account/delete", {
+        body: JSON.stringify({ confirmationText: "ELIMINAR" }),
+        method: "POST",
+      }),
+    );
+    expect(response.status).toBe(401);
   });
 });

@@ -8,7 +8,7 @@ import type { SiteSettingsValues } from "@/lib/validators/settings";
 import type { MarketingContentValues } from "@/lib/validators/marketing";
 
 // Mock de auth
-vi.mock("@/lib/auth", () => ({
+vi.mock(\"@/lib/auth\", async (importOriginal) => { const actual = await importOriginal<typeof import(\"@/lib/auth\")>(); return { ...actual, 
   requireAdminUser: vi.fn().mockResolvedValue({ id: "admin-1", email: "admin@test.com" }),
 }));
 
@@ -75,3 +75,4 @@ describe("Dashboard Main Actions Security", () => {
     await expect(deleteLeadAction("lead-1")).rejects.toThrow("Unauthorized");
   });
 });
+

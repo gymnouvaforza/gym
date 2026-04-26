@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getLocalAdminEnv, hasLocalAdminEnv } from "@/lib/env";
 import { LOCAL_ADMIN_COOKIE } from "@/lib/auth";
+import { SESSION_COOKIE_OPTIONS } from "@/lib/cookie-policy";
 
 export async function POST(request: Request) {
   if (!hasLocalAdminEnv()) {
@@ -29,10 +30,7 @@ export async function POST(request: Request) {
 
   const response = NextResponse.json({ success: true });
   response.cookies.set(LOCAL_ADMIN_COOKIE, adminEnv.user, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
+    ...SESSION_COOKIE_OPTIONS,
     maxAge: 60 * 60 * 8,
   });
 

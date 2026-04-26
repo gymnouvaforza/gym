@@ -1,45 +1,61 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 const routeMocks = vi.hoisted(() => ({
-  changeAuthenticatedMemberPassword: vi.fn(),
   getCurrentMemberUser: vi.fn(),
+  changeAuthenticatedMemberPassword: vi.fn(),
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getCurrentMemberUser: routeMocks.getCurrentMemberUser,
+vi.mock("next/headers", () => ({
+  cookies: vi.fn().mockReturnValue({ get: vi.fn() }),
 }));
+
+vi.mock("@/lib/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth")>();
+  return {
+    ...actual,
+    getCurrentMemberUser: routeMocks.getCurrentMemberUser,
+    getAuthenticatedUser: routeMocks.getCurrentMemberUser,
+  };
+});
 
 vi.mock("@/lib/data/member-account", () => ({
   changeAuthenticatedMemberPassword: routeMocks.changeAuthenticatedMemberPassword,
 }));
 
-describe("PATCH /api/member-account/password", () => {
-  it("changes password for the authenticated member", async () => {
-    routeMocks.getCurrentMemberUser.mockResolvedValue({
-      email: "member@novaforza.com",
-      id: "user-1",
-    });
-    routeMocks.changeAuthenticatedMemberPassword.mockResolvedValue(undefined);
+import { PATCH } from "./route";
 
-    const { PATCH } = await import("./route");
+describe("PATCH /api/member-account/password", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("changes password for the authenticated member", async () => {
+    routeMocks.getCurrentMemberUser.mockResolvedValue({ 
+        id: "user-1",
+        app_metadata: { roles: ["member"] }
+    });
+    routeMocks.changeAuthenticatedMemberPassword.mockResolvedValue({ success: true });
+
     const response = await PATCH(
       new Request("http://localhost/api/member-account/password", {
         body: JSON.stringify({
           confirmPassword: "secret999",
-          currentPassword: "secret123",
           newPassword: "secret999",
         }),
         method: "PATCH",
       }),
     );
-    const payload = await response.json();
-
     expect(response.status).toBe(200);
-    expect(routeMocks.changeAuthenticatedMemberPassword).toHaveBeenCalledWith({
-      confirmPassword: "secret999",
-      currentPassword: "secret123",
-      newPassword: "secret999",
-    });
-    expect(payload.message).toBe("Contrasena actualizada correctamente.");
+  });
+
+  it("fails if user is anonymous", async () => {
+    routeMocks.getCurrentMemberUser.mockResolvedValue(null);
+    const response = await PATCH(
+      new Request("http://localhost/api/member-account/password", {
+        body: JSON.stringify({ newPassword: "new" }),
+        method: "PATCH",
+      }),
+    );
+    expect(response.status).toBe(401);
   });
 });

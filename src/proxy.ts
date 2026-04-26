@@ -2,8 +2,9 @@ import type { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-import { getServerSupabaseEnv, hasSupabaseServiceRole } from "@/lib/env";
+import { getServerSupabaseEnv, hasSupabaseServiceRole, hasLocalAdminEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
+import { verifyFirebaseSessionToken } from "@/lib/firebase/server";
 import { SUPERADMIN_ROLE } from "@/lib/user-roles";
 
 const ADMIN_ROUTES = ["/dashboard"];
@@ -23,12 +24,6 @@ const MODULE_ROUTE_PREFIXES = {
 
 type ModuleName = keyof typeof MODULE_ROUTE_PREFIXES;
 
-type DecodedFirebaseSession = {
-  sub?: string;
-  uid?: string;
-  user_id?: string;
-};
-
 function isAdminRoute(pathname: string) {
   return ADMIN_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -47,25 +42,14 @@ function getModuleNameForPathname(pathname: string): ModuleName | null {
   return null;
 }
 
-function decodeFirebaseUserId(idToken: string | null) {
+async function verifyFirebaseUserId(idToken: string | null) {
   if (!idToken) {
     return null;
   }
 
-  const payload = idToken.split(".")[1];
-
-  if (!payload) {
-    return null;
-  }
-
   try {
-    const normalizedPayload = payload
-      .replace(/-/g, "+")
-      .replace(/_/g, "/")
-      .padEnd(Math.ceil(payload.length / 4) * 4, "=");
-    const decodedPayload = JSON.parse(atob(normalizedPayload)) as DecodedFirebaseSession;
-
-    return decodedPayload.user_id ?? decodedPayload.uid ?? decodedPayload.sub ?? null;
+    const decodedToken = await verifyFirebaseSessionToken(idToken);
+    return decodedToken.uid;
   } catch {
     return null;
   }
@@ -157,17 +141,22 @@ async function isSuperadminRequest(userId: string | null) {
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
   const firebaseSession = request.cookies.get(FIREBASE_SESSION_COOKIE)?.value;
-  const firebaseUserId = decodeFirebaseUserId(firebaseSession ?? null);
-  const hasFirebaseSession = Boolean(firebaseUserId || firebaseSession);
+  const firebaseUserId = await verifyFirebaseUserId(firebaseSession ?? null);
+  const hasFirebaseSession = Boolean(firebaseUserId);
 
-  if (isAdminRoute(request.nextUrl.pathname) && !hasFirebaseSession) {
-    const localAdminCookie = request.cookies.get(LOCAL_ADMIN_COOKIE)?.value;
+  if (isAdminRoute(request.nextUrl.pathname)) {
+    if (!hasFirebaseSession) {
+      const localAdminCookie = request.cookies.get(LOCAL_ADMIN_COOKIE)?.value;
 
-    if (!localAdminCookie) {
-      const loginUrl = new URL(LOGIN_PATH, request.url);
-      loginUrl.searchParams.set("next", request.nextUrl.pathname);
-      loginUrl.searchParams.set("error", "admin-only");
-      return NextResponse.redirect(loginUrl);
+      // Solo permitimos localAdmin si no estamos en produccion
+      const isLocalEnabled = process.env.NODE_ENV !== "production" && hasLocalAdminEnv();
+
+      if (!isLocalEnabled || !localAdminCookie) {
+        const loginUrl = new URL(LOGIN_PATH, request.url);
+        loginUrl.searchParams.set("next", request.nextUrl.pathname);
+        loginUrl.searchParams.set("error", "admin-only");
+        return NextResponse.redirect(loginUrl);
+      }
     }
   }
 

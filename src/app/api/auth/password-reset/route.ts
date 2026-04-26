@@ -1,33 +1,28 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { sendFirebasePasswordResetEmail } from "@/lib/firebase/email-actions";
 import { sanitizeMemberRedirectPath } from "@/lib/member-auth-flow";
+import { validateBody, withApiErrorHandling } from "@/lib/api-utils";
+
+const PasswordResetSchema = z.object({
+  email: z.string().trim().email(),
+  next: z.string().optional(),
+});
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as {
-    email?: string;
-    next?: string;
-  };
+  return withApiErrorHandling(async () => {
+    const validated = await validateBody(request, PasswordResetSchema);
+    if ("errorResponse" in validated) return validated.errorResponse;
+    const { email, next } = validated.data;
 
-  const email = body.email?.trim().toLowerCase();
-
-  if (!email) {
-    return NextResponse.json({ error: "Necesitamos un email valido." }, { status: 400 });
-  }
-
-  try {
     const origin = new URL(request.url).origin;
     await sendFirebasePasswordResetEmail({
       absoluteOrigin: origin,
-      email,
-      nextPath: sanitizeMemberRedirectPath(body.next) || "/acceso?confirmed=1",
+      email: email.toLowerCase(),
+      nextPath: sanitizeMemberRedirectPath(next) || "/acceso?confirmed=1",
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "No se pudo enviar el enlace de recuperacion." },
-      { status: 400 },
-    );
-  }
+  });
 }

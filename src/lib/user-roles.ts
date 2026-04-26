@@ -140,6 +140,10 @@ export async function countUsersWithRole(role: PersistedUserRole) {
 }
 
 export async function listPersistedUserRoles() {
+  /**
+   * NOTA: Usa admin client porque se invoca durante el calculo del access state
+   * del dashboard (evita dependencia circular).
+   */
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("user_roles")

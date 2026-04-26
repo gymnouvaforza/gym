@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-
 import { NextResponse } from "next/server";
 
-import { getCurrentAdminUser } from "@/lib/auth";
 import { hasSupabaseServiceRole } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { requireRoles, withApiErrorHandling } from "@/lib/api-utils";
+import { DASHBOARD_ADMIN_ROLE, SUPERADMIN_ROLE } from "@/lib/user-roles";
 
 export const runtime = "nodejs";
 
@@ -26,28 +26,18 @@ function getVideoExtension(contentType: string) {
   }
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "No se pudo subir el video.";
-}
-
 export async function POST(request: Request) {
-  const user = await getCurrentAdminUser();
+  return withApiErrorHandling(async () => {
+    const auth = await requireRoles([DASHBOARD_ADMIN_ROLE, SUPERADMIN_ROLE]);
+    if (!auth.success) return auth.errorResponse;
 
-  if (!user) {
-    return NextResponse.json(
-      { error: "Necesitas iniciar sesion para subir videos." },
-      { status: 401 },
-    );
-  }
+    if (!hasSupabaseServiceRole()) {
+      return NextResponse.json(
+        { error: "Configura SUPABASE_SERVICE_ROLE_KEY para subir videos al storage." },
+        { status: 503 },
+      );
+    }
 
-  if (!hasSupabaseServiceRole()) {
-    return NextResponse.json(
-      { error: "Configura SUPABASE_SERVICE_ROLE_KEY para subir videos al storage." },
-      { status: 503 },
-    );
-  }
-
-  try {
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -96,7 +86,5 @@ export async function POST(request: Request) {
       contentType: file.type,
       bytes,
     });
-  } catch (error) {
-    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
-  }
+  });
 }

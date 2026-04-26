@@ -4,49 +4,31 @@ import { hasSupabasePublicEnv } from "@/lib/env";
 import { createLeadRecord } from "@/lib/supabase/queries";
 import { createSupabasePublicClient } from "@/lib/supabase/server";
 import { contactFormSchema } from "@/lib/validators/contact";
+import { validateBody, withApiErrorHandling, applyRateLimit, getClientIp } from "./api-utils";
 
 export async function handleLeadIntakeRequest(request: Request) {
-  let payload: unknown;
+  return withApiErrorHandling(async (): Promise<NextResponse> => {
+    // Aplicamos rate limit (3 por minuto)
+    const ip = getClientIp(request);
+    const rateLimit = await applyRateLimit(`lead-intake:${ip}`, 3, 60000);
+    if (!rateLimit.success) return rateLimit.errorResponse;
 
-  try {
-    payload = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Solicitud invalida." }, { status: 400 });
-  }
+    const validated = await validateBody(request, contactFormSchema);
+    if ("errorResponse" in validated) return validated.errorResponse;
 
-  const parsed = contactFormSchema.safeParse(payload);
+    if (!hasSupabasePublicEnv()) {
+      return NextResponse.json(
+        { error: "Supabase no esta configurado todavia." },
+        { status: 503 },
+      );
+    }
 
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? "Datos invalidos." },
-      { status: 400 },
-    );
-  }
-
-  if (!hasSupabasePublicEnv()) {
-    return NextResponse.json(
-      { error: "Supabase no esta configurado todavia." },
-      { status: 503 },
-    );
-  }
-
-  try {
     const supabase = createSupabasePublicClient();
-    await createLeadRecord(supabase, parsed.data);
+    await createLeadRecord(supabase, validated.data);
 
     return NextResponse.json({
       success: true,
       message: "Solicitud guardada correctamente.",
     });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "No se pudo guardar el lead en Supabase.",
-      },
-      { status: 500 },
-    );
-  }
+  });
 }

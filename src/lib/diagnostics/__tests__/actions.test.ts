@@ -8,7 +8,7 @@ import {
 import type { AuthUser } from "@/lib/auth-user";
 
 // Mock de auth
-vi.mock("@/lib/auth", () => ({
+vi.mock(\"@/lib/auth\", async (importOriginal) => { const actual = await importOriginal<typeof import(\"@/lib/auth\")>(); return { ...actual, 
   requireSuperadminUser: vi.fn().mockResolvedValue({ id: "test-user", email: "admin@test.com" }),
 }));
 
@@ -175,3 +175,4 @@ describe("Diagnostics Actions", () => {
     });
   });
 });
+

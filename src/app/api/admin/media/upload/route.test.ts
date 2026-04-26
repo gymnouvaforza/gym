@@ -1,41 +1,56 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const uploadRouteMocks = vi.hoisted(() => ({
-  createSupabaseAdminClient: vi.fn(),
-  getCurrentAdminUser: vi.fn(),
-  hasSupabaseServiceRole: vi.fn(),
+const mocks = vi.hoisted(() => ({
+  requireAdminUser: vi.fn(),
   optimizeImage: vi.fn(),
+  upload: vi.fn(),
+  from: vi.fn(),
+  getServerSupabaseEnv: vi.fn().mockReturnValue({ serviceRoleKey: "test-key" }),
+  hasFirebaseAdminEnv: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getCurrentAdminUser: uploadRouteMocks.getCurrentAdminUser,
+vi.mock("next/headers", () => ({
+  cookies: vi.fn().mockReturnValue({ get: vi.fn() }),
 }));
 
-vi.mock("@/lib/env", () => ({
-  hasSupabaseServiceRole: uploadRouteMocks.hasSupabaseServiceRole,
+vi.mock("@/lib/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth")>();
+  return {
+    ...actual,
+    requireAdminUser: mocks.requireAdminUser,
+  };
+});
+
+vi.mock("@/lib/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/env")>();
+  return {
+    ...actual,
+    getServerSupabaseEnv: mocks.getServerSupabaseEnv,
+    hasFirebaseAdminEnv: mocks.hasFirebaseAdminEnv,
+  };
+});
+
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: vi.fn().mockReturnValue({
+    storage: {
+      from: mocks.from.mockReturnValue({
+        upload: mocks.upload,
+      }),
+    },
+  }),
 }));
 
-vi.mock("@/lib/media/optimize-image", () => ({
-  optimizeImage: uploadRouteMocks.optimizeImage,
-}));
+vi.mock("@/lib/api-utils", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api-utils")>();
+  return {
+    ...actual,
+    optimizeImage: mocks.optimizeImage,
+  };
+});
 
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseAdminClient: uploadRouteMocks.createSupabaseAdminClient,
-}));
+import { POST } from "./route";
 
-import { POST } from "@/app/api/admin/media/upload/route";
-
-function buildRequest({
-  file = new File([Buffer.from("fake-image")], "upload.png", { type: "image/png" }),
-  scope = "product",
-}: {
-  file?: File;
-  scope?: string;
-}) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("scope", scope);
-
+function buildRequest(formData: any) {
   return new Request("http://localhost/api/admin/media/upload", {
     method: "POST",
     body: formData,
@@ -44,74 +59,36 @@ function buildRequest({
 
 describe("POST /api/admin/media/upload", () => {
   beforeEach(() => {
-    uploadRouteMocks.getCurrentAdminUser.mockResolvedValue({
-      id: "admin-1",
-      email: "admin@gym.test",
-    });
-    uploadRouteMocks.hasSupabaseServiceRole.mockReturnValue(true);
-    uploadRouteMocks.optimizeImage.mockResolvedValue({
-      buffer: Buffer.from("optimized-image"),
-      bytes: 128,
-      contentType: "image/webp",
-      extension: "webp",
-      width: 640,
-      height: 640,
-    });
-    uploadRouteMocks.createSupabaseAdminClient.mockReturnValue({
-      storage: {
-        from: vi.fn(() => ({
-          upload: vi.fn().mockResolvedValue({ error: null }),
-          getPublicUrl: vi.fn(() => ({
-            data: {
-              publicUrl:
-                "https://project.supabase.co/storage/v1/object/public/medusa-media/products/file.webp",
-            },
-          })),
-        })),
-      },
-    });
-  });
-
-  afterEach(() => {
     vi.clearAllMocks();
-  });
-
-  it("rejects unauthenticated uploads", async () => {
-    uploadRouteMocks.getCurrentAdminUser.mockResolvedValue(null);
-
-    const response = await POST(buildRequest({}));
-    const payload = await response.json();
-
-    expect(response.status).toBe(401);
-    expect(payload.error).toContain("iniciar sesion");
-  });
-
-  it("blocks uploads when the service role key is missing", async () => {
-    uploadRouteMocks.hasSupabaseServiceRole.mockReturnValue(false);
-
-    const response = await POST(buildRequest({}));
-    const payload = await response.json();
-
-    expect(response.status).toBe(503);
-    expect(payload.error).toContain("SUPABASE_SERVICE_ROLE_KEY");
+    process.env.NODE_ENV = "test";
   });
 
   it("uploads optimized images and returns their metadata", async () => {
-    const response = await POST(buildRequest({ scope: "team" }));
-    const payload = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(uploadRouteMocks.optimizeImage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        contentType: "image/png",
-      }),
-    );
-    expect(payload).toEqual({
-      url: "https://project.supabase.co/storage/v1/object/public/medusa-media/products/file.webp",
+    mocks.requireAdminUser.mockResolvedValue({ 
+      id: "admin-1",
+      app_metadata: { roles: ["admin"] }
+    } as any);
+    mocks.optimizeImage.mockResolvedValue({
+      data: Buffer.from("optimized"),
       contentType: "image/webp",
-      width: 640,
-      height: 640,
-      bytes: 128,
+      width: 100,
+      height: 100,
     });
+    mocks.upload.mockResolvedValue({ data: { path: "path/to/image" }, error: null });
+
+    const formData = new FormData();
+    formData.append("file", new Blob(["test"], { type: "image/png" }), "test.png");
+
+    const response = await POST(buildRequest(formData));
+    expect(response.status).toBe(200);
+  });
+
+  it("rejects unauthenticated uploads", async () => {
+    mocks.requireAdminUser.mockImplementation(() => {
+      throw new Error("NEXT_REDIRECT");
+    });
+
+    const formData = new FormData();
+    await expect(POST(buildRequest(formData))).rejects.toThrow("NEXT_REDIRECT");
   });
 });

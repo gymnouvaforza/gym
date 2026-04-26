@@ -20,7 +20,7 @@ import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { requireMemberUser } from "@/lib/auth";
+import { requireAuthenticatedUser } from "@/lib/auth";
 import { formatCartAmount } from "@/lib/cart/format";
 import {
   getPickupRequestStatusTone,
@@ -123,7 +123,7 @@ export default async function MemberAccountPage({
 }: Readonly<MemberAccountPageProps>) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const activeTab = resolveMemberAccountTab(resolvedSearchParams?.tab);
-  const user = await requireMemberUser("/acceso?next=/mi-cuenta");
+  const user = await requireAuthenticatedUser();
 
   let account: MemberAccountViewModel = {
     fullName: "Socio Titan",

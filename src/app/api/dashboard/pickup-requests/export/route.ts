@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getCurrentAdminUser } from "@/lib/auth";
+import { requireRoles, withApiErrorHandling } from "@/lib/api-utils";
 import { mapPickupRequest } from "@/lib/cart/pickup-request";
 import { listPickupRequests } from "@/lib/cart/member-bridge";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/lib/data/pickup-request-dashboard";
 import { listPickupRequestManualPaymentSummaries } from "@/lib/data/pickup-requests";
 import { hasMedusaAdminEnv, hasSupabaseServiceRole } from "@/lib/env";
+import { DASHBOARD_ADMIN_ROLE, SUPERADMIN_ROLE } from "@/lib/user-roles";
 
 function buildCsvFilename() {
   return `pickup-requests-export-${new Date().toISOString().slice(0, 10)}.csv`;
@@ -54,30 +55,24 @@ async function loadAllPickupRequests(status: string | null) {
 }
 
 export async function GET(request: NextRequest) {
-  const adminUser = await getCurrentAdminUser();
+  return withApiErrorHandling(async () => {
+    const auth = await requireRoles([DASHBOARD_ADMIN_ROLE, SUPERADMIN_ROLE]);
+    if (!auth.success) return auth.errorResponse;
 
-  if (!adminUser) {
-    return NextResponse.json(
-      { error: "Necesitas una sesion admin para exportar pedidos pickup." },
-      { status: 401 },
-    );
-  }
+    if (!hasMedusaAdminEnv()) {
+      return NextResponse.json(
+        { error: "Configura MEDUSA_ADMIN_API_KEY y MEDUSA_BACKEND_URL para exportar pedidos pickup." },
+        { status: 503 },
+      );
+    }
 
-  if (!hasMedusaAdminEnv()) {
-    return NextResponse.json(
-      { error: "Configura MEDUSA_ADMIN_API_KEY y MEDUSA_BACKEND_URL para exportar pedidos pickup." },
-      { status: 503 },
-    );
-  }
+    if (!hasSupabaseServiceRole()) {
+      return NextResponse.json(
+        { error: "Configura SUPABASE_SERVICE_ROLE_KEY para exportar pedidos pickup con sus cobros manuales." },
+        { status: 503 },
+      );
+    }
 
-  if (!hasSupabaseServiceRole()) {
-    return NextResponse.json(
-      { error: "Configura SUPABASE_SERVICE_ROLE_KEY para exportar pedidos pickup con sus cobros manuales." },
-      { status: 503 },
-    );
-  }
-
-  try {
     const filters = parsePickupRequestFilters(
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
@@ -151,15 +146,5 @@ export async function GET(request: NextRequest) {
         "Cache-Control": "no-store",
       },
     });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "No se pudieron exportar los pedidos pickup.",
-      },
-      { status: 500 },
-    );
-  }
+  });
 }

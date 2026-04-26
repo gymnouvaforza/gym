@@ -42,7 +42,8 @@ export function createApiErrorResponse(
   if (typeof error === "string") {
     message = error;
   } else if (error instanceof Error) {
-    message = error.message;
+    // En produccion, no devolvemos el mensaje interno del error a menos que sea un error controlado
+    message = process.env.NODE_ENV === "production" ? fallbackMessage : error.message;
   }
 
   return NextResponse.json(

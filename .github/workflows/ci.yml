@@ -11,6 +11,26 @@ on:
       - master
 
 jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for git-based checks
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Security Check (Secrets & Env)
+        run: node scripts/security-check.mjs
+
+      - name: Dependency Audit (Root)
+        run: npm run security:audit
+
   verify-web:
     name: Verify Web
     runs-on: ubuntu-latest
@@ -123,6 +143,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+
+      - name: Security Audit (Medusa)
+        run: npm audit --audit-level=high
 
       - name: Build
         run: npm run build

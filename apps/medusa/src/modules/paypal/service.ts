@@ -273,6 +273,21 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PayPalModuleO
       const chargeAmount = this.getChargeAmount(sessionData, input.amount)
       assertPayPalCurrencySupported(chargeCurrencyCode)
 
+      // --- HARDENING: Recalculate and validate total if quote data is present ---
+      // If display_amount is provided, we should ensure it matches input.amount
+      // to avoid inconsistencies between what the user sees and what they pay.
+      if (sessionData.display_amount !== undefined && sessionData.display_amount !== null) {
+         const diff = Math.abs(Number(sessionData.display_amount) - Number(input.amount))
+         if (diff > 0.01) {
+            this.logger_.error(`[PAYPAL] Amount mismatch: sessionData.display_amount=${sessionData.display_amount} input.amount=${input.amount}`)
+            throw new MedusaError(
+              MedusaError.Types.INVALID_DATA,
+              "El monto del pago no coincide con el total del carrito."
+            )
+         }
+      }
+      // -------------------------------------------------------------------------
+
       const response = await this.ordersController_.createOrder({
         prefer: "return=representation",
         body: {
@@ -320,6 +335,9 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PayPalModuleO
         status: PaymentSessionStatus.PENDING,
       }
     } catch (error) {
+      this.logger_.error(
+        `[PAYPAL] initiatePayment failed: ${error instanceof Error ? error.message : "Unknown error"}`
+      )
       throw toPayPalMedusaError(error, "No se pudo iniciar la sesion de PayPal.")
     }
   }
@@ -567,6 +585,19 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PayPalModuleO
     if (!orderId) {
       return this.initiatePayment(input)
     }
+
+    // --- HARDENING: Recalculate and validate total if quote data is present ---
+    if (data.display_amount !== undefined && data.display_amount !== null) {
+        const diff = Math.abs(Number(data.display_amount) - Number(input.amount))
+        if (diff > 0.01) {
+           this.logger_.error(`[PAYPAL] Amount mismatch during update: data.display_amount=${data.display_amount} input.amount=${input.amount}`)
+           throw new MedusaError(
+             MedusaError.Types.INVALID_DATA,
+             "El monto del pago actualizado no coincide con el total del carrito."
+           )
+        }
+    }
+    // -------------------------------------------------------------------------
 
       await this.ordersController_.patchOrder({
       id: orderId,

@@ -6,7 +6,7 @@ import MembershipQrCard from "@/components/public/MembershipQrCard";
 import PublicInlineAlert from "@/components/public/PublicInlineAlert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { requireMemberUser } from "@/lib/auth";
+import { requireAuthenticatedUser } from "@/lib/auth";
 import { formatCartAmount } from "@/lib/cart/format";
 import {
   buildMembershipValidationUrl,
@@ -48,7 +48,7 @@ export default async function MemberMembershipRequestDetailPage({
   const [{ id }, resolvedSearchParams, user] = await Promise.all([
     params,
     searchParams,
-    requireMemberUser("/acceso?next=/mi-cuenta"),
+    requireAuthenticatedUser(),
   ]);
   const request = await getMemberOwnedMembershipRequestById({
     id,

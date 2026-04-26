@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { requireMemberUser } from "@/lib/auth";
+import { requireAuthenticatedUser } from "@/lib/auth";
 import { formatCartAmount } from "@/lib/cart/format";
 import {
   getPickupRequestPaymentTone,
@@ -59,7 +59,7 @@ export default async function MemberPickupRequestDetailPage({
   params: Promise<{ id: string }>;
 }>) {
   const { id } = await params;
-  const user = await requireMemberUser(`/acceso?next=/mi-cuenta/pedidos/${id}`);
+  const user = await requireAuthenticatedUser();
   const pickupRequest = await getMemberPickupRequestById({
     id,
     email: user.email,
