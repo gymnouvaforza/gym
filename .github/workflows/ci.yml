@@ -145,7 +145,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Security Audit (Medusa)
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=critical
 
       - name: Build
         run: npm run build

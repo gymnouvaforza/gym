@@ -11,10 +11,14 @@ const modulesMocks = vi.hoisted(() => ({
   notFound: vi.fn(),
 }));
 
-vi.mock(\"@/lib/auth\", async (importOriginal) => { const actual = await importOriginal<typeof import(\"@/lib/auth\")>(); return { ...actual, 
-  getDashboardAccessState: modulesMocks.getDashboardAccessState,
-  requireSuperadminUser: modulesMocks.requireSuperadminUser,
-}));
+vi.mock("@/lib/auth", async (importOriginal) => { 
+  const actual = await importOriginal<typeof import("@/lib/auth")>(); 
+  return { 
+    ...actual, 
+    getDashboardAccessState: modulesMocks.getDashboardAccessState,
+    requireSuperadminUser: modulesMocks.requireSuperadminUser,
+  };
+});
 
 vi.mock("@/lib/env", () => ({
   hasSupabaseServiceRole: modulesMocks.hasSupabaseServiceRole,

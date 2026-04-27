@@ -78,6 +78,9 @@ export async function POST(request: Request) {
       let fallbackCart = null;
 
       if (cartId) {
+        if (!user.email) {
+          throw new Error("La cuenta del miembro no tiene email y no se puede vincular el carrito.");
+        }
         try {
           cartResponse = await attachCartToMember(cartId, customerBridge.medusa_customer_id, user.email);
         } catch (attachError) {

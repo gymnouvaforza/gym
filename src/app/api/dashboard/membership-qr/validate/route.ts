@@ -208,9 +208,11 @@ export async function POST(request: Request) {
       return NextResponse.json(
         createMembershipQrErrorResponse({
           errorMessage:
-            error instanceof Error
-              ? error.message
-              : "No se pudo contactar con la validacion QR de Supabase.",
+            process.env.NODE_ENV === "production"
+              ? "No se pudo contactar con la validacion QR de Supabase."
+              : error instanceof Error
+                ? error.message
+                : "No se pudo contactar con la validacion QR de Supabase.",
         }),
         { status: 503 },
       );

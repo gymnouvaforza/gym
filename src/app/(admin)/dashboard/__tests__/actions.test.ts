@@ -8,9 +8,13 @@ import type { SiteSettingsValues } from "@/lib/validators/settings";
 import type { MarketingContentValues } from "@/lib/validators/marketing";
 
 // Mock de auth
-vi.mock(\"@/lib/auth\", async (importOriginal) => { const actual = await importOriginal<typeof import(\"@/lib/auth\")>(); return { ...actual, 
-  requireAdminUser: vi.fn().mockResolvedValue({ id: "admin-1", email: "admin@test.com" }),
-}));
+vi.mock("@/lib/auth", async (importOriginal) => { 
+  const actual = await importOriginal<typeof import("@/lib/auth")>(); 
+  return { 
+    ...actual, 
+    requireAdminUser: vi.fn().mockResolvedValue({ id: "admin-1", email: "admin@test.com" }),
+  };
+});
 
 // Mock de env
 vi.mock("@/lib/env", () => ({

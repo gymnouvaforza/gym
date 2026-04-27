@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-const routeMocks = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   getCurrentMemberUser: vi.fn(),
   updateAuthenticatedMemberAccount: vi.fn(),
 }));
@@ -13,13 +13,13 @@ vi.mock("@/lib/auth", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/auth")>();
   return {
     ...actual,
-    getCurrentMemberUser: routeMocks.getCurrentMemberUser,
-    getAuthenticatedUser: routeMocks.getCurrentMemberUser,
+    getCurrentMemberUser: mocks.getCurrentMemberUser,
+    getAuthenticatedUser: mocks.getCurrentMemberUser,
   };
 });
 
 vi.mock("@/lib/data/member-account", () => ({
-  updateAuthenticatedMemberAccount: routeMocks.updateAuthenticatedMemberAccount,
+  updateAuthenticatedMemberAccount: mocks.updateAuthenticatedMemberAccount,
 }));
 
 import { PATCH } from "./route";
@@ -27,14 +27,19 @@ import { PATCH } from "./route";
 describe("PATCH /api/member-account/profile", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NODE_ENV", "development");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("updates the authenticated member account", async () => {
-    routeMocks.getCurrentMemberUser.mockResolvedValue({ 
+    mocks.getCurrentMemberUser.mockResolvedValue({ 
         id: "user-1",
         app_metadata: { roles: ["member"] }
     });
-    routeMocks.updateAuthenticatedMemberAccount.mockResolvedValue({ fullName: "Nova Tester" });
+    mocks.updateAuthenticatedMemberAccount.mockResolvedValue({ fullName: "Nova Tester" });
 
     const response = await PATCH(
       new Request("http://localhost/api/member-account/profile", {
@@ -46,7 +51,7 @@ describe("PATCH /api/member-account/profile", () => {
   });
 
   it("fails if user is anonymous", async () => {
-    routeMocks.getCurrentMemberUser.mockResolvedValue(null);
+    mocks.getCurrentMemberUser.mockResolvedValue(null);
     const response = await PATCH(
       new Request("http://localhost/api/member-account/profile", {
         body: JSON.stringify({ fullName: "Attacker" }),

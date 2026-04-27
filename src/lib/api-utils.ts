@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAuthenticatedUser, getDashboardAccessState } from "./auth";
+import { getAuthenticatedUser, getDashboardAccessState, LocalAdminUser } from "./auth";
 import { createApiErrorResponse } from "./api-errors";
 import { PersistedUserRole } from "./user-roles";
+import { AuthUser } from "./auth-user";
 
 /**
  * Parsea el body de la request de forma segura.
@@ -19,7 +20,7 @@ export async function parseJsonBodySafe<T>(request: Request): Promise<T | null> 
  * Valida el body de la request contra un schema de Zod.
  */
 export async function validateBody<T>(request: Request, schema: z.Schema<T>): Promise<{ data: T } | { errorResponse: NextResponse }> {
-  const body = await parseJsonBodySafe(request);
+  const body = await parseJsonBodySafe<T>(request);
   
   if (!body) {
     return { 
@@ -42,7 +43,7 @@ export async function validateBody<T>(request: Request, schema: z.Schema<T>): Pr
  * Asegura que el usuario este autenticado con Firebase.
  */
 export async function requireFirebaseUser(): Promise<
-  { success: true; user: any } | { success: false; errorResponse: NextResponse<any> }
+  { success: true; user: AuthUser } | { success: false; errorResponse: NextResponse }
 > {
   const user = await getAuthenticatedUser();
   if (!user) {
@@ -58,7 +59,7 @@ export async function requireFirebaseUser(): Promise<
  * Asegura que el usuario tenga al menos uno de los roles especificados.
  */
 export async function requireRoles(allowedRoles: PersistedUserRole[]): Promise<
-  { success: true; user: any; accessMode: string } | { success: false; errorResponse: NextResponse<any> }
+  { success: true; user: AuthUser | LocalAdminUser; accessMode: string } | { success: false; errorResponse: NextResponse }
 > {
   const accessState = await getDashboardAccessState();
   
@@ -74,7 +75,7 @@ export async function requireRoles(allowedRoles: PersistedUserRole[]): Promise<
       return { success: true, user: accessState.user, accessMode: accessState.accessMode };
     }
 
-    const hasRole = allowedRoles.includes(accessState.accessMode as any);
+    const hasRole = (allowedRoles as string[]).includes(accessState.accessMode);
     if (!hasRole) {
       return { 
         success: false,
@@ -90,7 +91,7 @@ export async function requireRoles(allowedRoles: PersistedUserRole[]): Promise<
  * Wrapper para manejar errores comunes en API routes.
  */
 export async function withApiErrorHandling(
-  handler: () => Promise<NextResponse<any> | Response>,
+  handler: () => Promise<NextResponse | Response>,
 ): Promise<NextResponse> {
   try {
     const result = await handler();
@@ -156,7 +157,7 @@ export async function applyRateLimit(
   key: string,
   limit = 5,
   windowMs = 60000,
-): Promise<{ success: true; remaining: number } | { success: false; errorResponse: NextResponse<any> }> {
+): Promise<{ success: true; remaining: number } | { success: false; errorResponse: NextResponse }> {
   // TODO: En produccion, si se usa un cluster, conectar con Redis aqui.
   const result = await memoryRateLimiter.check(key, limit, windowMs);
   
@@ -196,7 +197,7 @@ export function getClientIp(request: Request) {
  */
 export function validateRequestOrigin(
   request: Request,
-): { success: true } | { success: false; errorResponse: NextResponse<any> } {
+): { success: true } | { success: false; errorResponse: NextResponse } {
   if (process.env.NODE_ENV === "development") return { success: true };
 
   const origin = request.headers.get("origin");

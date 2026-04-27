@@ -1,11 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   upload: vi.fn(),
   from: vi.fn(),
   requireAdminUser: vi.fn(),
+  getDashboardAccessState: vi.fn(),
   getServerSupabaseEnv: vi.fn().mockReturnValue({ serviceRoleKey: "test-key" }),
   hasFirebaseAdminEnv: vi.fn().mockReturnValue(true),
+  hasSupabaseServiceRole: vi.fn().mockReturnValue(true),
 }));
 
 vi.mock("next/headers", () => ({
@@ -17,6 +19,7 @@ vi.mock("@/lib/auth", async (importOriginal) => {
   return {
     ...actual,
     requireAdminUser: mocks.requireAdminUser,
+    getDashboardAccessState: mocks.getDashboardAccessState,
   };
 });
 
@@ -26,6 +29,7 @@ vi.mock("@/lib/env", async (importOriginal) => {
     ...actual,
     getServerSupabaseEnv: mocks.getServerSupabaseEnv,
     hasFirebaseAdminEnv: mocks.hasFirebaseAdminEnv,
+    hasSupabaseServiceRole: mocks.hasSupabaseServiceRole,
   };
 });
 
@@ -34,6 +38,7 @@ vi.mock("@supabase/supabase-js", () => ({
     storage: {
       from: mocks.from.mockReturnValue({
         upload: mocks.upload,
+        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: "http://test.com/video.mp4" } }),
       }),
     },
   }),
@@ -51,14 +56,23 @@ function buildRequest(formData?: FormData) {
 describe("POST /api/admin/media/video", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.NODE_ENV = "test";
+    vi.stubEnv("NODE_ENV", "test");
+    mocks.getDashboardAccessState.mockResolvedValue({
+      user: { id: "admin-1", email: "admin@test.com" },
+      accessMode: "admin",
+      accessWarning: null
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("uploads valid videos to the media bucket", async () => {
     mocks.requireAdminUser.mockResolvedValue({ 
       id: "admin-1",
       app_metadata: { roles: ["admin"] }
-    } as any);
+    } as unknown as { id: string; app_metadata: { roles: string[] } });
     mocks.upload.mockResolvedValue({ data: { path: "path/to/video" }, error: null });
 
     const formData = new FormData();
@@ -69,10 +83,13 @@ describe("POST /api/admin/media/video", () => {
   });
 
   it("rejects unauthenticated uploads", async () => {
-    mocks.requireAdminUser.mockImplementation(() => {
-      throw new Error("NEXT_REDIRECT");
+    mocks.getDashboardAccessState.mockResolvedValue({
+      user: null,
+      accessMode: null,
+      accessWarning: null
     });
 
-    await expect(POST(buildRequest())).rejects.toThrow("NEXT_REDIRECT");
+    const response = await POST(buildRequest());
+    expect(response.status).toBe(401);
   });
 });

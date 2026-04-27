@@ -29,7 +29,7 @@ vi.mock("@/lib/data/member-account", async (importOriginal) => {
   };
 });
 
-import { GET, POST } from "./route";
+import { GET, PATCH } from "./route";
 
 describe("/api/member-account/testimonial", () => {
   beforeEach(() => {
@@ -54,8 +54,8 @@ describe("/api/member-account/testimonial", () => {
     });
     mocks.upsertAuthenticatedMemberTestimonial.mockResolvedValue({ id: "t-1" });
 
-    const response = await POST(new Request("http://localhost", {
-      method: "POST",
+    const response = await PATCH(new Request("http://localhost", {
+      method: "PATCH",
       body: JSON.stringify({ quote: "new", rating: 5 })
     }));
     expect(response.status).toBe(200);

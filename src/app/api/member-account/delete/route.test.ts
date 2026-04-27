@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 const routeMocks = vi.hoisted(() => ({
   getCurrentMemberUser: vi.fn(),
@@ -27,6 +27,11 @@ import { POST } from "./route";
 describe("POST /api/member-account/delete", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NODE_ENV", "development");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("deletes the authenticated member account", async () => {

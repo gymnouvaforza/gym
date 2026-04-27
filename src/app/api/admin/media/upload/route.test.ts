@@ -1,12 +1,14 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   requireAdminUser: vi.fn(),
+  getDashboardAccessState: vi.fn(),
   optimizeImage: vi.fn(),
   upload: vi.fn(),
   from: vi.fn(),
   getServerSupabaseEnv: vi.fn().mockReturnValue({ serviceRoleKey: "test-key" }),
   hasFirebaseAdminEnv: vi.fn().mockReturnValue(true),
+  hasSupabaseServiceRole: vi.fn().mockReturnValue(true),
 }));
 
 vi.mock("next/headers", () => ({
@@ -18,6 +20,7 @@ vi.mock("@/lib/auth", async (importOriginal) => {
   return {
     ...actual,
     requireAdminUser: mocks.requireAdminUser,
+    getDashboardAccessState: mocks.getDashboardAccessState,
   };
 });
 
@@ -27,6 +30,7 @@ vi.mock("@/lib/env", async (importOriginal) => {
     ...actual,
     getServerSupabaseEnv: mocks.getServerSupabaseEnv,
     hasFirebaseAdminEnv: mocks.hasFirebaseAdminEnv,
+    hasSupabaseServiceRole: mocks.hasSupabaseServiceRole,
   };
 });
 
@@ -35,22 +39,19 @@ vi.mock("@supabase/supabase-js", () => ({
     storage: {
       from: mocks.from.mockReturnValue({
         upload: mocks.upload,
+        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: "http://test.com/image.png" } }),
       }),
     },
   }),
 }));
 
-vi.mock("@/lib/api-utils", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/api-utils")>();
-  return {
-    ...actual,
-    optimizeImage: mocks.optimizeImage,
-  };
-});
+vi.mock("@/lib/media/optimize-image", () => ({
+  optimizeImage: mocks.optimizeImage,
+}));
 
 import { POST } from "./route";
 
-function buildRequest(formData: any) {
+function buildRequest(formData: FormData) {
   return new Request("http://localhost/api/admin/media/upload", {
     method: "POST",
     body: formData,
@@ -60,14 +61,23 @@ function buildRequest(formData: any) {
 describe("POST /api/admin/media/upload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.NODE_ENV = "test";
+    vi.stubEnv("NODE_ENV", "test");
+    mocks.getDashboardAccessState.mockResolvedValue({
+      user: { id: "admin-1", email: "admin@test.com" },
+      accessMode: "admin",
+      accessWarning: null
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("uploads optimized images and returns their metadata", async () => {
     mocks.requireAdminUser.mockResolvedValue({ 
       id: "admin-1",
       app_metadata: { roles: ["admin"] }
-    } as any);
+    } as unknown as { id: string; app_metadata: { roles: string[] } });
     mocks.optimizeImage.mockResolvedValue({
       data: Buffer.from("optimized"),
       contentType: "image/webp",
@@ -78,17 +88,22 @@ describe("POST /api/admin/media/upload", () => {
 
     const formData = new FormData();
     formData.append("file", new Blob(["test"], { type: "image/png" }), "test.png");
+    formData.append("scope", "product");
 
     const response = await POST(buildRequest(formData));
     expect(response.status).toBe(200);
   });
 
   it("rejects unauthenticated uploads", async () => {
-    mocks.requireAdminUser.mockImplementation(() => {
-      throw new Error("NEXT_REDIRECT");
+    mocks.getDashboardAccessState.mockResolvedValue({
+      user: null,
+      accessMode: null,
+      accessWarning: null
     });
 
     const formData = new FormData();
-    await expect(POST(buildRequest(formData))).rejects.toThrow("NEXT_REDIRECT");
+    formData.append("scope", "product");
+    const response = await POST(buildRequest(formData));
+    expect(response.status).toBe(401);
   });
 });

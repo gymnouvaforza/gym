@@ -27,7 +27,7 @@ describe("Supabase RLS & Role Isolation", () => {
 
   it("public client uses anon key and no auth header", async () => {
     const client = createSupabasePublicClient();
-    // @ts-ignore
+    // @ts-expect-error - accessing internal key for verification in test
     expect(client.supabaseKey).toBe("anon-key");
   });
 
@@ -35,16 +35,17 @@ describe("Supabase RLS & Role Isolation", () => {
     firebaseMocks.getFirebaseSessionBearerHeader.mockResolvedValue("Bearer firebase-token");
     const client = await createSupabaseServerClient();
     
-    // @ts-ignore
+    // @ts-expect-error - accessing internal rest config for verification in test
     const restConfig = client.rest;
     // En el cliente Supabase, las cabeceras pueden estar en un objeto literal o Headers
-    const authHeader = (restConfig.headers as any).Authorization || (restConfig.headers as any).get?.('Authorization');
+    const headers = restConfig.headers as Record<string, string> | Headers;
+    const authHeader = 'get' in headers ? (headers as Headers).get('Authorization') : (headers as Record<string, string>).Authorization;
     expect(authHeader).toBe("Bearer firebase-token");
   });
 
   it("admin client uses service role key", () => {
     const client = createSupabaseAdminClient();
-    // @ts-ignore
+    // @ts-expect-error - accessing internal key for verification in test
     expect(client.supabaseKey).toBe("service-key");
   });
 });
