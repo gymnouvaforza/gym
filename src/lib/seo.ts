@@ -6,8 +6,7 @@ import type { MarketingScheduleRow } from "@/lib/data/marketing-content";
 import { novaForzaHomeContent } from "@/lib/data/nova-forza-content";
 import type { DBCmsDocument, SiteSettings } from "@/lib/supabase/database.types";
 
-export const SITE_URL = "https://nuovaforzagym.com";
-
+const DEFAULT_SITE_URL = "https://nuovaforzagym.com";
 const DEFAULT_SITE_NAME = "Nuova Forza";
 const DEFAULT_OG_IMAGE_PATH = "/images/logo/logo-trans.webp";
 const BRAND_SUFFIX_PATTERN = /\s*\|\s*(?:Nova|Nuova)\s+Forza(?:\s+Gym)?\s*$/i;
@@ -56,6 +55,28 @@ function parseAbsoluteUrl(value: string) {
     return null;
   }
 }
+
+function resolveSiteUrl(value: string | undefined) {
+  const candidate = value?.trim();
+
+  if (!candidate) {
+    return DEFAULT_SITE_URL;
+  }
+
+  const absoluteCandidate = parseAbsoluteUrl(candidate);
+
+  if (!absoluteCandidate) {
+    return DEFAULT_SITE_URL;
+  }
+
+  absoluteCandidate.pathname = "/";
+  absoluteCandidate.search = "";
+  absoluteCandidate.hash = "";
+
+  return absoluteCandidate.toString().replace(/\/$/, "");
+}
+
+export const SITE_URL = resolveSiteUrl(process.env.SITE_URL);
 
 function isKnownSiteUrl(value: URL) {
   return /(?:^|\.)nuovaforzagym\.com$/i.test(value.hostname) || /(?:^|\.)novaforza\.pe$/i.test(value.hostname);
@@ -447,4 +468,4 @@ export function serializeJsonLd(data: JsonLd | JsonLd[]) {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
-export { DEFAULT_SITE_NAME, DEFAULT_OG_IMAGE_PATH, productStockStatusLabels };
+export { DEFAULT_SITE_NAME, DEFAULT_OG_IMAGE_PATH, DEFAULT_SITE_URL, productStockStatusLabels };
