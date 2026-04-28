@@ -1,4 +1,5 @@
 import { defaultSiteSettings } from "@/lib/data/default-content";
+import { SITE_URL } from "@/lib/seo";
 
 import { sendSmtpEmail } from "./smtp";
 
@@ -20,7 +21,7 @@ export async function sendMemberWelcomeEmail(
   const resolvedSiteName = siteName?.trim() || defaultSiteSettings.site_name;
   const safeEmail = escapeHtml(email);
   const safeSiteName = escapeHtml(resolvedSiteName);
-  const loginUrl = "/acceso";
+  const loginUrl = `${SITE_URL}/acceso`;
 
   await sendSmtpEmail({
     to: email,
