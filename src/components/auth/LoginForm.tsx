@@ -53,46 +53,46 @@ export default function LoginForm() {
     setError(null);
     setIsNavigating(false);
 
-    if (!values.identity.includes("@")) {
-      const response = await fetch("/api/dev-login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
+    try {
+      if (!values.identity.includes("@")) {
+        const response = await fetch("/api/dev-login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
 
-      const payload = (await response.json()) as { error?: string };
+        const payload = (await response.json()) as { error?: string };
 
-      if (!response.ok) {
-        setError(payload.error ?? "No se pudo iniciar sesion local.");
+        if (!response.ok) {
+          setError(payload.error ?? "No se pudo iniciar sesion local.");
+          return;
+        }
+
+        setIsNavigating(true);
+        router.push(next);
+        router.refresh();
         return;
       }
+
+      const auth = await getFirebaseBrowserAuth();
+
+      if (!auth) {
+        setError("Firebase Auth no esta configurado.");
+        return;
+      }
+
+      await signInWithEmailAndPassword(auth, values.identity, values.password);
+      await syncFirebaseBrowserSession(auth);
 
       setIsNavigating(true);
       router.push(next);
       router.refresh();
-      return;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo iniciar sesion.");
+      setIsNavigating(false);
     }
-
-    const auth = await getFirebaseBrowserAuth();
-
-    if (!auth) {
-      setError("Firebase Auth no esta configurado.");
-      return;
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, values.identity, values.password);
-      await syncFirebaseBrowserSession(auth);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "No se pudo iniciar sesion.");
-      return;
-    }
-
-    setIsNavigating(true);
-    router.push(next);
-    router.refresh();
   }
 
   return (

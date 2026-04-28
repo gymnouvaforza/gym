@@ -40,13 +40,18 @@ export default function AssignRoutineModal() {
   const selectedTemplateId = form.watch("templateId");
 
   async function handleSubmit(values: AssignRoutineInput) {
-    const response = await assignMutation.mutateAsync(values);
-    setToastMessage(response.message);
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["staff-dashboard"] }),
-      queryClient.invalidateQueries({ queryKey: ["staff-members"] }),
-      queryClient.invalidateQueries({ queryKey: ["staff-member-detail"] }),
-    ]);
+    try {
+      const response = await assignMutation.mutateAsync(values);
+      setToastMessage(response.message);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["staff-dashboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["staff-members"] }),
+        queryClient.invalidateQueries({ queryKey: ["staff-member-detail"] }),
+      ]);
+    } catch (err) {
+      setToastMessage(err instanceof Error ? err.message : "Error al asignar la rutina.");
+      console.error(err);
+    }
   }
 
   if (templatesQuery.isLoading) {

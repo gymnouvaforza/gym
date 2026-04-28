@@ -4,7 +4,6 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2, Check } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -68,39 +67,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={loading || success || props.disabled}
         {...props}
       >
-        <AnimatePresence mode="wait">
+        <div className="flex items-center justify-center gap-2">
           {loading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="flex items-center gap-2"
-            >
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="sr-only">Cargando</span>
-            </motion.div>
+            </div>
           ) : success ? (
-            <motion.div
-              key="success"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="flex items-center gap-2"
-            >
+            <div className="flex items-center gap-2 animate-in zoom-in duration-200">
               <Check className="h-4 w-4" />
               <span>Completado</span>
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
-              key="content"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center gap-2"
-            >
+            <div className="flex items-center gap-2 animate-in fade-in duration-200">
               {children}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </button>
     );
   },

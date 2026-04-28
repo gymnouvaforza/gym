@@ -95,18 +95,21 @@ function toAuthUser(input: {
   });
 }
 
-export async function verifyFirebaseSessionToken(idToken: string) {
+export async function verifyFirebaseSessionToken(idToken: string, checkRevoked = false) {
   const auth = getFirebaseAdminAuth();
-  return auth.verifyIdToken(idToken, true);
+  return auth.verifyIdToken(idToken, checkRevoked);
 }
 
-export async function getFirebaseUserFromIdToken(idToken: string): Promise<AuthUser | null> {
-  if (!hasFirebaseAdminEnv() || !idToken) {
+export async function getFirebaseUserFromIdToken(
+  idToken: string,
+  providedDecodedToken?: DecodedIdToken,
+): Promise<AuthUser | null> {
+  if (!hasFirebaseAdminEnv() || (!idToken && !providedDecodedToken)) {
     return null;
   }
 
   try {
-    const decodedToken = await verifyFirebaseSessionToken(idToken);
+    const decodedToken = providedDecodedToken ?? (await verifyFirebaseSessionToken(idToken));
     let userRecord: UserRecord | null = null;
 
     try {

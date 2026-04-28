@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Lock, ShieldAlert, ShieldCheck, UserRound } from "lucide-react";
+import { Loader2, Lock, ShieldAlert, ShieldCheck, UserRound, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { MemberSignOutButtonWithRedirect } from "@/components/auth/MemberSignOutButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import AdminSurface from "@/components/admin/AdminSurface";
 import {
   Dialog,
   DialogContent,
@@ -206,11 +206,10 @@ export default function MemberAccountSettings({
         </div>
         
         <div className="xl:col-span-2">
-           <Card className="rounded-none border-black/10 shadow-xl overflow-hidden">
-              <CardContent className="pt-10 p-10">
-                 <Form {...profileForm}>
-                    <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-8">
-                       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+           <AdminSurface className="p-8 lg:p-10">
+              <Form {...profileForm}>
+                 <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-8">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                           <FormField
                             control={profileForm.control}
                             name="fullName"
@@ -218,7 +217,7 @@ export default function MemberAccountSettings({
                               <FormItem className="space-y-3">
                                 <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Nombre Completo</FormLabel>
                                 <FormControl>
-                                  <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111]" {...field} />
+                                  <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111] bg-[#fbfbf8]" {...field} />
                                 </FormControl>
                                 <FormMessage className="text-[10px] uppercase font-bold" />
                               </FormItem>
@@ -232,7 +231,7 @@ export default function MemberAccountSettings({
                                 <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Teléfono de Contacto</FormLabel>
                                 <FormControl>
                                   <Input
-                                    className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111]"
+                                    className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111] bg-[#fbfbf8]"
                                     type="tel"
                                     autoComplete="tel"
                                     value={field.value ?? ""}
@@ -251,7 +250,7 @@ export default function MemberAccountSettings({
                            <FormItem className="space-y-3">
                              <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Email de Acceso</FormLabel>
                              <FormControl>
-                               <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111]" type="email" {...field} />
+                               <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111] bg-[#fbfbf8]" type="email" {...field} />
                              </FormControl>
                              <FormDescription className="text-[10px] font-medium italic text-[#7a7f87]">
                                Se enviará un correo de confirmación si cambias tu dirección de acceso.
@@ -273,14 +272,22 @@ export default function MemberAccountSettings({
                             disabled={isProfilePending} 
                             className="h-14 px-12 rounded-none bg-[#111111] text-white font-black uppercase text-[11px] tracking-[0.2em] hover:bg-[#d71920] transition-all shadow-lg w-full sm:w-auto"
                           >
-                            {isProfilePending && <Loader2 className="mr-3 h-4 w-4 animate-spin" />}
-                            Actualizar Ficha
+                            {isProfilePending ? (
+                              <>
+                                <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+                                Procesando...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="mr-3 h-4 w-4" />
+                                Actualizar Ficha
+                              </>
+                            )}
                           </Button>
                        </div>
                     </form>
                  </Form>
-              </CardContent>
-           </Card>
+              </AdminSurface>
         </div>
       </section>
 
@@ -304,9 +311,8 @@ export default function MemberAccountSettings({
          </div>
 
          <div className="xl:col-span-2">
-            <Card className="rounded-none border-black/10 shadow-xl overflow-hidden">
-               <CardContent className="pt-10 p-10">
-                  {passwordDisabledMessage ? (
+            <AdminSurface className="p-8 lg:p-10">
+               {passwordDisabledMessage ? (
                      <div className="bg-[#fbfbf8] p-10 border border-black/5 flex flex-col items-center text-center gap-8">
                         <div className="h-16 w-16 bg-black/5 flex items-center justify-center rounded-full">
                            <Lock className="h-8 w-8 text-black/20" />
@@ -327,7 +333,7 @@ export default function MemberAccountSettings({
                                <FormItem className="space-y-3">
                                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Contraseña Actual</FormLabel>
                                  <FormControl>
-                                   <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111]" type="password" {...field} />
+                                   <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111] bg-[#fbfbf8]" type="password" {...field} />
                                  </FormControl>
                                  <FormMessage className="text-[10px] uppercase font-bold" />
                                </FormItem>
@@ -341,7 +347,7 @@ export default function MemberAccountSettings({
                                   <FormItem className="space-y-3">
                                     <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Nueva Contraseña</FormLabel>
                                     <FormControl>
-                                      <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111]" type="password" {...field} />
+                                      <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111] bg-[#fbfbf8]" type="password" {...field} />
                                     </FormControl>
                                     <FormMessage className="text-[10px] uppercase font-bold" />
                                   </FormItem>
@@ -354,7 +360,7 @@ export default function MemberAccountSettings({
                                   <FormItem className="space-y-3">
                                     <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Repetir Nueva Contraseña</FormLabel>
                                     <FormControl>
-                                      <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111]" type="password" {...field} />
+                                      <Input className="h-14 rounded-none border-black/10 focus-visible:ring-[#111111] bg-[#fbfbf8]" type="password" {...field} />
                                     </FormControl>
                                     <FormMessage className="text-[10px] uppercase font-bold" />
                                   </FormItem>
@@ -374,8 +380,17 @@ export default function MemberAccountSettings({
                                     disabled={isPasswordPending} 
                                     className="h-14 px-12 rounded-none bg-[#111111] text-white font-black uppercase text-[11px] tracking-[0.2em] hover:bg-[#d71920] transition-all shadow-lg flex-1 sm:flex-none"
                                  >
-                                    {isPasswordPending && <Loader2 className="mr-3 h-4 w-4 animate-spin" />}
-                                    Cambiar Clave
+                                    {isPasswordPending ? (
+                                      <>
+                                        <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+                                        Procesando...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Save className="mr-3 h-4 w-4" />
+                                        Cambiar Clave
+                                      </>
+                                    )}
                                  </Button>
                                  <MemberSignOutButtonWithRedirect redirectTo="/" />
                               </div>
@@ -383,8 +398,7 @@ export default function MemberAccountSettings({
                         </form>
                      </Form>
                   )}
-               </CardContent>
-            </Card>
+               </AdminSurface>
          </div>
       </section>
 
@@ -403,8 +417,8 @@ export default function MemberAccountSettings({
          </div>
 
          <div className="xl:col-span-2">
-            <Card className="rounded-none border-red-200 bg-red-50/30 shadow-sm overflow-hidden">
-               <CardContent className="p-10 flex flex-col sm:flex-row items-center justify-between gap-10">
+            <AdminSurface className="border-red-200 bg-red-50/30 p-8 lg:p-10 shadow-sm">
+               <div className="flex flex-col sm:flex-row items-center justify-between gap-10">
                   <div className="space-y-2">
                      <p className="text-lg font-black text-red-900 uppercase tracking-tighter italic leading-none">¿Deseas darte de baja definitivamente?</p>
                      <p className="text-[11px] font-bold text-red-700/60 uppercase tracking-widest">Esta operación no puede deshacerse de ninguna forma.</p>
@@ -443,7 +457,7 @@ export default function MemberAccountSettings({
                                   <FormItem className="space-y-3">
                                     <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Contraseña Actual</FormLabel>
                                     <FormControl>
-                                      <Input className="h-12 rounded-none border-black/10 focus-visible:ring-[#111111]" type="password" {...field} />
+                                      <Input className="h-12 rounded-none border-black/10 focus-visible:ring-[#111111] bg-[#fbfbf8]" type="password" {...field} />
                                     </FormControl>
                                     <FormMessage className="text-[10px] uppercase font-bold" />
                                   </FormItem>
@@ -456,7 +470,7 @@ export default function MemberAccountSettings({
                                   <FormItem className="space-y-3">
                                     <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">Palabra de Seguridad</FormLabel>
                                     <FormControl>
-                                      <Input className="h-12 rounded-none border-black/10 focus-visible:ring-[#111111]" type="text" placeholder="ELIMINAR" {...field} />
+                                      <Input className="h-12 rounded-none border-black/10 focus-visible:ring-[#111111] bg-[#fbfbf8]" type="text" placeholder="ELIMINAR" {...field} />
                                     </FormControl>
                                     <FormMessage className="text-[10px] uppercase font-bold" />
                                   </FormItem>
@@ -487,8 +501,8 @@ export default function MemberAccountSettings({
                         </DialogContent>
                      </Dialog>
                   )}
-               </CardContent>
-            </Card>
+               </div>
+            </AdminSurface>
          </div>
       </section>
 

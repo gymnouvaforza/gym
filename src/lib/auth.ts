@@ -5,8 +5,6 @@ import { cache } from "react";
 import { ADMIN_LOGIN_PATH } from "@/lib/admin";
 import type { AuthUser } from "@/lib/auth-user";
 import {
-  getFirebaseAdminEnv,
-  getFirebasePublicEnv,
   hasFirebaseAdminEnv,
   getLocalAdminEnv,
   hasLocalAdminEnv,
@@ -14,7 +12,6 @@ import {
 } from "@/lib/env";
 import { 
   getFirebaseUserFromIdToken,
-  getCurrentFirebaseUserFromCookies, 
   verifyFirebaseSessionToken 
 } from "@/lib/firebase/server";
 import {
@@ -109,12 +106,12 @@ export const getAuthenticatedUser = cache(async function getAuthenticatedUser():
   }
 
   try {
-    // Validamos el token con Firebase Admin (firma y estado de revocación)
-    await verifyFirebaseSessionToken(sessionToken);
+    // Validamos el token con Firebase Admin (firma) sin forzar check de revocacion para navegacion SSR
+    const decodedToken = await verifyFirebaseSessionToken(sessionToken, false);
     
-    // Si el token es valido, obtenemos el usuario completo (cached)
-    return await getFirebaseUserFromIdToken(sessionToken);
-  } catch (error) {
+    // Si el token es valido, obtenemos el usuario completo (cached) pasando el token ya decodificado
+    return await getFirebaseUserFromIdToken(sessionToken, decodedToken);
+  } catch {
     // Si el token es invalido o expirado, no permitimos el acceso
     return null;
   }
@@ -225,10 +222,10 @@ export const getDashboardAccessState = cache(
   },
 );
 
-export async function requireAuthenticatedUser() {
+export async function requireAuthenticatedUser(redirectTo = "/acceso") {
   const user = await getAuthenticatedUser();
   if (!user) {
-    throw new Error("No autenticado.");
+    redirect(redirectTo);
   }
   return user;
 }

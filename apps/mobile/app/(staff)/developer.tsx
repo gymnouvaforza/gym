@@ -110,33 +110,27 @@ export default function StaffDeveloperScreen() {
             <NFButton
               variant={item.isEnabled ? "muted" : "primary"}
               loading={isPending}
-              onPress={() => {
+              onPress={async () => {
                 setPendingModuleName(item.name);
                 setFeedbackMessage(null);
-                toggleMutation.mutate(
-                  {
+                try {
+                  const response = await toggleMutation.mutateAsync({
                     name: item.name,
                     isEnabled: !item.isEnabled,
-                  },
-                  {
-                    onSuccess: (response) => {
-                      setFeedbackMessage(
-                        response.item.isEnabled
-                          ? `${response.item.label} activado correctamente.`
-                          : `${response.item.label} desactivado correctamente.`,
-                      );
-                      setPendingModuleName(null);
-                    },
-                    onError: (error) => {
-                      setFeedbackMessage(
-                        error instanceof Error
-                          ? error.message
-                          : "No se pudo actualizar el modulo.",
-                      );
-                      setPendingModuleName(null);
-                    },
-                  },
-                );
+                  });
+                  setFeedbackMessage(
+                    response.item.isEnabled
+                      ? `${response.item.label} activado correctamente.`
+                      : `${response.item.label} desactivado correctamente.`,
+                  );
+                } catch (error) {
+                  setFeedbackMessage(
+                    error instanceof Error ? error.message : "No se pudo actualizar el modulo.",
+                  );
+                  console.error(error);
+                } finally {
+                  setPendingModuleName(null);
+                }
               }}
             >
               {item.isEnabled ? "Apagar modulo" : "Encender modulo"}

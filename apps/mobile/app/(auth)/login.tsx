@@ -24,16 +24,21 @@ export default function LoginScreen() {
     setIsSubmitting(true);
     setError(null);
 
-    const result = await signIn(email.trim(), password);
+    try {
+      const result = await signIn(email.trim(), password);
 
-    setIsSubmitting(false);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
 
-    if (result.error) {
-      setError(result.error);
-      return;
+      router.replace("/");
+    } catch (err) {
+      setError("Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo.");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    router.replace("/");
   }
 
   return (

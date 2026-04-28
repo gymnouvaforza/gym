@@ -33,7 +33,7 @@ export async function deleteMemberAction(memberId: string) {
 }
 
 export async function saveMemberProfileAction(values: MemberFormValues, memberId?: string) {
-  const user = await requireAdminUser();
+  await requireAdminUser();
   const validatedValues = memberFormSchema.parse(values);
 
   if (memberId) {

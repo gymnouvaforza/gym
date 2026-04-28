@@ -29,7 +29,7 @@ try {
   } else {
     console.log(`${GREEN}✓ No .env files tracked by git.${RESET}`);
   }
-} catch (e) {
+} catch {
   console.warn(`${YELLOW}Warning: Could not run git ls-files. Skipping tracked .env check.${RESET}`);
 }
 
@@ -83,8 +83,9 @@ try {
       }
     });
   });
-} catch (e) {
-  console.error(`${RED}Error during file scan: ${e.message}${RESET}`);
+} catch (error) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  console.error(`${RED}Error during file scan: ${errorMessage}${RESET}`);
   hasErrors = true;
 }
 

@@ -36,13 +36,17 @@ export default function StaffMemberDetailScreen() {
       return;
     }
 
-    await updateMemberMutation.mutateAsync({ status: nextStatus });
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["staff-members"] }),
-      queryClient.invalidateQueries({ queryKey: ["staff-member-detail"] }),
-      queryClient.invalidateQueries({ queryKey: ["staff-dashboard"] }),
-      queryClient.invalidateQueries({ queryKey: ["member-routine"] }),
-    ]);
+    try {
+      await updateMemberMutation.mutateAsync({ status: nextStatus });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["staff-members"] }),
+        queryClient.invalidateQueries({ queryKey: ["staff-member-detail"] }),
+        queryClient.invalidateQueries({ queryKey: ["staff-dashboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["member-routine"] }),
+      ]);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   if (detailQuery.isError) {

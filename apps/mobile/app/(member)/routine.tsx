@@ -69,8 +69,13 @@ export default function MemberRoutineScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await routineQuery.refetch();
-    setRefreshing(false);
+    try {
+      await routineQuery.refetch();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   if (routineQuery.isLoading) {
@@ -136,20 +141,28 @@ export default function MemberRoutineScreen() {
   const coachLabel = routine.trainerName ?? "Coach del club";
 
   async function toggleRoutineLike() {
-    const newLiked = !savedRoutine.liked;
-    setJustLikedRoutine(true);
-    setTimeout(() => setJustLikedRoutine(false), 1200);
-    await updateRoutineFeedbackMutation.mutateAsync({
-      liked: newLiked,
-      note: routineNote,
-    });
+    try {
+      const newLiked = !savedRoutine.liked;
+      setJustLikedRoutine(true);
+      setTimeout(() => setJustLikedRoutine(false), 1200);
+      await updateRoutineFeedbackMutation.mutateAsync({
+        liked: newLiked,
+        note: routineNote,
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function saveRoutineNote() {
-    await updateRoutineFeedbackMutation.mutateAsync({
-      liked: savedRoutine.liked,
-      note: routineNote,
-    });
+    try {
+      await updateRoutineFeedbackMutation.mutateAsync({
+        liked: savedRoutine.liked,
+        note: routineNote,
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   function toggleExerciseLike(exerciseId: string) {
@@ -160,11 +173,15 @@ export default function MemberRoutineScreen() {
   }
 
   async function saveExerciseLike(exerciseId: string) {
-    await updateExerciseFeedbackMutation.mutateAsync({
-      exerciseId,
-      liked: likedExercises[exerciseId] ?? false,
-      note: exerciseNotes[exerciseId] ?? "",
-    });
+    try {
+      await updateExerciseFeedbackMutation.mutateAsync({
+        exerciseId,
+        liked: likedExercises[exerciseId] ?? false,
+        note: exerciseNotes[exerciseId] ?? "",
+      });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   return (

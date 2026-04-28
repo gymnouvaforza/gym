@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { LifeBuoy, LogOut, UserRoundX } from "lucide-react-native";
@@ -13,7 +14,19 @@ import { useAuth } from "@/providers/auth-provider";
 
 export default function MemberAccountScreen() {
   const { mobileSession, profileError, signOut } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const member = mobileSession?.member;
+
+  async function handleSignOut() {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }
 
   return (
     <Screen header={<NFTopBar title="Cuenta" />} contentClassName="gap-6 px-6 py-6">
@@ -89,7 +102,13 @@ export default function MemberAccountScreen() {
         </NFCard>
       </View>
 
-      <NFButton variant="ghost" onPress={() => void signOut()} rightIcon={LogOut}>
+      <NFButton
+        variant="ghost"
+        onPress={handleSignOut}
+        loading={isLoggingOut}
+        disabled={isLoggingOut}
+        rightIcon={LogOut}
+      >
         Cerrar sesión
       </NFButton>
     </Screen>

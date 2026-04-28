@@ -34,8 +34,16 @@ vi.mock("@/components/marketing/SiteHeaderAuthActions", () => ({
   default: () => <div>Header auth actions</div>,
 }));
 
+vi.mock("@/components/marketing/MobileMenuContent", () => ({
+  default: ({ isOpen }: { isOpen: boolean }) => isOpen ? (
+    <div>
+      <div>Header auth actions</div>
+    </div>
+  ) : null,
+}));
+
 describe("SiteHeader", () => {
-  it("renders the site header shell with cart and auth actions", () => {
+  it("renders the site header shell with cart and auth actions", async () => {
     const activeModules = createDefaultModuleStateMap();
 
     render(
@@ -49,6 +57,9 @@ describe("SiteHeader", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Abrir carrito/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Abrir menu/i }));
-    expect(screen.getAllByText("Header auth actions")).toHaveLength(2);
+    
+    await vi.waitFor(() => {
+      expect(screen.getAllByText("Header auth actions")).toHaveLength(2);
+    });
   });
 });

@@ -23,21 +23,26 @@ export default function RegisterScreen() {
     setError(null);
     setMessage(null);
 
-    const result = await signUp(email.trim(), password);
+    try {
+      const result = await signUp(email.trim(), password);
 
-    setIsSubmitting(false);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
 
-    if (result.error) {
-      setError(result.error);
-      return;
+      if (result.needsEmailVerification) {
+        setMessage("Revisa tu correo para confirmar la cuenta antes de entrar.");
+        return;
+      }
+
+      router.replace("/");
+    } catch (err) {
+      setError("No hemos podido completar el registro. Por favor, inténtalo de nuevo.");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (result.needsEmailVerification) {
-      setMessage("Revisa tu correo para confirmar la cuenta antes de entrar.");
-      return;
-    }
-
-    router.replace("/");
   }
 
   return (

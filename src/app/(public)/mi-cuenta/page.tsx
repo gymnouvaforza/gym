@@ -1,3 +1,4 @@
+import { ElementType } from "react";
 import {
   Activity,
   ExternalLink,
@@ -64,26 +65,31 @@ const memberAccountTabs: Array<{
   value: MemberAccountTab;
   label: string;
   description: string;
+  icon: ElementType;
 }> = [
   {
     value: "resumen",
     label: "Resumen",
     description: "Lo importante de tu cuenta en una sola vista.",
+    icon: Activity,
   },
   {
     value: "membresia",
-    label: "Membresia",
+    label: "Membresía",
     description: "QR, vigencia, saldo y renovacion sin mezclarlo con la tienda.",
+    icon: QrCode,
   },
   {
     value: "pedidos",
     label: "Pedidos",
     description: "Carrito activo y trazabilidad pickup desde el mismo portal.",
+    icon: ShoppingBag,
   },
   {
     value: "cuenta",
     label: "Cuenta",
     description: "Perfil, seguridad y resena publica ordenados por separado.",
+    icon: ShieldCheck,
   },
 ];
 
@@ -321,37 +327,27 @@ export default async function MemberAccountPage({
           </section>
 
           <Tabs value={activeTab} className="flex w-full flex-col">
-            {/* Navegación de Pestañas - Sticky en Móvil */}
-            <div className="sticky top-16 z-30 flex w-full border-b border-black/5 bg-white/90 backdrop-blur-md lg:top-20 lg:static lg:bg-transparent lg:border-none lg:backdrop-blur-none lg:mb-10">
-              <TabsList
-                variant="line"
-                className="hide-scrollbar flex w-full flex-nowrap items-stretch justify-start overflow-x-auto px-2 py-1 lg:mx-auto lg:max-w-max lg:gap-4 lg:px-0 lg:py-0"
-              >
-                {memberAccountTabs.map((tab) => {
-                  const isActive = activeTab === tab.value;
-
-                  return (
+            {/* Navegación de Pestañas - Estilo Dashboard */}
+            <div className="sticky top-16 z-30 flex w-full bg-[#fbfbf8]/95 backdrop-blur-md lg:top-20 lg:static lg:bg-transparent lg:backdrop-blur-none lg:mb-12 pt-4 lg:pt-0">
+              <div className="flex w-full items-center justify-between border-b border-black/5">
+                <TabsList className="hide-scrollbar flex w-full flex-nowrap items-center justify-start overflow-x-auto bg-transparent p-0 h-auto gap-8 lg:gap-16 lg:w-max">
+                  {memberAccountTabs.map((tab) => (
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
                       asChild
-                      className={cn(
-                        "relative h-11 min-w-[90px] flex-shrink-0 px-3 text-[9px] font-black uppercase tracking-[0.2em] transition-all lg:h-14 lg:min-w-[160px] lg:px-4 lg:text-[10px] lg:border",
-                        isActive
-                          ? "text-[#d71920] lg:border-[#111111] lg:bg-[#111111] lg:text-white"
-                          : "text-[#7a7f87] lg:border-black/10 lg:bg-white lg:hover:border-[#111111] lg:hover:text-[#111111]",
-                      )}
+                      className="relative flex-shrink-0 border-b-[4px] border-transparent rounded-none px-2 lg:px-0 pb-4 lg:pb-5 font-black uppercase text-[12px] lg:text-[14px] tracking-[0.2em] transition-all bg-transparent shadow-none data-[state=inactive]:shadow-none text-[#7a7f87] hover:text-[#111111] data-[state=active]:text-[#d71920] data-[state=active]:border-[#d71920]"
                     >
-                      <Link href={buildMemberAccountTabHref(tab.value)}>
-                        <span className="flex w-full items-center justify-center gap-2">
-                          {tab.label}
-                          {isActive && <div className="absolute bottom-0 left-0 h-1 w-full bg-[#d71920] lg:hidden" />}
-                        </span>
+                      <Link href={buildMemberAccountTabHref(tab.value)} className="w-full">
+                        <div className="flex w-full items-center justify-center gap-3">
+                          <tab.icon className="h-5 w-5 lg:h-6 lg:w-6 transition-colors" />
+                          <span>{tab.label}</span>
+                        </div>
                       </Link>
                     </TabsTrigger>
-                  );
-                })}
-              </TabsList>
+                  ))}
+                </TabsList>
+              </div>
             </div>
 
             <section id="account-tabs" className="w-full px-3 py-6 lg:mx-auto lg:max-w-[1000px] lg:px-0 lg:py-0">

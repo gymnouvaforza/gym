@@ -51,25 +51,6 @@ async function getAuthenticatedSupabase() {
 }
 
 function revalidateApp(tags: PublicCacheTag[] = []) {
-  revalidatePath("/");
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/cms");
-  revalidatePath("/dashboard/leads");
-  revalidatePath("/dashboard/marketing");
-  revalidatePath("/dashboard/web");
-  revalidatePath("/dashboard/info");
-  revalidatePath("/dashboard/advanced");
-  revalidatePath("/planes");
-  revalidatePath("/horarios");
-  revalidatePath("/privacidad");
-  revalidatePath("/cookies");
-  revalidatePath("/terminos");
-  revalidatePath("/desistimiento");
-  revalidatePath("/aviso-legal");
-  revalidatePath("/acceso-restringido");
-  revalidatePath("/tienda");
-  revalidatePath("/carrito");
-
   if (tags.length > 0) {
     revalidatePublicCacheTags(tags);
   }
@@ -80,7 +61,10 @@ export async function saveSiteSettings(values: SiteSettingsValues) {
   const parsed = siteSettingsSchema.parse(values);
   const supabase = await getAuthenticatedSupabase();
   await saveSiteSettingsRecord(supabase, parsed);
+  
+  // Revalidacion quirurgica
   revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+  revalidatePath("/dashboard/settings");
 }
 
 export type ActionResponse = {
@@ -96,6 +80,7 @@ export async function saveMarketingContent(values: MarketingContentValues): Prom
 
     await saveMarketingContentRecord(supabase, parsed);
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    revalidatePath("/dashboard/marketing");
 
     return { success: true };
   } catch (error) {
@@ -118,6 +103,7 @@ export async function saveMarketingPlans(plans: MarketingContentValues["plans"])
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingPlansRecord(supabase, plans);
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    revalidatePath("/dashboard/marketing/planes");
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error al guardar los planes.";
@@ -131,6 +117,7 @@ export async function saveMarketingSchedule(rows: MarketingContentValues["schedu
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingScheduleRowsRecord(supabase, rows);
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    revalidatePath("/dashboard/marketing/horarios");
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error al guardar los horarios.";
@@ -144,6 +131,7 @@ export async function saveMarketingTeamMembers(members: MarketingContentValues["
     const supabase = await getAuthenticatedSupabase();
     await saveMarketingTeamMembersRecord(supabase, members);
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    revalidatePath("/dashboard/marketing/equipo");
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error al guardar el equipo.";
@@ -173,7 +161,6 @@ export async function updateLeadStatus(id: string, status: "new" | "contacted" |
   const parsed = leadStatusSchema.parse({ status });
   const supabase = await getAuthenticatedSupabase();
   await updateLeadStatusRecord(supabase, id, parsed.status);
-  revalidatePath("/dashboard");
   revalidatePath("/dashboard/leads");
 }
 
@@ -182,7 +169,6 @@ export async function saveLeadFollowUp(id: string, values: LeadFollowUpValues) {
   const parsed = leadFollowUpSchema.parse(values);
   const supabase = await getAuthenticatedSupabase();
   await updateLeadFollowUpRecord(supabase, id, parsed);
-  revalidatePath("/dashboard");
   revalidatePath("/dashboard/leads");
 }
 
@@ -192,6 +178,7 @@ export async function saveCmsDocument(values: CmsDocumentValues) {
   const supabase = await getAuthenticatedSupabase();
   await saveCmsDocumentRecord(supabase, parsed);
   revalidateApp([PUBLIC_CACHE_TAGS.cms]);
+  revalidatePath("/dashboard/cms");
 }
 
 export async function moderateMarketingTestimonial(
@@ -210,17 +197,14 @@ export async function moderateMarketingTestimonial(
   }
 
   await moderateMarketingTestimonialRecord(supabase, parsed.id, parsed.moderationStatus);
-  revalidatePath("/");
-  revalidatePath("/mi-cuenta");
-  revalidatePath("/dashboard/marketing");
-  revalidatePublicCacheTags([PUBLIC_CACHE_TAGS.marketing]);
+  revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+  revalidatePath("/dashboard/marketing/testimonios");
 }
 
 export async function deleteLeadAction(id: string) {
   await requireAdminUser();
   const supabase = await getAuthenticatedSupabase();
   await deleteLeadRecord(supabase, id);
-  revalidatePath("/dashboard");
   revalidatePath("/dashboard/leads");
 }
 
@@ -240,6 +224,7 @@ export async function updateBrandingAction(values: BrandingValues): Promise<Acti
     });
 
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    revalidatePath("/dashboard/web/branding");
     return { success: true };
   } catch (error) {
     return { 
@@ -258,6 +243,7 @@ export async function updateThemeAction(config: ThemeConfig): Promise<ActionResp
     await updateThemeConfigRecord(supabase, parsed);
 
     revalidateApp([PUBLIC_CACHE_TAGS.marketing]);
+    revalidatePath("/dashboard/web/tema");
     return { success: true };
   } catch (error) {
     console.error("DEBUG: updateThemeAction Error:", error);
