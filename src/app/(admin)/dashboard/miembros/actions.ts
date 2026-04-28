@@ -27,9 +27,18 @@ function resolveActorUserId(user: Awaited<ReturnType<typeof requireAdminUser>>) 
 }
 
 export async function deleteMemberAction(memberId: string) {
-  await requireAdminUser();
-  await deleteMemberProfile(memberId);
-  revalidateMembers();
+  try {
+    await requireAdminUser();
+    await deleteMemberProfile(memberId);
+    revalidateMembers();
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting member:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error desconocido al eliminar socio",
+    };
+  }
 }
 
 export async function saveMemberProfileAction(values: MemberFormValues, memberId?: string) {

@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type TableRow = Record<string, unknown>;
 type TableState = Record<string, TableRow[]>;
+type QueryOperation = "delete" | "insert" | "select" | "update";
+type QueryFailures = Partial<Record<string, Partial<Record<QueryOperation, string>>>>;
 
 const serverMocks = vi.hoisted(() => ({
   createSupabaseAdminClient: vi.fn(),
@@ -24,27 +26,32 @@ vi.mock("@/lib/user-roles", async () => {
   return {
     ...actual,
     listPersistedUserRoles: vi.fn().mockResolvedValue([]),
+    listPersistedUserRolesForUser: vi.fn().mockResolvedValue([]),
   };
 });
 
-function createFakeClient(initialState: Partial<TableState>) {
+function createFakeClient(initialState: Partial<TableState>, failures: QueryFailures = {}) {
   const state: TableState = {
+    member_commerce_customers: [],
+    membership_requests: [],
     member_plan_snapshots: [],
     member_profiles: [],
     member_routine_exercise_feedback: [],
     member_routine_feedback: [],
+    pickup_request: [],
     routine_assignments: [],
     routine_template_blocks: [],
     routine_template_exercises: [],
     routine_templates: [],
     trainer_profiles: [],
+    user_roles: [],
     ...initialState,
   };
 
   class QueryBuilder {
     private filters: Array<(row: TableRow) => boolean> = [];
     private insertedRows: TableRow[] = [];
-    private operation: "insert" | "select" | "update" = "select";
+    private operation: QueryOperation = "select";
     private payload: TableRow | TableRow[] | null = null;
     private shouldReturnSingle = false;
     private sortField: string | null = null;
@@ -78,6 +85,11 @@ function createFakeClient(initialState: Partial<TableState>) {
       return this;
     }
 
+    delete() {
+      this.operation = "delete";
+      return this;
+    }
+
     insert(payload: TableRow | TableRow[]) {
       this.operation = "insert";
       this.payload = payload;
@@ -85,6 +97,14 @@ function createFakeClient(initialState: Partial<TableState>) {
     }
 
     maybeSingle() {
+      const failure = failures[this.table]?.select;
+      if (failure) {
+        return Promise.resolve({
+          data: null,
+          error: { message: failure },
+        });
+      }
+
       const rows = this.runSelect();
       return Promise.resolve({
         data: rows[0] ?? null,
@@ -102,6 +122,14 @@ function createFakeClient(initialState: Partial<TableState>) {
     }
 
     private execute() {
+      const configuredFailure = failures[this.table]?.[this.operation];
+      if (configuredFailure) {
+        return {
+          data: null,
+          error: { message: configuredFailure },
+        };
+      }
+
       if (this.operation === "update") {
         const rows = this.runSelect();
 
@@ -122,6 +150,16 @@ function createFakeClient(initialState: Partial<TableState>) {
 
         return {
           data: this.shouldReturnSingle ? this.insertedRows[0] ?? null : this.insertedRows,
+          error: null,
+        };
+      }
+
+      if (this.operation === "delete") {
+        const rowsToDelete = this.runSelect();
+        state[this.table] = state[this.table].filter((row) => !rowsToDelete.includes(row));
+
+        return {
+          data: this.shouldReturnSingle ? rowsToDelete[0] ?? null : rowsToDelete,
           error: null,
         };
       }
@@ -193,11 +231,23 @@ describe("gym-management live mobile helpers", () => {
     vi.resetModules();
     serverMocks.listAllFirebaseUsers.mockResolvedValue([]);
     serverMocks.getFirebaseAdminAuth.mockReturnValue({
+      deleteUser: vi.fn(async () => undefined),
       getUser: vi.fn(async (userId: string) => ({
         uid: userId,
         email: `${userId}@novaforza.com`,
         emailVerified: true,
         displayName: userId,
+        metadata: {
+          creationTime: null,
+          lastSignInTime: null,
+        },
+        providerData: [],
+      })),
+      getUserByEmail: vi.fn(async (email: string) => ({
+        uid: "user-by-email",
+        email: email,
+        emailVerified: true,
+        displayName: email.split("@")[0],
         metadata: {
           creationTime: null,
           lastSignInTime: null,
@@ -794,6 +844,256 @@ describe("gym-management live mobile helpers", () => {
         status: "paused",
       }),
     );
+  });
+
+  it("deletes the linked auth account for a normal member when removing the profile", async () => {
+    const client = createFakeClient({
+      member_commerce_customers: [
+        {
+          email: "member@novaforza.com",
+          id: "bridge-1",
+          medusa_customer_id: "mc_1",
+          supabase_user_id: "user-1",
+        },
+      ],
+      membership_requests: [
+        {
+          id: "membership-1",
+          supabase_user_id: "user-1",
+        },
+      ],
+      member_profiles: [
+        {
+          email: "member@novaforza.com",
+          full_name: "Member One",
+          id: "member-1",
+          status: "active",
+          supabase_user_id: "user-1",
+        },
+      ],
+      pickup_request: [
+        {
+          id: "pickup-1",
+          supabase_user_id: "user-1",
+        },
+      ],
+      user_roles: [
+        {
+          role: "app_blocked",
+          user_id: "user-1",
+        },
+      ],
+    });
+    const deleteUser = vi.fn(async () => undefined);
+    serverMocks.createSupabaseAdminClient.mockReturnValue(client);
+    serverMocks.getFirebaseAdminAuth.mockReturnValue({
+      deleteUser,
+      getUser: vi.fn(async () => ({
+        uid: "user-1",
+        email: "member@novaforza.com",
+      })),
+      getUserByEmail: vi.fn(async () => ({
+        uid: "user-1",
+        email: "member@novaforza.com",
+      })),
+    });
+
+    const { listPersistedUserRolesForUser } = await import("@/lib/user-roles");
+    vi.mocked(listPersistedUserRolesForUser).mockResolvedValue([]);
+
+    const { deleteMemberProfile } = await import("./gym-management");
+    await deleteMemberProfile("member-1");
+
+    expect(deleteUser).toHaveBeenCalledWith("user-1");
+    expect(client.state.member_profiles).toHaveLength(0);
+    expect(client.state.member_commerce_customers).toHaveLength(0);
+    expect(client.state.membership_requests[0]).toEqual(
+      expect.objectContaining({ supabase_user_id: null }),
+    );
+    expect(client.state.pickup_request[0]).toEqual(
+      expect.objectContaining({ supabase_user_id: null }),
+    );
+    expect(client.state.user_roles).toHaveLength(0);
+  });
+
+  it("still deletes the member profile if the Firebase user is not found", async () => {
+    const client = createFakeClient({
+      member_profiles: [
+        {
+          email: "missing@novaforza.com",
+          full_name: "Missing User",
+          id: "member-1",
+          status: "active",
+          supabase_user_id: "gone-1",
+        },
+      ],
+    });
+    serverMocks.createSupabaseAdminClient.mockReturnValue(client);
+    serverMocks.getFirebaseAdminAuth.mockReturnValue({
+      deleteUser: vi.fn(async () => undefined),
+      getUser: vi.fn(async () => {
+        throw { code: "auth/user-not-found" };
+      }),
+      getUserByEmail: vi.fn(async () => {
+        throw { code: "auth/user-not-found" };
+      }),
+    });
+
+    const { deleteMemberProfile } = await import("./gym-management");
+    await deleteMemberProfile("member-1");
+
+    expect(client.state.member_profiles).toHaveLength(0);
+  });
+
+  it("does not delete a different Firebase account discovered only by email fallback", async () => {
+    const client = createFakeClient({
+      member_profiles: [
+        {
+          email: "member@novaforza.com",
+          full_name: "Member One",
+          id: "member-1",
+          status: "active",
+          supabase_user_id: "gone-1",
+        },
+      ],
+    });
+    const deleteUser = vi.fn(async () => undefined);
+    serverMocks.createSupabaseAdminClient.mockReturnValue(client);
+    serverMocks.getFirebaseAdminAuth.mockReturnValue({
+      deleteUser,
+      getUser: vi.fn(async () => {
+        throw { code: "auth/user-not-found" };
+      }),
+      getUserByEmail: vi.fn(async () => ({
+        uid: "other-user",
+        email: "member@novaforza.com",
+      })),
+    });
+
+    const { deleteMemberProfile } = await import("./gym-management");
+    await deleteMemberProfile("member-1");
+
+    expect(deleteUser).not.toHaveBeenCalled();
+    expect(client.state.member_profiles).toHaveLength(0);
+  });
+
+  it("cleans up operational dependencies (plans, assignments, feedback) when deleting a member profile", async () => {
+    const client = createFakeClient({
+      member_profiles: [{ id: "member-1", email: "test@test.com" }],
+      member_plan_snapshots: [{ id: "plan-1", member_id: "member-1" }],
+      routine_assignments: [{ id: "assign-1", member_id: "member-1" }],
+      member_routine_feedback: [{ id: "feed-1", member_id: "member-1" }],
+    });
+    serverMocks.createSupabaseAdminClient.mockReturnValue(client);
+    const { listPersistedUserRolesForUser } = await import("@/lib/user-roles");
+    vi.mocked(listPersistedUserRolesForUser).mockResolvedValue([]);
+
+    const { deleteMemberProfile } = await import("./gym-management");
+    await deleteMemberProfile("member-1");
+
+    expect(client.state.member_profiles).toHaveLength(0);
+    expect(client.state.member_plan_snapshots).toHaveLength(0);
+    expect(client.state.routine_assignments).toHaveLength(0);
+    expect(client.state.member_routine_feedback).toHaveLength(0);
+  });
+
+  it("fails loudly when cleanup of auth references breaks", async () => {
+    const client = createFakeClient(
+      {
+        member_profiles: [
+          {
+            email: "member@novaforza.com",
+            full_name: "Member One",
+            id: "member-1",
+            status: "active",
+            supabase_user_id: "user-1",
+          },
+        ],
+        pickup_request: [
+          {
+            id: "pickup-1",
+            supabase_user_id: "user-1",
+          },
+        ],
+      },
+      {
+        pickup_request: {
+          update: "pickup cleanup failed",
+        },
+      },
+    );
+    const deleteUser = vi.fn(async () => undefined);
+    serverMocks.createSupabaseAdminClient.mockReturnValue(client);
+    serverMocks.getFirebaseAdminAuth.mockReturnValue({
+      deleteUser,
+      getUser: vi.fn(async () => ({
+        uid: "user-1",
+        email: "member@novaforza.com",
+      })),
+      getUserByEmail: vi.fn(async () => ({
+        uid: "user-1",
+        email: "member@novaforza.com",
+      })),
+    });
+
+    const { listPersistedUserRolesForUser } = await import("@/lib/user-roles");
+    vi.mocked(listPersistedUserRolesForUser).mockResolvedValue([]);
+
+    const { deleteMemberProfile } = await import("./gym-management");
+
+    await expect(deleteMemberProfile("member-1")).rejects.toThrow("pickup cleanup failed");
+    expect(client.state.member_profiles).toHaveLength(1);
+    expect(deleteUser).toHaveBeenCalledWith("user-1");
+  });
+
+  it("does not delete a protected staff auth account when removing a member profile", async () => {
+    const client = createFakeClient({
+      member_profiles: [
+        {
+          email: "coach@novaforza.com",
+          full_name: "Coach Member",
+          id: "member-1",
+          status: "active",
+          supabase_user_id: "staff-1",
+        },
+      ],
+      user_roles: [
+        {
+          role: "trainer",
+          user_id: "staff-1",
+        },
+      ],
+    });
+    const deleteUser = vi.fn(async () => undefined);
+    serverMocks.createSupabaseAdminClient.mockReturnValue(client);
+    serverMocks.getFirebaseAdminAuth.mockReturnValue({
+      deleteUser,
+      getUser: vi.fn(async () => ({
+        uid: "staff-1",
+        email: "coach@novaforza.com",
+      })),
+      getUserByEmail: vi.fn(async () => ({
+        uid: "staff-1",
+        email: "coach@novaforza.com",
+      })),
+    });
+
+    const { listPersistedUserRolesForUser } = await import("@/lib/user-roles");
+    vi.mocked(listPersistedUserRolesForUser).mockResolvedValue([
+      {
+        assigned_at: "2026-04-01T10:00:00.000Z",
+        is_irreversible: true,
+        note: null,
+        role: "trainer",
+        user_id: "staff-1",
+      },
+    ]);
+
+    const { deleteMemberProfile } = await import("./gym-management");
+    await deleteMemberProfile("member-1");
+
+    expect(deleteUser).not.toHaveBeenCalled();
+    expect(client.state.member_profiles).toHaveLength(0);
   });
 
   it("returns enriched live routine template previews for staff surfaces", async () => {

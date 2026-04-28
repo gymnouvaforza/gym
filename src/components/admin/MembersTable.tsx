@@ -41,9 +41,15 @@ export default function MembersTable({ initialMembers }: MembersTableProps) {
     setMemberToDelete(null);
 
     startTransition(async () => {
-      deleteOptimisticMember(id);
       try {
-        await deleteMemberAction(id);
+        const result = await deleteMemberAction(id);
+
+        if (!result?.success) {
+          toast.error(result?.error ?? "Error al eliminar la ficha del socio.");
+          return;
+        }
+
+        deleteOptimisticMember(id);
         toast.success("Socio eliminado del sistema de manera irreversible.");
       } catch (error) {
         toast.error(

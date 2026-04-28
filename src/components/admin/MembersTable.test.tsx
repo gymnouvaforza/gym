@@ -81,7 +81,7 @@ describe("MembersTable", () => {
   });
 
   it("opens delete confirmation and removes member optimistically on confirm", async () => {
-    tableMocks.deleteMemberAction.mockResolvedValue(undefined);
+    tableMocks.deleteMemberAction.mockResolvedValue({ success: true });
     const user = userEvent.setup();
 
     render(<MembersTable initialMembers={members} />);
@@ -99,7 +99,25 @@ describe("MembersTable", () => {
     });
   });
 
-  it("surfaces action errors through toast", async () => {
+  it("surfaces structured action failures through toast", async () => {
+    tableMocks.deleteMemberAction.mockResolvedValue({
+      success: false,
+      error: "No se pudo eliminar",
+    });
+    const user = userEvent.setup();
+
+    render(<MembersTable initialMembers={members} />);
+
+    await user.click(screen.getByRole("button", { name: /Eliminar socio Socio Titan/i }));
+    await user.click(screen.getByRole("button", { name: /Confirmar borrado/i }));
+
+    await waitFor(() => {
+      expect(tableMocks.toastError).toHaveBeenCalledWith("No se pudo eliminar");
+    });
+    expect(tableMocks.toastSuccess).not.toHaveBeenCalled();
+  });
+
+  it("surfaces thrown action errors through toast", async () => {
     tableMocks.deleteMemberAction.mockRejectedValue(new Error("No se pudo eliminar"));
     const user = userEvent.setup();
 

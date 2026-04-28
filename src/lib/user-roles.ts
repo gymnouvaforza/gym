@@ -155,3 +155,17 @@ export async function listPersistedUserRoles() {
 
   return (data ?? []).filter((record) => isPersistedUserRole(record.role)) as PersistedRoleRecord[];
 }
+
+export async function listPersistedUserRolesForUser(userId: string) {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("user_id, role, assigned_at, is_irreversible, note")
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []).filter((record) => isPersistedUserRole(record.role)) as PersistedRoleRecord[];
+}

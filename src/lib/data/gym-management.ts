@@ -58,8 +58,11 @@ import type {
   DBTrainerProfile,
 } from "@/lib/supabase/database.types";
 import {
+  DASHBOARD_ADMIN_ROLE,
+  SUPERADMIN_ROLE,
   TRAINER_ROLE,
   listPersistedUserRoles,
+  listPersistedUserRolesForUser,
   type PersistedUserRole,
 } from "@/lib/user-roles";
 import {
@@ -72,6 +75,7 @@ import { normalizeMembershipQrToken } from "@/lib/membership-qr";
 import { slugify, trimToNull } from "@/lib/utils";
 
 type GymAdminClient = ReturnType<typeof createSupabaseAdminClient>;
+type FirebaseAdminAuth = ReturnType<typeof getFirebaseAdminAuth>;
 
 type AuthDashboardUser = {
   createdAt: string | null;
@@ -81,6 +85,17 @@ type AuthDashboardUser = {
   lastSignInAt: string | null;
   roles: PersistedUserRole[];
 };
+
+type MemberDeleteCandidate = {
+  id: string;
+  supabase_user_id: string | null;
+};
+
+const PROTECTED_MEMBER_AUTH_ROLES = new Set<PersistedUserRole>([
+  SUPERADMIN_ROLE,
+  DASHBOARD_ADMIN_ROLE,
+  TRAINER_ROLE,
+]);
 
 export type TrainerOption = {
   branchName: string | null;
@@ -275,6 +290,153 @@ async function getAuthUserById(userId: string) {
     fullName: user.displayName,
     provider: user.providerData[0]?.providerId ?? "password",
   });
+}
+
+function isFirebaseUserNotFoundError(error: unknown) {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const code = "code" in error ? String(error.code) : "";
+  const message = "message" in error ? String(error.message).toLowerCase() : "";
+
+  return code === "auth/user-not-found" || message.includes("user-not-found");
+}
+
+async function resolveMemberAuthDeleteCandidate(
+  auth: FirebaseAdminAuth,
+  member: MemberDeleteCandidate,
+) {
+  if (!member.supabase_user_id) {
+    return null;
+  }
+
+  try {
+    return await auth.getUser(member.supabase_user_id);
+  } catch (error) {
+    if (isFirebaseUserNotFoundError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+async function hasProtectedMemberAuthRole(userId: string) {
+  const roles = await listPersistedUserRolesForUser(userId);
+  return roles.some((role) => PROTECTED_MEMBER_AUTH_ROLES.has(role.role as PersistedUserRole));
+}
+
+async function cleanupDeletedMemberAuthReferences(client: GymAdminClient, userId: string) {
+  const { error: pickupRequestError } = await client
+    .from("pickup_request")
+    .update({ supabase_user_id: null })
+    .eq("supabase_user_id", userId);
+
+  if (pickupRequestError) {
+    throw new Error(pickupRequestError.message);
+  }
+
+  const { error: membershipRequestError } = await client
+    .from("membership_requests")
+    .update({ supabase_user_id: null })
+    .eq("supabase_user_id", userId);
+
+  if (membershipRequestError) {
+    throw new Error(membershipRequestError.message);
+  }
+
+  const { error: bridgeError } = await client
+    .from("member_commerce_customers")
+    .delete()
+    .eq("supabase_user_id", userId);
+
+  if (bridgeError) {
+    throw new Error(bridgeError.message);
+  }
+
+  const { error: userRolesError } = await client.from("user_roles").delete().eq("user_id", userId);
+
+  if (userRolesError) {
+    throw new Error(userRolesError.message);
+  }
+
+  const { error: trainerProfileError } = await client
+    .from("trainer_profiles")
+    .delete()
+    .eq("user_id", userId);
+
+  if (trainerProfileError) {
+    throw new Error(trainerProfileError.message);
+  }
+}
+
+async function cleanupMemberOperationalData(client: GymAdminClient, memberId: string) {
+  const { error: planError } = await client
+    .from("member_plan_snapshots")
+    .delete()
+    .eq("member_id", memberId);
+
+  if (planError) {
+    throw new Error(planError.message);
+  }
+
+  const { error: routineFeedbackError } = await client
+    .from("member_routine_feedback")
+    .delete()
+    .eq("member_id", memberId);
+
+  if (routineFeedbackError) {
+    throw new Error(routineFeedbackError.message);
+  }
+
+  const { error: exerciseFeedbackError } = await client
+    .from("member_routine_exercise_feedback")
+    .delete()
+    .eq("member_id", memberId);
+
+  if (exerciseFeedbackError) {
+    throw new Error(exerciseFeedbackError.message);
+  }
+
+  const { data: assignments, error: assignmentsError } = await client
+    .from("routine_assignments")
+    .select("id")
+    .eq("member_id", memberId);
+
+  if (assignmentsError) {
+    throw new Error(assignmentsError.message);
+  }
+
+  if (assignments && assignments.length > 0) {
+    const assignmentIds = assignments.map((a) => a.id);
+    const { error: assignmentFeedbackError } = await client
+      .from("member_routine_feedback")
+      .delete()
+      .in("routine_assignment_id", assignmentIds);
+
+    if (assignmentFeedbackError) {
+      throw new Error(assignmentFeedbackError.message);
+    }
+
+    const { error: assignmentExerciseFeedbackError } = await client
+      .from("member_routine_exercise_feedback")
+      .delete()
+      .in("routine_assignment_id", assignmentIds);
+
+    if (assignmentExerciseFeedbackError) {
+      throw new Error(assignmentExerciseFeedbackError.message);
+    }
+
+    const { error: assignmentsDeleteError } = await client
+      .from("routine_assignments")
+      .delete()
+      .eq("member_id", memberId);
+
+    if (assignmentsDeleteError) {
+      throw new Error(assignmentsDeleteError.message);
+    }
+  }
 }
 
 async function listAuthUsersWithRoles(): Promise<AuthDashboardUser[]> {
@@ -1231,6 +1393,32 @@ export async function createMemberProfile(values: MemberFormValues) {
 
 export async function deleteMemberProfile(memberId: string) {
   const client = createSupabaseAdminClient();
+  const { data: member, error: memberError } = await client
+    .from("member_profiles")
+    .select("id, supabase_user_id")
+    .eq("id", memberId)
+    .maybeSingle();
+
+  if (memberError) {
+    throw new Error(memberError.message);
+  }
+
+  if (member) {
+    const auth = getFirebaseAdminAuth();
+    const authCandidate = await resolveMemberAuthDeleteCandidate(auth, member as MemberDeleteCandidate);
+
+    if (authCandidate && !(await hasProtectedMemberAuthRole(authCandidate.uid))) {
+      // Primero liberamos Firebase para asegurar que el re-registro sea posible
+      await auth.deleteUser(authCandidate.uid);
+      // Luego limpiamos referencias cruzadas en Supabase vinculadas al UID de Firebase
+      await cleanupDeletedMemberAuthReferences(client, authCandidate.uid);
+    }
+
+    // Limpieza de datos operativos de la ficha (Planes, rutinas, etc)
+    await cleanupMemberOperationalData(client, member.id);
+  }
+
+  // Finalmente borramos la ficha principal
   const { error } = await client.from("member_profiles").delete().eq("id", memberId);
   if (error) {
     throw new Error(error.message);
