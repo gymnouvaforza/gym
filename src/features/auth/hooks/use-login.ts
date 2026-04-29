@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 import { syncFirebaseBrowserSession } from "@/lib/firebase/browser-session";
+import { getFirebaseErrorMessage } from "@/lib/firebase/errors";
 import type { LoginValues } from "@/lib/validators/auth";
 
 export function useLogin() {
@@ -51,7 +52,7 @@ export function useLogin() {
       router.push(next);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesion.");
+      setError(getFirebaseErrorMessage(err, "Error al iniciar sesion."));
     } finally {
       setIsLoading(false);
     }

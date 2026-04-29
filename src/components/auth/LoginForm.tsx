@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { AuthBlockingState, PendingButtonLabel } from "@/components/ui/loading-state";
 import { getFirebaseBrowserAuth } from "@/lib/firebase/client";
 import { syncFirebaseBrowserSession } from "@/lib/firebase/browser-session";
+import { getFirebaseErrorMessage } from "@/lib/firebase/errors";
 
 const loginSchema = z.object({
   identity: z.string().trim().min(2, "Introduce un email o usuario valido."),
@@ -90,7 +91,7 @@ export default function LoginForm() {
       router.push(next);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo iniciar sesion.");
+      setError(getFirebaseErrorMessage(err, "No se pudo iniciar sesion."));
       setIsNavigating(false);
     }
   }
