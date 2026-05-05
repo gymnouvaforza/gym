@@ -8,6 +8,7 @@ import {
   getReceptionMemberSnapshot,
   createMemberCheckin,
   listTodayMemberCheckins,
+  listRecentMemberCheckins,
   listMemberCheckins,
 } from "@/lib/data/member-checkins";
 
@@ -48,6 +49,11 @@ export async function createMemberCheckinAction(memberId: string) {
 export async function listTodayMemberCheckinsAction() {
   await requireAdminUser();
   return listTodayMemberCheckins();
+}
+
+export async function listRecentMemberCheckinsAction() {
+  await requireAdminUser();
+  return listRecentMemberCheckins(10);
 }
 
 export async function listMemberCheckinsAction(memberId: string) {

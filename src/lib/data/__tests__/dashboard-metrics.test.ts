@@ -1,5 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type FakeValue = string | number | boolean | null | undefined;
+type FakeRow = Record<string, FakeValue>;
+type FakeState = Record<string, FakeRow[]>;
+type FakeSelectOptions = {
+  count?: string;
+  head?: boolean;
+};
+type FakeQueryResult = {
+  count?: number;
+  data: FakeRow[] | null;
+  error: null;
+};
+
 const serverMocks = vi.hoisted(() => ({
   createSupabaseAdminClient: vi.fn(),
 }));
@@ -8,42 +21,62 @@ vi.mock("@/lib/supabase/server", () => ({
   createSupabaseAdminClient: serverMocks.createSupabaseAdminClient,
 }));
 
-function createFakeMetricsClient(state: any) {
+function compareValues(left: FakeValue, right: FakeValue, mode: "eq" | "gte" | "lte") {
+  if (mode === "eq") {
+    return left === right;
+  }
+
+  if (left == null || right == null) {
+    return false;
+  }
+
+  if (typeof left === "number" && typeof right === "number") {
+    return mode === "gte" ? left >= right : left <= right;
+  }
+
+  const normalizedLeft = String(left);
+  const normalizedRight = String(right);
+  return mode === "gte"
+    ? normalizedLeft >= normalizedRight
+    : normalizedLeft <= normalizedRight;
+}
+
+function createFakeMetricsClient(state: FakeState) {
   return {
     from: (table: string) => ({
-      select: (shape: string, options: any) => {
+      select: (_shape: string, options: FakeSelectOptions) => {
         let data = state[table] || [];
-        
+
         const builder = {
-          eq: (field: string, value: any) => {
-            data = data.filter((row: any) => row[field] === value);
+          eq: (field: string, value: FakeValue) => {
+            data = data.filter((row) => compareValues(row[field], value, "eq"));
             return builder;
           },
-          gte: (field: string, value: any) => {
-            data = data.filter((row: any) => row[field] >= value);
+          gte: (field: string, value: FakeValue) => {
+            data = data.filter((row) => compareValues(row[field], value, "gte"));
             return builder;
           },
-          lte: (field: string, value: any) => {
-            data = data.filter((row: any) => row[field] <= value);
+          lte: (field: string, value: FakeValue) => {
+            data = data.filter((row) => compareValues(row[field], value, "lte"));
             return builder;
           },
-          not: (field: string, op: string, value: any) => {
+          not: (field: string, op: string, value: FakeValue) => {
             if (op === "is" && value === null) {
-                data = data.filter((row: any) => row[field] !== null);
+              data = data.filter((row) => row[field] !== null);
             }
             return builder;
           },
-          then: (resolve: any) => {
+          then: (resolve: (result: FakeQueryResult) => void) => {
             if (options?.count === "exact") {
               resolve({ data: options?.head ? null : data, count: data.length, error: null });
             } else {
               resolve({ data, error: null });
             }
-          }
+          },
         };
         return builder;
-      }
-    })
+      },
+    }),
   };
 }
 
@@ -71,7 +104,7 @@ describe("dashboard-metrics", () => {
       membership_payment_entries: [
         { amount: 100, recorded_at: firstDayOfMonth },
         { amount: 50, recorded_at: firstDayOfMonth },
-      ]
+      ],
     });
     serverMocks.createSupabaseAdminClient.mockReturnValue(client);
 

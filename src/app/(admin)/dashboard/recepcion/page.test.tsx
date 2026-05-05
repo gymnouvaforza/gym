@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const receptionPageMocks = vi.hoisted(() => ({
   requireAdminUser: vi.fn(),
-  listTodayMemberCheckins: vi.fn(),
+  listRecentMemberCheckins: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -15,13 +15,13 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 vi.mock("@/lib/data/member-checkins", () => ({
-  listTodayMemberCheckins: receptionPageMocks.listTodayMemberCheckins,
+  listRecentMemberCheckins: receptionPageMocks.listRecentMemberCheckins,
 }));
 
 vi.mock("@/components/admin/ReceptionWorkspace", () => ({
-  default: ({ initialTodayCheckins }: { initialTodayCheckins: unknown[] }) => (
+  default: ({ initialRecentCheckins }: { initialRecentCheckins: unknown[] }) => (
     <div data-testid="reception-workspace">
-      <span data-testid="checkin-count">{initialTodayCheckins.length}</span>
+      <span data-testid="checkin-count">{initialRecentCheckins.length}</span>
     </div>
   ),
 }));
@@ -32,7 +32,7 @@ describe("dashboard reception page", () => {
       id: "admin_1",
       email: "admin@test",
     });
-    receptionPageMocks.listTodayMemberCheckins.mockResolvedValue([]);
+    receptionPageMocks.listRecentMemberCheckins.mockResolvedValue([]);
   });
 
   it("renders reception page with workspace for authenticated staff", async () => {
@@ -44,8 +44,8 @@ describe("dashboard reception page", () => {
     expect(screen.getByTestId("reception-workspace")).toBeInTheDocument();
   });
 
-  it("passes today's checkins to workspace", async () => {
-    receptionPageMocks.listTodayMemberCheckins.mockResolvedValue([
+  it("passes recent checkins to workspace", async () => {
+    receptionPageMocks.listRecentMemberCheckins.mockResolvedValue([
       {
         id: "ck1",
         checkedInAt: "2026-05-05T10:00:00.000Z",

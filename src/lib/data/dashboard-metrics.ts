@@ -1,5 +1,13 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
+type PaymentEntry = {
+  amount: number | string | null;
+};
+
+type MemberBirthday = {
+  birth_date: string | null;
+};
+
 export interface DashboardMetrics {
   activeMembers: number;
   expiredMembers: number;
@@ -62,11 +70,14 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       .not("birth_date", "is", null)
   ]);
 
-  const monthlyIncome = (paymentsData ?? []).reduce((acc: number, p: any) => acc + Number(p.amount), 0);
-  
-  const birthdaysThisMonth = (birthdaysData ?? []).filter((m: any) => {
-    if (!m.birth_date) return false;
-    const birthDate = new Date(m.birth_date);
+  const paymentEntries = (paymentsData ?? []) as PaymentEntry[];
+  const birthdayEntries = (birthdaysData ?? []) as MemberBirthday[];
+
+  const monthlyIncome = paymentEntries.reduce((acc, payment) => acc + Number(payment.amount ?? 0), 0);
+
+  const birthdaysThisMonth = birthdayEntries.filter((member) => {
+    if (!member.birth_date) return false;
+    const birthDate = new Date(member.birth_date);
     return (birthDate.getMonth() + 1) === currentMonth;
   }).length;
 

@@ -47,6 +47,23 @@ function formatDateShort(iso: string) {
   return d.toLocaleDateString("es-PE", { day: "2-digit", month: "short" });
 }
 
+function formatDateTime(iso: string) {
+  const d = new Date(iso);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const checkinDate = new Date(d);
+  checkinDate.setHours(0, 0, 0, 0);
+  const isToday = checkinDate.getTime() === today.getTime();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = checkinDate.getTime() === yesterday.getTime();
+
+  const timeStr = d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+  if (isToday) return `Hoy · ${timeStr}`;
+  if (isYesterday) return `Ayer · ${timeStr}`;
+  return `${formatDateShort(iso)} · ${timeStr}`;
+}
+
 function accessStatusConfig(status: string) {
   switch (status) {
     case "active":
@@ -137,14 +154,14 @@ function methodLabel(method: string) {
 }
 
 interface ReceptionWorkspaceProps {
-  initialTodayCheckins: TodayCheckinItem[];
+  initialRecentCheckins: TodayCheckinItem[];
 }
 
-export default function ReceptionWorkspace({ initialTodayCheckins }: ReceptionWorkspaceProps) {
+export default function ReceptionWorkspace({ initialRecentCheckins }: ReceptionWorkspaceProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ReceptionMemberSearchResult[]>([]);
   const [selected, setSelected] = useState<ReceptionMemberSnapshot | null>(null);
-  const [todayCheckins, setTodayCheckins] = useState<TodayCheckinItem[]>(initialTodayCheckins);
+  const [recentCheckins, setRecentCheckins] = useState<TodayCheckinItem[]>(initialRecentCheckins);
   const [searching, setSearching] = useState(false);
   const [loadingSnapshot, setLoadingSnapshot] = useState(false);
   const [isCheckingIn, startCheckinTransition] = useTransition();
@@ -200,8 +217,8 @@ export default function ReceptionWorkspace({ initialTodayCheckins }: ReceptionWo
       try {
         const checkin = await createMemberCheckinAction(selected.member.id);
         toast.success(`Entrada registrada: ${selected.member.fullName}`);
-        // Refresh today's checkins manually since we already have the data
-        setTodayCheckins((prev) => [
+        // Refresh recent checkins manually since we already have the data
+        setRecentCheckins((prev) => [
           {
             id: checkin.id,
             checkedInAt: checkin.checked_in_at,
@@ -212,7 +229,7 @@ export default function ReceptionWorkspace({ initialTodayCheckins }: ReceptionWo
             method: checkin.method,
             registeredByEmail: checkin.registered_by_email,
           },
-          ...prev,
+          ...prev.slice(0, 9),
         ]);
         // Refresh selected member snapshot to show new checkin
         const refreshed = await getReceptionMemberSnapshotAction(selected.member.id);
@@ -461,7 +478,7 @@ export default function ReceptionWorkspace({ initialTodayCheckins }: ReceptionWo
         ) : null}
       </div>
 
-      {/* RIGHT: Today's Checkins */}
+      {/* RIGHT: Recent Checkins */}
       <div>
         <AdminSurface className="p-6 border-black/5 bg-white shadow-sm h-fit">
           <div className="flex items-center gap-3 mb-6">
@@ -470,24 +487,24 @@ export default function ReceptionWorkspace({ initialTodayCheckins }: ReceptionWo
             </div>
             <div>
               <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[#111111]">
-                Entradas de hoy
+                Ultimas entradas
               </h3>
               <p className="text-[10px] text-[#7a7f87] font-bold uppercase tracking-wider">
-                {todayCheckins.length} registros
+                {recentCheckins.length} registros
               </p>
             </div>
           </div>
 
-          {todayCheckins.length === 0 ? (
+          {recentCheckins.length === 0 ? (
             <div className="text-center py-10">
               <Clock className="h-8 w-8 text-black/10 mx-auto mb-2" />
               <p className="text-xs font-bold text-[#7a7f87] uppercase tracking-wider">
-                Aun no hay entradas hoy
+                Aun no hay entradas registradas
               </p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-              {todayCheckins.map((checkin) => {
+              {recentCheckins.map((checkin) => {
                 const cfg = accessStatusConfig(checkin.statusSnapshot);
                 const Icon = cfg.icon;
                 return (
@@ -506,7 +523,7 @@ export default function ReceptionWorkspace({ initialTodayCheckins }: ReceptionWo
                         {checkin.memberName}
                       </Link>
                       <p className="text-[10px] text-[#7a7f87] uppercase font-medium">
-                        {checkin.memberNumber} · {formatTime(checkin.checkedInAt)}
+                        {checkin.memberNumber} · {formatDateTime(checkin.checkedInAt)}
                       </p>
                     </div>
                     <Badge variant={cfg.badgeVariant} className="text-[9px]">

@@ -11,6 +11,7 @@ const baseDetail = {
   linkedUser: null,
   measurements: [],
   member: {
+    activeRoutineId: null,
     branchName: "Sede principal",
     currentRoutineTitle: null,
     email: "laura.ramos@example.com",
@@ -22,8 +23,9 @@ const baseDetail = {
     linkedUserEmail: null,
     linkedUserId: null,
     memberNumber: "NF-000123",
-    notes: "Ficha legacy migrada.",
+    nextActionLabel: null,
     phone: "+51 999 111 222",
+    planLabel: "Plan mensual",
     preferredSchedule: "Manana",
     profileCompleted: true,
     status: "active",
@@ -53,7 +55,7 @@ const baseDetail = {
     exercises: [],
     routine: null,
   },
-} as DashboardMemberDetail;
+} satisfies DashboardMemberDetail;
 
 describe("toMemberFormValues", () => {
   it("maps legacy member fields into the form shape", () => {
@@ -86,7 +88,7 @@ describe("toMemberFormValues", () => {
         legacyNotes: null,
         occupation: null,
         preferredSchedule: null,
-        profileCompleted: null,
+        profileCompleted: false,
       },
     });
 

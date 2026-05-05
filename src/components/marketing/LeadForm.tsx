@@ -148,7 +148,9 @@ export default function LeadForm() {
           </label>
           <Input
             id="phone"
-            placeholder="+54 9..."
+            type="tel"
+            inputMode="tel"
+            placeholder="+51 9..."
             className="h-12 xs:h-14 bg-[#f8f8f6]"
             aria-invalid={Boolean(phoneError)}
             aria-describedby={phoneError ? `${formId}-phone-error` : undefined}

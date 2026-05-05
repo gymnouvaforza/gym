@@ -39,8 +39,7 @@ export default async function DashboardMemberDetailPage({
     notFound();
   }
 
-  // Type cast for legacy fields as they are not currently in DashboardMemberListItem type
-  const member = detail.member as any;
+  const member = detail.member;
 
   return (
     <div className="space-y-8 pb-20">

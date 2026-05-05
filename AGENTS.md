@@ -2,6 +2,16 @@
 
 Guia operativa para agentes que trabajen en `C:\digitalbitsolutions\gym`.
 
+## Entorno de ejecucion
+
+- **Sistema operativo**: Windows 11
+- **Shell por defecto**: PowerShell 5.1
+- **Regla critica**: NUNCA usar comandos de Linux/Unix (`rm`, `cp`, `mv`, `ls`, `cat`, `grep`, `sed`, `awk`, etc.).
+- **Comandos permitidos**: Todos los comandos deben ser compatibles con PowerShell 5.1 o usar utilidades nativas de Windows.
+- **Herramientas de terminal**: `Get-ChildItem`, `Remove-Item`, `Copy-Item`, `Move-Item`, `Select-String`, `Write-Output`, etc.
+- **Rutas**: Usar rutas Windows con backslash (`\`) o barras (`/`) entre comillas dobles cuando contengan espacios.
+- **Encadenamiento**: Usar punto y coma (`;`) o `if ($?) { ... }` en lugar de `&&` o `||`.
+
 ## Contexto del proyecto
 
 Este repositorio ya no es una landing generica ni un experimento de agencia.

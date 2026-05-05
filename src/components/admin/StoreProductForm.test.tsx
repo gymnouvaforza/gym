@@ -153,7 +153,7 @@ describe("StoreProductForm", () => {
     );
     await user.clear(screen.getByLabelText("Precio real"));
     await user.type(screen.getByLabelText("Precio real"), "49.99");
-    await user.type(screen.getByLabelText("Referencia USD"), "13.95");
+    await user.type(screen.getByLabelText("Referencia USD (PayPal)"), "13.95");
     await user.type(screen.getByLabelText("Imagenes del producto"), "/img/whey.png");
     await user.clear(screen.getByLabelText("CTA"));
     await user.type(screen.getByLabelText("CTA"), "Reservar");

@@ -451,6 +451,48 @@ describe("member-checkins data layer", () => {
     expect(results[1].id).toBe("c1");
   });
 
+  it("lists recent checkins limited and sorted desc", async () => {
+    const { listRecentMemberCheckins } = await import("@/lib/data/member-checkins");
+    const client = createFakeClient({
+      member_profiles: [
+        { id: "m1", full_name: "Juan Perez", member_number: "NF-001" },
+        { id: "m2", full_name: "Maria Lopez", member_number: "NF-002" },
+      ],
+      member_checkins: [
+        {
+          id: "c1",
+          member_id: "m1",
+          checked_in_at: "2026-05-01T10:00:00.000Z",
+          status_snapshot: "active",
+          method: "manual",
+          registered_by_email: "admin@test.com",
+        },
+        {
+          id: "c2",
+          member_id: "m2",
+          checked_in_at: "2026-05-03T10:00:00.000Z",
+          status_snapshot: "expired",
+          method: "qr",
+          registered_by_email: null,
+        },
+        {
+          id: "c3",
+          member_id: "m1",
+          checked_in_at: "2026-05-05T10:00:00.000Z",
+          status_snapshot: "active",
+          method: "reception",
+          registered_by_email: "admin@test.com",
+        },
+      ],
+    });
+    serverMocks.createSupabaseAdminClient.mockReturnValue(client);
+
+    const results = await listRecentMemberCheckins(2);
+    expect(results).toHaveLength(2);
+    expect(results[0].id).toBe("c3");
+    expect(results[1].id).toBe("c2");
+  });
+
   it("lists member checkins limited and sorted", async () => {
     const { listMemberCheckins } = await import("@/lib/data/member-checkins");
     const client = createFakeClient({

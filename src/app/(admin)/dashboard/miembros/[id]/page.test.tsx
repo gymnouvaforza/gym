@@ -9,6 +9,7 @@ const pageMocks = vi.hoisted(() => ({
   listDashboardAuthLinkOptions: vi.fn(),
   listDashboardTrainerOptions: vi.fn(),
   listMembershipPlans: vi.fn(),
+  listMemberCheckins: vi.fn(),
   notFound: vi.fn(() => {
     throw new Error("not-found");
   }),
@@ -27,6 +28,10 @@ vi.mock("@/lib/data/gym-management", () => ({
 
 vi.mock("@/lib/data/memberships", () => ({
   listMembershipPlans: pageMocks.listMembershipPlans,
+}));
+
+vi.mock("@/lib/data/member-checkins", () => ({
+  listMemberCheckins: pageMocks.listMemberCheckins,
 }));
 
 vi.mock("./components/MemberProfileTab", () => ({
@@ -66,10 +71,12 @@ describe("dashboard member detail page", () => {
     pageMocks.listDashboardAuthLinkOptions.mockReset();
     pageMocks.listDashboardTrainerOptions.mockReset();
     pageMocks.listMembershipPlans.mockReset();
+    pageMocks.listMemberCheckins.mockReset();
 
     pageMocks.listDashboardAuthLinkOptions.mockResolvedValue([]);
     pageMocks.listDashboardTrainerOptions.mockResolvedValue([]);
     pageMocks.listMembershipPlans.mockResolvedValue([]);
+    pageMocks.listMemberCheckins.mockResolvedValue([]);
   });
 
   it("composes tabs even when finance and measurements are empty", async () => {
@@ -78,20 +85,37 @@ describe("dashboard member detail page", () => {
       availableTemplates: [],
       linkedUser: null,
       member: {
+        activeRoutineId: null,
+        address: null,
+        birthDate: null,
+        currentRoutineTitle: null,
+        districtOrUrbanization: null,
         id: "member-1",
         memberNumber: "NF-001",
         fullName: "Socio Titan",
         email: "socio@test.com",
         branchName: "Centro",
+        externalCode: null,
+        gender: null,
+        legacyNotes: null,
         phone: null,
+        nextActionLabel: null,
+        occupation: null,
+        planLabel: "Plan Pro",
+        preferredSchedule: null,
+        profileCompleted: false,
         status: "active",
+        linkedUserEmail: null,
+        linkedUserId: null,
+        trainerName: null,
+        trainerUserId: null,
+        updatedAt: "2026-05-05T18:00:00.000Z",
       },
       notes: null,
       plan: null,
       trainingFeedback: {
         exercises: [],
-        liked: null,
-        note: null,
+        routine: null,
       },
       statusMeta: {
         helperText: "Activa",

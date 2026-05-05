@@ -439,6 +439,48 @@ export async function listTodayMemberCheckins(
   });
 }
 
+export async function listRecentMemberCheckins(
+  limit = 10,
+  client?: CheckinClient,
+): Promise<TodayCheckinItem[]> {
+  const db = client ?? createSupabaseAdminClient();
+
+  const { data, error } = await db
+    .from("member_checkins")
+    .select(
+      `
+      id,
+      checked_in_at,
+      member_id,
+      status_snapshot,
+      method,
+      registered_by_email,
+      member_profiles!inner(full_name, member_number)
+    `,
+    )
+    .order("checked_in_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []).map((row: unknown) => {
+    const r = row as Record<string, unknown>;
+    const member = (r.member_profiles as Record<string, unknown> | null) ?? {};
+    return {
+      id: String(r.id),
+      checkedInAt: String(r.checked_in_at),
+      memberId: String(r.member_id),
+      memberName: String(member.full_name ?? ""),
+      memberNumber: String(member.member_number ?? ""),
+      statusSnapshot: String(r.status_snapshot),
+      method: String(r.method),
+      registeredByEmail: r.registered_by_email ? String(r.registered_by_email) : null,
+    };
+  });
+}
+
 export async function listMemberCheckins(
   memberId: string,
   limit = 10,

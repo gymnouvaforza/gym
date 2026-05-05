@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useSyncExternalStore, type ReactNode } from "react";
 
 export type SidebarState = "expanded" | "icons" | "hidden";
 
 const STORAGE_KEY = "nuova-forza-sidebar-state";
+const STORAGE_EVENT = "nuova-forza-sidebar-state-change";
 
 interface SidebarContextType {
   state: SidebarState;
@@ -27,55 +28,53 @@ function readStoredState(): SidebarState {
   }
 }
 
-export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [state, setStateState] = useState<SidebarState>("expanded");
-  const [hydrated, setHydrated] = useState(false);
+function subscribeToSidebarState(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
 
-  // Hydrate from localStorage on mount (avoids SSR mismatch)
-  useEffect(() => {
-    setStateState(readStoredState());
-    setHydrated(true);
-  }, []);
+  const handleChange = () => callback();
+  window.addEventListener("storage", handleChange);
+  window.addEventListener(STORAGE_EVENT, handleChange);
+
+  return () => {
+    window.removeEventListener("storage", handleChange);
+    window.removeEventListener(STORAGE_EVENT, handleChange);
+  };
+}
+
+export function SidebarProvider({ children }: { children: ReactNode }) {
+  const state = useSyncExternalStore<SidebarState>(
+    subscribeToSidebarState,
+    readStoredState,
+    () => "expanded",
+  );
 
   const persist = useCallback((value: SidebarState) => {
     try {
       window.localStorage.setItem(STORAGE_KEY, value);
+      window.dispatchEvent(new Event(STORAGE_EVENT));
     } catch {
       // Silently ignore storage errors
     }
   }, []);
 
   const setState = useCallback((value: SidebarState) => {
-    setStateState(value);
     persist(value);
   }, [persist]);
 
   const toggle = useCallback(() => {
-    setStateState((prev) => {
-      const next: SidebarState = prev === "expanded" ? "icons" : prev === "icons" ? "hidden" : "expanded";
-      persist(next);
-      return next;
-    });
-  }, [persist]);
+    const next: SidebarState = state === "expanded" ? "icons" : state === "icons" ? "hidden" : "expanded";
+    persist(next);
+  }, [persist, state]);
 
   const expand = useCallback(() => {
-    setStateState("expanded");
     persist("expanded");
   }, [persist]);
 
   const collapse = useCallback(() => {
-    setStateState("icons");
     persist("icons");
   }, [persist]);
-
-  // During SSR / pre-hydration, render with expanded (default) to match server
-  if (!hydrated) {
-    return (
-      <SidebarContext.Provider value={{ state: "expanded", toggle, expand, collapse, setState }}>
-        {children}
-      </SidebarContext.Provider>
-    );
-  }
 
   return (
     <SidebarContext.Provider value={{ state, toggle, expand, collapse, setState }}>

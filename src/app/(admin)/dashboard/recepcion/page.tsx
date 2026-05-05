@@ -3,11 +3,11 @@ import { DoorOpen } from "lucide-react";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
 import ReceptionWorkspace from "@/components/admin/ReceptionWorkspace";
 import { requireAdminUser } from "@/lib/auth";
-import { listTodayMemberCheckins } from "@/lib/data/member-checkins";
+import { listRecentMemberCheckins } from "@/lib/data/member-checkins";
 
 export default async function DashboardReceptionPage() {
   await requireAdminUser();
-  const todayCheckins = await listTodayMemberCheckins();
+  const recentCheckins = await listRecentMemberCheckins(10);
 
   return (
     <div className="space-y-10">
@@ -21,7 +21,7 @@ export default async function DashboardReceptionPage() {
         />
       </div>
 
-      <ReceptionWorkspace initialTodayCheckins={todayCheckins} />
+      <ReceptionWorkspace initialRecentCheckins={recentCheckins} />
     </div>
   );
 }

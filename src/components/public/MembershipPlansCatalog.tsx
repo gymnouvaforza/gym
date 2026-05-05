@@ -73,7 +73,7 @@ export default function MembershipPlansCatalog({
         </p>
       </div>
 
-      <div className="grid gap-0 lg:grid-cols-3 lg:items-stretch">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:items-stretch">
         {membershipPlans.map((plan) => {
           const whatsappPlanUrl = buildMembershipWhatsAppUrl(whatsappUrl, plan);
 
