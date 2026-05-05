@@ -199,7 +199,7 @@ export default function TrainingZonesCarousel({
         <div className="mb-12 flex flex-col gap-8 sm:pr-6 md:mb-16 md:flex-row md:items-end md:justify-between md:pr-12 lg:pr-16 xl:pr-24">
           <div className="max-w-2xl">
             <p className="section-kicker text-primary">{trainingZonesSectionCopy.kicker}</p>
-            <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl text-white">
+            <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl !text-white">
               Espacios para <span className="text-primary italic">rendir</span> mejor en cada sesion
             </h2>
             <p className="section-copy mt-6 text-white/50">{trainingZonesSectionCopy.intro}</p>

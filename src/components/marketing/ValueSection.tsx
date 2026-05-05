@@ -30,7 +30,7 @@ export default function ValueSection() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-border pb-12">
              <h2 id="value-title" className="font-display text-4xl sm:text-6xl lg:text-8xl font-black uppercase leading-[1.1] sm:leading-none tracking-tighter text-foreground italic">
                LO QUE SE SIENTE <br className="hidden sm:block" />
-               <span className="block sm:inline text-foreground/10">ENTRENAR AQUI</span>
+               <span className="block sm:inline text-primary">ENTRENAR AQUI</span>
              </h2>
              <div className="flex items-center gap-4 text-primary">
                 <Activity className="h-8 w-8 animate-pulse" aria-hidden="true" />

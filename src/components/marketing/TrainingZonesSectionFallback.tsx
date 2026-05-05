@@ -17,8 +17,8 @@ export default function TrainingZonesSectionFallback() {
       <div className="section-shell relative z-10">
         <div className="max-w-2xl">
           <p className="section-kicker text-accent">{trainingZonesSectionCopy.kicker}</p>
-          <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl text-white">
-            Espacios para <span className="text-accent italic">rendir</span> mejor en cada sesion
+          <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl !text-white">
+            Espacios para <span className="text-primary italic">rendir</span> mejor en cada sesion
           </h2>
           <p className="section-copy mt-6 text-zinc-400">{trainingZonesSectionCopy.intro}</p>
         </div>

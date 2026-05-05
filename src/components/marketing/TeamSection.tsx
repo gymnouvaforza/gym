@@ -24,8 +24,8 @@ export default function TeamSection({ members }: Readonly<TeamSectionProps>) {
         <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="section-kicker">Nuestros Expertos</p>
-            <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl text-foreground italic">
-              El Equipo <span className="text-accent underline decoration-accent/20 underline-offset-8">Elite</span>
+            <h2 className="section-title text-3xl sm:text-5xl lg:text-7xl italic">
+              <span className="text-white">El Equipo</span> <span className="text-primary underline decoration-accent/20 underline-offset-8">Elite</span>
             </h2>
           </div>
           <Link
@@ -61,7 +61,7 @@ export default function TeamSection({ members }: Readonly<TeamSectionProps>) {
               </div>
               
               <div className="p-8">
-                <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-foreground">{member.name}</h3>
+                <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-primary">{member.name}</h3>
                 <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">{member.bio}</p>
               </div>
 

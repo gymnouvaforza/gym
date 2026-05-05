@@ -153,7 +153,7 @@ export default async function ProductDetailPage({
               </p>
             </div>
             <h2 className="font-display text-5xl font-black uppercase leading-none text-[#111111] sm:text-6xl italic">
-              Linea <span className="text-black/10">relacionada</span>
+              Linea <span className="text-primary">relacionada</span>
             </h2>
             <p className="max-w-2xl border-l border-black/5 pl-6 text-sm font-medium leading-7 text-[#5f6368]">
               Seleccion tecnica recomendada por nuestros preparadores para maximizar el rendimiento

@@ -34,8 +34,7 @@ export default async function ProductsSection() {
                </p>
             </div>
             <h2 id="tienda-title" className="font-display text-3xl sm:text-5xl lg:text-7xl font-black uppercase leading-none text-foreground italic">
-              Tienda <span className="text-foreground/10">Pro</span>
-            </h2>
+              Tienda <span className="text-primary">Pro</span>            </h2>
             <p className="max-w-2xl text-lg font-medium leading-relaxed text-muted-foreground border-l border-border/10 pl-8">
               Suplementos de élite, accesorios de fuerza y merchandising oficial. 
               Seleccionados por nuestros preparadores para maximizar tu rendimiento.

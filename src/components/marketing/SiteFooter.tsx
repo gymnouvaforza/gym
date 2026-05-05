@@ -51,7 +51,7 @@ export default function SiteFooter({
               Comienza hoy
             </p>
             <h2 className="mt-6 font-display text-5xl font-black uppercase italic leading-none tracking-tighter sm:text-7xl lg:text-8xl">
-              Unete al <span className="text-white/10">Club</span>
+              Unete al <span className="text-primary">Club</span>
             </h2>
             <p className="mt-8 text-lg font-medium text-white/40 leading-relaxed">
               Recibe consejos de entrenamiento, preventas exclusivas y novedades de la comunidad{" "}
