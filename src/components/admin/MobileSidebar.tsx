@@ -57,6 +57,7 @@ export default function MobileSidebar({
                 <DashboardSidebar
                   activeModules={activeModules}
                   isSuperadmin={isSuperadmin}
+                  collapsed="expanded"
                 />
               </div>
             </div>

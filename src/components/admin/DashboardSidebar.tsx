@@ -13,6 +13,9 @@ import {
   Globe,
   LayoutGrid,
   Moon,
+  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   QrCode,
   Palette,
   Settings2,
@@ -40,6 +43,7 @@ import {
   type SystemModuleStateMap,
 } from "@/lib/module-flags";
 import { cn } from "@/lib/utils";
+import { type SidebarState, useSidebar } from "./SidebarProvider";
 
 type NavLinkChild = {
   href: string;
@@ -426,12 +430,33 @@ function subscribeToThemePreference(onStoreChange: () => void) {
 interface DashboardSidebarProps {
   activeModules?: SystemModuleStateMap;
   isSuperadmin?: boolean;
+  collapsed?: SidebarState;
 }
 
 export default function DashboardSidebar({
   activeModules = createDefaultModuleStateMap(),
   isSuperadmin = false,
+  collapsed: collapsedProp,
 }: Readonly<DashboardSidebarProps>) {
+  // Use prop if provided (for MobileSidebar), otherwise use context
+  let sidebarState: SidebarState;
+  let toggleSidebar: (() => void) | undefined;
+  let expandSidebar: (() => void) | undefined;
+  
+  try {
+    const sidebar = useSidebar();
+    sidebarState = collapsedProp ?? sidebar.state;
+    toggleSidebar = sidebar.toggle;
+    expandSidebar = sidebar.expand;
+  } catch {
+    // No SidebarProvider (e.g., MobileSidebar), use prop or default
+    sidebarState = collapsedProp ?? "expanded";
+  }
+
+  const isExpanded = sidebarState === "expanded";
+  const isIcons = sidebarState === "icons";
+  const isHidden = sidebarState === "hidden";
+
   const { gymName, logoUrl, primaryColor } = useBranding();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -461,35 +486,56 @@ export default function DashboardSidebar({
 
   return (
     <div className="flex h-full flex-col bg-[#111111] text-white">
-      <div className="p-6 pb-8">
-        <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 shrink-0 rounded-sm bg-white p-1.5">
+      {/* Floating reopen button when hidden */}
+      {isHidden && expandSidebar && (
+        <button
+          onClick={expandSidebar}
+          className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center bg-[#111111] text-white shadow-lg transition-all hover:bg-[#1a1a1a] animate-in fade-in slide-in-from-left-2"
+          aria-label="Abrir sidebar"
+        >
+          <PanelLeftOpen className="h-5 w-5" />
+        </button>
+      )}
+
+      <div className={cn("transition-all duration-300", isIcons ? "p-4 pb-6" : "p-6 pb-8")}>
+        <div className={cn("flex items-center", isIcons ? "justify-center" : "gap-3")}>
+          <div className={cn(
+            "relative shrink-0 rounded-sm bg-white p-1.5",
+            isIcons ? "h-8 w-8" : "h-10 w-10"
+          )}>
             <Image
               src={logoUrl ?? "/images/logo/logo-trans.webp"}
               alt={`${gymName} Logo`}
               fill
               className="object-contain"
-              sizes="40px"
+              sizes={isIcons ? "32px" : "40px"}
             />
           </div>
-          <div>
-            <h2 className="font-display text-xl font-bold uppercase tracking-tight leading-none">
-              {gymName}
-            </h2>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/50">
-              Backoffice Gym
-            </p>
-          </div>
+          {!isIcons && (
+            <div>
+              <h2 className="font-display text-xl font-bold uppercase tracking-tight leading-none">
+                {gymName}
+              </h2>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/50">
+                Backoffice Gym
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       <div
-        className="flex-1 overflow-y-auto hide-scrollbar px-3 pb-8"
+        className={cn(
+          "flex-1 overflow-y-auto hide-scrollbar pb-8",
+          isIcons ? "px-2" : "px-3"
+        )}
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         <nav className="space-y-[2px]">
           {visibleLinks.map((link, idx) => {
+            // Hide headers in icons mode
             if (link.isHeader) {
+              if (isIcons) return null;
               return (
                 <p
                   key={`${link.label}-${idx}`}
@@ -513,31 +559,38 @@ export default function DashboardSidebar({
               isItemActive(pathname, currentQuery, currentHash, child.href, child.activeMatch),
             );
             const isActive = isSelfActive || isChildActive;
-            const showSubmenu = isActive;
+            const showSubmenu = isActive && !isIcons; // Hide submenus in icons mode
 
             return (
               <div key={link.href + idx} className="space-y-[2px]">
                 <Link
                   href={link.href}
                   aria-current={isActive ? "page" : undefined}
+                  title={isIcons ? link.label : undefined}
                   className={cn(
-                    "group flex items-center justify-between px-3 py-2.5 rounded-md transition-all",
+                    "group flex items-center rounded-md transition-all",
+                    isIcons 
+                      ? "justify-center px-2 py-3" 
+                      : "justify-between px-3 py-2.5",
                     isActive
                       ? "bg-white/10 text-white font-medium"
                       : "bg-transparent text-white/60 hover:bg-white/[0.04] hover:text-white",
                   )}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className={cn("flex items-center", isIcons ? "" : "gap-3")}>
                     <Icon
                       className={cn(
-                        "h-4 w-4 transition-colors",
+                        "transition-colors",
+                        isIcons ? "h-5 w-5" : "h-4 w-4",
                         isActive ? "" : "group-hover:text-white",
                       )}
                       style={isActive ? { color: primaryColor } : {}}
                     />
-                    <span className="text-sm font-medium tracking-wide">{link.label}</span>
+                    {!isIcons && (
+                      <span className="text-sm font-medium tracking-wide">{link.label}</span>
+                    )}
                   </div>
-                  {link.tag && !isActive ? (
+                  {!isIcons && link.tag && !isActive ? (
                     <div className="flex items-center gap-1.5 rounded-sm bg-white/10 px-2 py-0.5">
                       <div 
                         className="h-1.5 w-1.5 rounded-full animate-pulse" 
@@ -548,7 +601,7 @@ export default function DashboardSidebar({
                       </span>
                     </div>
                   ) : null}
-                  {hasChildren ? (
+                  {!isIcons && hasChildren ? (
                     <ChevronRight
                       className={cn(
                         "h-3.5 w-3.5 transition-transform text-white/40 group-hover:text-white/80",
@@ -598,37 +651,75 @@ export default function DashboardSidebar({
         </nav>
       </div>
 
-      <div className="mt-auto border-t border-white/10 p-4 bg-black/20">
-        <button
-          onClick={toggleTheme}
-          className="flex w-full items-center justify-between rounded-md bg-white/5 border border-white/10 px-4 py-2.5 transition-all hover:bg-white/10 group"
-        >
-          <div className="flex items-center gap-3">
-            {isDarkMode ? (
-              <>
-                <Sun className="h-4 w-4 text-amber-500" />
-                <span className="text-xs font-medium tracking-wide text-white">Light Mode</span>
-              </>
+      <div className={cn("mt-auto border-t border-white/10 bg-black/20", isIcons ? "p-2" : "p-4")}>
+        {/* Sidebar Toggle Button */}
+        {toggleSidebar && (
+          <button
+            onClick={toggleSidebar}
+            className={cn(
+              "flex w-full items-center justify-center rounded-md bg-white/5 border border-white/10 transition-all hover:bg-white/10 group mb-2",
+              isIcons ? "px-2 py-2" : "px-4 py-2.5"
+            )}
+            title={
+              isExpanded ? "Colapsar sidebar" : isIcons ? "Ocultar sidebar" : "Expandir sidebar"
+            }
+          >
+            {isIcons ? (
+              <PanelLeftClose className="h-5 w-5 text-white/60 group-hover:text-white" />
+            ) : isHidden ? (
+              <PanelLeftOpen className="h-4 w-4 text-white/60 group-hover:text-white" />
             ) : (
               <>
-                <Moon className="h-4 w-4 text-white/60 group-hover:text-white" />
-                <span className="text-xs font-medium tracking-wide text-white">Dark Mode</span>
+                <PanelLeft className="h-4 w-4 text-white/60 group-hover:text-white" />
+                <span className="ml-2 text-xs font-medium tracking-wide text-white">
+                  {isExpanded ? "Colapsar" : "Expandir"}
+                </span>
               </>
             )}
+          </button>
+        )}
+
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className={cn(
+            "flex w-full items-center rounded-md bg-white/5 border border-white/10 transition-all hover:bg-white/10 group",
+            isIcons ? "justify-center px-2 py-2" : "justify-between px-4 py-2.5"
+          )}
+          title={isDarkMode ? "Modo claro" : "Modo oscuro"}
+        >
+          <div className={cn("flex items-center", isIcons ? "" : "gap-3")}>
+            {isDarkMode ? (
+              <Sun className={cn("text-amber-500", isIcons ? "h-5 w-5" : "h-4 w-4")} />
+            ) : (
+              <Moon className={cn("text-white/60 group-hover:text-white", isIcons ? "h-5 w-5" : "h-4 w-4")} />
+            )}
+            {!isIcons && (
+              <span className="text-xs font-medium tracking-wide text-white">
+                {isDarkMode ? "Light Mode" : "Dark Mode"}
+              </span>
+            )}
           </div>
-          <div className="h-4 w-px bg-white/10" />
-          <LayoutGrid className="h-3.5 w-3.5 text-white/30" />
+          {!isIcons && (
+            <>
+              <div className="h-4 w-px bg-white/10" />
+              <LayoutGrid className="h-3.5 w-3.5 text-white/30" />
+            </>
+          )}
         </button>
 
-        <div className="mt-4 flex items-center justify-between px-2">
-          <div className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-            <p className="text-[10px] font-medium uppercase tracking-wider text-white/50">
-              System Online
-            </p>
+        {/* System Status - hidden in icons mode */}
+        {!isIcons && (
+          <div className="mt-4 flex items-center justify-between px-2">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-[10px] font-medium uppercase tracking-wider text-white/50">
+                System Online
+              </p>
+            </div>
+            <p className="text-[10px] font-medium text-white/30">V2.0.4</p>
           </div>
-          <p className="text-[10px] font-medium text-white/30">V2.0.4</p>
-        </div>
+        )}
       </div>
     </div>
   );
