@@ -17,12 +17,12 @@ export function StoreProductPricingSection() {
         />
         <AdminFormField
           name="paypal_price_usd"
-          label="Referencia USD"
+          label="Referencia USD (PayPal)"
           type="number"
         />
         <AdminFormField
           name="compare_price"
-          label="Compare price"
+          label="Precio Original"
           type="number"
         />
         <AdminFormField

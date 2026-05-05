@@ -654,7 +654,7 @@ values
     'Tu producto estara listo en recepcion en menos de 24 horas laborables. Presenta tu email de confirmacion.',
     array['/images/products/nova-whey.webp'],
     array['Recuperacion', 'Proteina', 'Postentreno'],
-    array['25 g de proteina por servicio.', '0 g de azucar y digestion comoda.', 'Perfil premium para volumen o definicion.'],
+    array['25 g de proteina por servicio.', '0 g de azucar y digestion comoda.', 'Perfil premium para volumen o definicion.']::text[],
     array['Sintesis muscular acelerada.', 'Pureza del 90% de proteina aislada.', 'Facil digestion sin hinchazon.'],
     array['Mezcla un servicio (30 g) con 250 ml de agua o leche fria.', 'Agitar durante 30 segundos. Consumir preferiblemente despues del entrenamiento o entre comidas para mantener el anabolismo.'],
     jsonb_build_array(

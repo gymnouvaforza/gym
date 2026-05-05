@@ -41,7 +41,7 @@ export function StoreProductIdentitySection({ categories }: StoreProductIdentity
         />
         <AdminFormField
           name="eyebrow"
-          label="Eyebrow (Etiqueta superior)"
+          label="Etiqueta Destacada"
           placeholder="Ej. Edición Limitada"
         />
       </div>

@@ -39,6 +39,7 @@ export function MemberInternalSummarySection() {
           name="planLabel" 
           label="Etiqueta Interna" 
           icon={Tag}
+          showRequired
           tooltip="Identificador visual rápido para el tipo de socio (ej. VIP, BECADO, STAFF)."
           className="lg:col-span-1"
         />
@@ -137,7 +138,7 @@ export function MemberInternalSummarySection() {
             <FormItem className="space-y-3">
               <div className="flex items-center gap-2">
                 <FileText className="size-3.5 text-muted-foreground/60" />
-                <FormLabel className="text-[10px] font-black uppercase tracking-wider text-[#7a7f87]">Bitácora Administrativa (Confidencial)</FormLabel>
+                <FormLabel className="text-[10px] font-black uppercase tracking-wider text-[#7a7f87]">Notas del Socio</FormLabel>
               </div>
               <FormControl>
                 <Textarea 

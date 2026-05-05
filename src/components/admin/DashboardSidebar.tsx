@@ -4,8 +4,10 @@ import {
   Activity,
   CalendarClock,
   ChevronRight,
+  ClipboardCheck,
   ClipboardList,
   Database,
+  DoorOpen,
   Dumbbell,
   FileText,
   Globe,
@@ -106,8 +108,14 @@ const NAV_ITEMS: NavItem[] = [
     icon: QrCode,
     children: [
       { href: "/dashboard/membresias/pedidos", label: "Solicitudes", icon: ClipboardList },
+      { href: "/dashboard/membresias/planes", label: "Planes", icon: Tag },
       { href: "/dashboard/membresias/recepcion", label: "Escaneo QR", icon: QrCode },
     ],
+  },
+  {
+    href: "/dashboard/recepcion",
+    label: "Recepcion",
+    icon: DoorOpen,
   },
   {
     href: "/dashboard/tienda",

@@ -128,7 +128,7 @@ export default function MemberProfileForm({
               className="h-14 px-8 border-black/10 font-black uppercase tracking-[0.2em] text-[#7a7f87] hover:bg-black/5 transition-all"
             >
               {draft.isSaving ? <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              {draft.isSaving ? "Guardando..." : "Guardar Borrador"}
+              {draft.isSaving ? "Guardando..." : "Guardar borrador"}
             </Button>
             <Button 
               type="submit" 
@@ -144,7 +144,7 @@ export default function MemberProfileForm({
                   <span>Sincronizando...</span>
                 </div>
               ) : (
-                detail ? "Actualizar Registro" : "Crear Ficha Oficial"
+                detail ? "Actualizar Registro" : "Registrar Socio"
               )}
             </Button>
           </div>

@@ -196,7 +196,7 @@ export const getDashboardAccessState = cache(
           return {
             user: authenticatedUser,
             accessMode: "bootstrap",
-            accessWarning: "Acceso bootstrap habilitado por error de esquema.",
+            accessWarning: "Modo de acceso temporal activo. Configura roles de administrador en Supabase para desactivar este mensaje.",
           };
         }
       }
@@ -231,11 +231,11 @@ export async function requireAuthenticatedUser(redirectTo = "/acceso") {
 }
 
 
-export async function requireAdminUser(redirectTo = `${ADMIN_LOGIN_PATH}?error=admin-only`) {
+export async function requireAdminUser(_redirectTo = `${ADMIN_LOGIN_PATH}?error=admin-only`) {
   const accessState = await getDashboardAccessState();
 
   if (!accessState.user || !accessState.accessMode) {
-    redirect(redirectTo);
+    redirect(`${ADMIN_LOGIN_PATH}?reason=unauthenticated`);
   }
 
   return accessState.user;

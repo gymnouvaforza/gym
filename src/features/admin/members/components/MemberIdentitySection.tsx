@@ -17,14 +17,16 @@ export function MemberIdentitySection() {
           label="Nombre Completo" 
           icon={User}
           placeholder="Ej. Juan Pérez"
+          showRequired
           tooltip="Nombre oficial que aparecerá en su carnet digital."
         />
         <NFField 
           name="email" 
-          label="Email Corporativo / Personal" 
+          label="Correo Electrónico" 
           icon={Mail}
           type="email"
           placeholder="juan@ejemplo.com"
+          showRequired
           tooltip="Se usará para enviar recordatorios de pago y rutinas."
         />
       </div>
@@ -42,6 +44,7 @@ export function MemberIdentitySection() {
           label="Fecha de Alta" 
           icon={Calendar}
           type="date"
+          showRequired
           tooltip="Fecha en la que el socio inició su primera membresía."
         />
         <NFField 

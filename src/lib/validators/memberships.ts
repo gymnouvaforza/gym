@@ -38,6 +38,45 @@ export const membershipRequestDatesSchema = z.object({
 
 export type MembershipRequestDatesInput = z.input<typeof membershipRequestDatesSchema>;
 
+export const membershipPlanFormSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .min(2, "El codigo es obligatorio.")
+      .regex(/^[A-Z0-9][A-Z0-9\-]*[A-Z0-9]$/i, "Usa solo letras, numeros y guiones."),
+    title: z.string().trim().min(2, "El titulo es obligatorio.").max(120),
+    description: z.preprocess((value) => {
+      if (typeof value !== "string") {
+        return value ?? null;
+      }
+
+      const trimmed = value.trim();
+      return trimmed ? trimmed : null;
+    }, z.string().max(1000).nullable()),
+    price_amount: z.coerce.number().min(0, "El precio no puede ser negativo."),
+    duration_days: z.coerce
+      .number()
+      .int("La duracion debe ser un numero entero.")
+      .positive("La duracion debe ser mayor que cero.")
+      .max(3650),
+    is_freezable: z.boolean().default(false),
+    max_freeze_days: z.coerce.number().int().min(0).max(365).default(0),
+    bonus_days: z.coerce.number().int().min(0).max(365).default(0),
+  })
+  .superRefine((value, ctx) => {
+    if (value.is_freezable && value.max_freeze_days <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Indica al menos un dia de congelamiento.",
+        path: ["max_freeze_days"],
+      });
+    }
+  });
+
+export type MembershipPlanFormInput = z.input<typeof membershipPlanFormSchema>;
+export type MembershipPlanFormValues = z.infer<typeof membershipPlanFormSchema>;
+
 export const membershipPlanReserveSchema = z.object({
   membershipPlanId: z.string().uuid(),
   notes: nullableTrimmedString(1000).optional(),

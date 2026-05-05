@@ -32,6 +32,7 @@ export type SiteSettings = Omit<Database["public"]["Tables"]["site_settings"]["R
 export type DBSystemModule = Database["public"]["Tables"]["system_modules"]["Row"];
 
 export type DBMemberPlanSnapshot = Database["public"]["Tables"]["member_plan_snapshots"]["Row"];
+export type DBMemberCheckin = Database["public"]["Tables"]["member_checkins"]["Row"];
 export type DBMemberMeasurement = Database["public"]["Tables"]["member_measurements"]["Row"];
 export type DBMemberPayment = Database["public"]["Tables"]["member_payments"]["Row"];
 export type DBMemberProfile = Database["public"]["Tables"]["member_profiles"]["Row"];
@@ -54,6 +55,24 @@ export type DBMemberCommerceCustomer = Database["public"]["Tables"]["member_comm
 export type DBProduct = Database["public"]["Tables"]["product"]["Row"];
 export type DBStoreCategory = Database["public"]["Tables"]["product_category"]["Row"];
 export type DBFormDraft = Database["public"]["Tables"]["form_drafts"]["Row"];
+
+export type DBMemberNote = {
+  id: string;
+  member_id: string;
+  content: string;
+  created_by_user_id: string | null;
+  created_by_email: string | null;
+  created_at: string;
+};
+
+export type DBMembershipRequestNote = {
+  id: string;
+  membership_request_id: string;
+  content: string;
+  created_by_user_id: string | null;
+  created_by_email: string | null;
+  created_at: string;
+};
 
 export type Database = {
   public: {
@@ -2203,17 +2222,26 @@ export type Database = {
       }
       member_profiles: {
         Row: {
+          address: string | null
+          birth_date: string | null
           branch_name: string | null
           created_at: string
+          district_or_urbanization: string | null
           email: string
+          external_code: string | null
           full_name: string
+          gender: "M" | "F" | null
           id: string
           join_date: string
+          legacy_notes: string | null
           member_number: string
           membership_plan_id: string | null
           membership_qr_token: string
           notes: string | null
+          occupation: string | null
           phone: string | null
+          preferred_schedule: string | null
+          profile_completed: boolean
           status: string
           supabase_user_id: string | null
           training_plan_label: string | null
@@ -2221,17 +2249,26 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          birth_date?: string | null
           branch_name?: string | null
           created_at?: string
+          district_or_urbanization?: string | null
           email: string
+          external_code?: string | null
           full_name: string
+          gender?: "M" | "F" | null
           id?: string
           join_date?: string
+          legacy_notes?: string | null
           member_number: string
           membership_plan_id?: string | null
           membership_qr_token?: string
           notes?: string | null
+          occupation?: string | null
           phone?: string | null
+          preferred_schedule?: string | null
+          profile_completed?: boolean
           status?: string
           supabase_user_id?: string | null
           training_plan_label?: string | null
@@ -2239,17 +2276,26 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          birth_date?: string | null
           branch_name?: string | null
           created_at?: string
+          district_or_urbanization?: string | null
           email?: string
+          external_code?: string | null
           full_name?: string
+          gender?: "M" | "F" | null
           id?: string
           join_date?: string
+          legacy_notes?: string | null
           member_number?: string
           membership_plan_id?: string | null
           membership_qr_token?: string
           notes?: string | null
+          occupation?: string | null
           phone?: string | null
+          preferred_schedule?: string | null
+          profile_completed?: boolean
           status?: string
           supabase_user_id?: string | null
           training_plan_label?: string | null
@@ -2303,6 +2349,63 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_checkins: {
+        Row: {
+          id: string
+          member_id: string
+          membership_request_id: string | null
+          checked_in_at: string
+          method: string
+          status_snapshot: string
+          membership_valid_until: string | null
+          registered_by_user_id: string | null
+          registered_by_email: string | null
+          notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          member_id: string
+          membership_request_id?: string | null
+          checked_in_at?: string
+          method?: string
+          status_snapshot: string
+          membership_valid_until?: string | null
+          registered_by_user_id?: string | null
+          registered_by_email?: string | null
+          notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          member_id?: string
+          membership_request_id?: string | null
+          checked_in_at?: string
+          method?: string
+          status_snapshot?: string
+          membership_valid_until?: string | null
+          registered_by_user_id?: string | null
+          registered_by_email?: string | null
+          notes?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_checkins_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_checkins_membership_request_id_fkey"
+            columns: ["membership_request_id"]
+            isOneToOne: false
+            referencedRelation: "membership_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -2452,6 +2555,8 @@ export type Database = {
       membership_plans: {
         Row: {
           billing_label: string | null
+          bonus_days: number
+          code: string
           created_at: string
           currency_code: string
           description: string | null
@@ -2459,6 +2564,8 @@ export type Database = {
           id: string
           is_active: boolean
           is_featured: boolean
+          is_freezable: boolean
+          max_freeze_days: number
           medusa_product_id: string | null
           medusa_sync_error: string | null
           medusa_sync_status: string
@@ -2473,6 +2580,8 @@ export type Database = {
         }
         Insert: {
           billing_label?: string | null
+          bonus_days?: number
+          code: string
           created_at?: string
           currency_code?: string
           description?: string | null
@@ -2480,6 +2589,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_featured?: boolean
+          is_freezable?: boolean
+          max_freeze_days?: number
           medusa_product_id?: string | null
           medusa_sync_error?: string | null
           medusa_sync_status?: string
@@ -2494,6 +2605,8 @@ export type Database = {
         }
         Update: {
           billing_label?: string | null
+          bonus_days?: number
+          code?: string
           created_at?: string
           currency_code?: string
           description?: string | null
@@ -2501,6 +2614,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_featured?: boolean
+          is_freezable?: boolean
+          max_freeze_days?: number
           medusa_product_id?: string | null
           medusa_sync_error?: string | null
           medusa_sync_status?: string
@@ -7799,7 +7914,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_member_profiles: {
+        Args: {
+          search_query: string
+        }
+        Returns: Database["public"]["Tables"]["member_profiles"]["Row"][]
+      }
     }
     Enums: {
       claim_reason_enum:

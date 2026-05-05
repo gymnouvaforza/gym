@@ -131,7 +131,8 @@ export default function StoreProductForm({
                   }}
                   className="h-12 px-6 border-black/10 font-black uppercase tracking-[0.2em] text-[#7a7f87] rounded-xl hover:bg-black/5 transition-all"
                 >
-                  {draft.isSaving ? "Guardando..." : "Guardar Borrador"}
+                  {draft.isSaving ? <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  {draft.isSaving ? "Guardando..." : "Guardar borrador"}
                 </Button>
                 <Button 
                   type="submit" 

@@ -78,3 +78,7 @@ next-env.d.ts
 .agent
 _agents
 _agent
+.sisyphus
+.sisyphus/*
+.playwright-mcp/
+.omg/

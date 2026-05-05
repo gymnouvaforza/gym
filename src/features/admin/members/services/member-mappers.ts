@@ -17,5 +17,15 @@ export function toMemberFormValues(detail?: DashboardMemberDetail | null): Membe
     planStartedAt: detail?.plan?.startedAt ?? null,
     planEndsAt: detail?.plan?.endsAt ?? null,
     planNotes: detail?.plan?.notes ?? null,
+    // Legacy fields from Phase 1
+    externalCode: detail?.member.externalCode ?? "",
+    birthDate: detail?.member.birthDate ?? null,
+    gender: detail?.member.gender ?? null,
+    address: detail?.member.address ?? null,
+    districtOrUrbanization: detail?.member.districtOrUrbanization ?? null,
+    occupation: detail?.member.occupation ?? null,
+    preferredSchedule: detail?.member.preferredSchedule ?? null,
+    legacyNotes: detail?.member.legacyNotes ?? null,
+    profileCompleted: detail?.member.profileCompleted ?? false,
   };
 }

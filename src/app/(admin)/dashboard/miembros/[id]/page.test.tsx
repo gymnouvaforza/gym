@@ -16,6 +16,7 @@ const pageMocks = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   notFound: pageMocks.notFound,
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
 vi.mock("@/lib/data/gym-management", () => ({

@@ -71,8 +71,8 @@ export const products: Product[] = [
     tags: ["Recuperacion", "Proteina", "Postentreno"],
     highlights: [
       "25 g de proteína por servicio.",
-      "0 g de azúcar y digestion comoda.",
-      "Perfil premium para volumen o definicion.",
+      "0 g de azúcar y digestión cómoda.",
+      "Perfil premium para volumen o definición.",
     ],
     benefits: [
       "Sintesis muscular acelerada.",
@@ -105,9 +105,9 @@ export const products: Product[] = [
     name: "Shaker Premium Nuova Forza",
     category: "accesorios",
     short_description:
-      "Shaker robusto de 700 ml con cierre seguro y diseño limpio para el dia a dia.",
+      "Shaker robusto de 700 ml con cierre seguro y diseño limpio para el día a día.",
     description:
-      "Un basico bien resuelto para llevar proteína, creatina o bebida isotonica sin fugas ni piezas incomodas. Tiene cuerpo solido, tapa firme y una presencia alineada con la estetica de Nuova Forza.",
+      "Un básico bien resuelto para llevar proteína, creatina o bebida isotónica sin fugas ni piezas incómodas. Tiene cuerpo sólido, tapa firme y una presencia alineada con la estética de Nova Forza.",
     price: 14.9,
     paypal_price_usd: 4.2,
     currency: "PEN",
@@ -188,7 +188,7 @@ export const products: Product[] = [
     short_description:
       "Prenda ligera de corte deportivo con identidad limpia y presencia premium.",
     description:
-      "Polo tecnico desarrollado para entrenar, moverse por el club o llevar fuera del gimnasio sin caer en una estetica de merch generica. Patronaje comodo, tejido ligero y grafica sobria.",
+      "Polo técnico desarrollado para entrenar, moverse por el club o llevar fuera del gimnasio sin caer en una estética de merch genérica. Patronaje cómodo, tejido ligero y gráfica sobria.",
     price: 32,
     paypal_price_usd: 8.95,
     currency: "PEN",
@@ -200,7 +200,7 @@ export const products: Product[] = [
     images: ["/images/products/nova-polo.webp"],
     tags: ["Merch", "Nuova Forza", "Performance"],
     highlights: [
-      "Tejido tecnico ligero.",
+      "Tejido técnico ligero.",
       "Corte limpio para entreno o uso casual.",
       "Disponible en tallas S, M, L y XL.",
     ],

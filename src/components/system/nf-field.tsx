@@ -21,6 +21,7 @@ interface NFFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: LucideIcon
   tooltip?: string
   description?: string
+  showRequired?: boolean
 }
 
 export function NFField({
@@ -30,6 +31,7 @@ export function NFField({
   tooltip,
   description,
   className,
+  showRequired,
   ...props
 }: NFFieldProps) {
   const { control } = useFormContext()
@@ -44,6 +46,7 @@ export function NFField({
             {Icon && <Icon className="size-3.5 text-muted-foreground/60 transition-colors group-focus-within/label:text-primary" />}
             <FormLabel className="text-[10px] font-black uppercase tracking-wider text-muted-foreground group-focus-within/label:text-foreground transition-colors">
               {label}
+              {showRequired && <span className="text-primary ml-0.5">*</span>}
             </FormLabel>
             {tooltip && (
               <TooltipProvider>

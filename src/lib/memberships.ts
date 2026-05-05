@@ -25,7 +25,12 @@ export type MembershipValidationStatus = "al_dia" | "pendiente" | "vencido";
 
 export type MembershipTone = "default" | "muted" | "success" | "warning";
 
-export type MembershipPlan = DBMembershipPlan;
+export type MembershipPlan = DBMembershipPlan & {
+  bonus_days: number;
+  code: string;
+  is_freezable: boolean;
+  max_freeze_days: number;
+};
 
 export type MembershipRequestAnnotation = DBMembershipRequestAnnotation;
 

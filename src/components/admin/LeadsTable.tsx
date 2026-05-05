@@ -198,7 +198,7 @@ export default function LeadsTable({
               <TableHead className="h-14 font-black text-[10px] uppercase tracking-widest text-[#111111]">
                 <div className="flex items-center gap-2">
                   <Activity className="size-3 text-[#d71920]" />
-                  <span>Estado Comercial</span>
+                  <span>Estado del Prospecto</span>
                 </div>
               </TableHead>
               <TableHead className="h-14 font-black text-[10px] uppercase tracking-widest text-[#111111]">

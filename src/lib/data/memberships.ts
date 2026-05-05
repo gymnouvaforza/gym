@@ -103,15 +103,17 @@ function addDays(date: Date, days: number) {
   return copy;
 }
 
-function resolveCycleWindow(input: {
+export function resolveCycleWindow(input: {
   durationDays: number;
   cycleEndsOn?: string | null;
   cycleStartsOn?: string | null;
+  bonusDays?: number;
 }) {
   const cycleStartsOn = trimToNull(input.cycleStartsOn) ?? toIsoDate(new Date());
   const startDate = new Date(`${cycleStartsOn}T00:00:00.000Z`);
   const cycleEndsOn =
-    trimToNull(input.cycleEndsOn) ?? toIsoDate(addDays(startDate, input.durationDays - 1));
+    trimToNull(input.cycleEndsOn) ??
+    toIsoDate(addDays(startDate, input.durationDays + (input.bonusDays ?? 0) - 1));
 
   return {
     cycleStartsOn,
@@ -120,7 +122,7 @@ function resolveCycleWindow(input: {
 }
 
 function mapMembershipPlan(row: DBMembershipPlan): MembershipPlan {
-  return row;
+  return row as MembershipPlan;
 }
 
 function mapMembershipAnnotation(row: MembershipAnnotationRow): MembershipRequestAnnotation {
@@ -602,7 +604,7 @@ export async function createMembershipRequest(values: MembershipAdminCreateReque
   const parsed = membershipAdminCreateRequestSchema.parse(values);
   const client = createSupabaseAdminClient();
 
-  const [member, plan, latestRequest] = await Promise.all([
+  const [member, plan, latestRequest, activeRequest] = await Promise.all([
     client
       .from("member_profiles")
       .select("*")
@@ -618,6 +620,13 @@ export async function createMembershipRequest(values: MembershipAdminCreateReque
       .select("id")
       .eq("member_id", parsed.memberId)
       .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    client
+      .from("membership_requests")
+      .select("id")
+      .eq("member_id", parsed.memberId)
+      .eq("status", "active")
       .limit(1)
       .maybeSingle(),
   ]);
@@ -638,11 +647,18 @@ export async function createMembershipRequest(values: MembershipAdminCreateReque
     throw new Error("El plan de membresia seleccionado ya no existe.");
   }
 
+  if (activeRequest.data) {
+    throw new Error("El socio ya tiene una membresia activa.");
+  }
+
   const cycle = resolveCycleWindow({
     durationDays: plan.data.duration_days,
     cycleStartsOn: parsed.cycleStartsOn,
     cycleEndsOn: parsed.cycleEndsOn,
+    bonusDays: (plan.data as MembershipPlan).bonus_days,
   });
+
+  const membershipPlan = plan.data as MembershipPlan;
 
   const { data, error } = await client
     .from("membership_requests")
@@ -650,19 +666,19 @@ export async function createMembershipRequest(values: MembershipAdminCreateReque
       request_number: generateMembershipRequestNumber(),
       member_id: member.data.id,
       supabase_user_id: values.supabaseUserId ?? member.data.supabase_user_id,
-      membership_plan_id: plan.data.id,
+      membership_plan_id: membershipPlan.id,
       email: normalizeEmail(member.data.email),
-      plan_title_snapshot: plan.data.title,
-      price_amount: plan.data.price_amount,
-      currency_code: plan.data.currency_code,
-      billing_label: plan.data.billing_label,
-      duration_days: plan.data.duration_days,
+      plan_title_snapshot: membershipPlan.title,
+      price_amount: membershipPlan.price_amount,
+      currency_code: membershipPlan.currency_code,
+      billing_label: membershipPlan.billing_label,
+      duration_days: membershipPlan.duration_days,
       source: parsed.source,
       notes: trimToNull(parsed.notes),
       cycle_starts_on: cycle.cycleStartsOn,
       cycle_ends_on: cycle.cycleEndsOn,
       renews_from_request_id: parsed.renewsFromRequestId ?? latestRequest.data?.id ?? null,
-      manual_balance_due: plan.data.price_amount,
+      manual_balance_due: membershipPlan.price_amount,
     })
     .select("*")
     .single();
@@ -673,7 +689,7 @@ export async function createMembershipRequest(values: MembershipAdminCreateReque
 
   await syncMemberProfileMembership(client, {
     memberId: member.data.id,
-    membershipPlanId: plan.data.id,
+    membershipPlanId: membershipPlan.id,
     status: member.data.status === "prospect" ? "prospect" : member.data.status,
   });
 

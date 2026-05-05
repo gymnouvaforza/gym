@@ -101,8 +101,7 @@ export default function MarketingTeamImageUpload({
       </div>
 
       <p className="text-[11px] text-[#7a7f87]">
-        La imagen se optimiza antes de guardarse en Supabase Storage dentro de{" "}
-        <code>{TEAM_IMAGES_BUCKET}/{TEAM_IMAGES_PREFIX}</code>.
+        La imagen se optimiza para la web antes de guardarse en nuestro servidor seguro.
       </p>
       {feedback ? <p className="text-[11px] text-[#d71920]">{feedback}</p> : null}
     </div>

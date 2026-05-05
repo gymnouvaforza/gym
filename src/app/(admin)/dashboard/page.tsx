@@ -9,6 +9,8 @@ import DashboardLeadSection, { DashboardLeadSectionFallback } from "@/components
 import DashboardCommerceSection, { DashboardCommerceSectionFallback } from "@/components/admin/dashboard/DashboardCommerceSection";
 import DashboardQuickAccess from "@/components/admin/dashboard/DashboardQuickAccess";
 import DashboardOverviewAlerts from "@/components/admin/dashboard/DashboardOverviewAlerts";
+import DashboardMetrics from "./components/DashboardMetrics";
+import DashboardMetricsFallback from "./components/DashboardMetricsFallback";
 import { getActiveModules } from "@/lib/data/modules";
 import { getDashboardData } from "@/lib/data/site";
 import { getStoreAdminSnapshot } from "@/lib/data/store-admin";
@@ -53,7 +55,7 @@ export default function DashboardPage() {
               Status Global
             </p>
             <p className="text-xs font-bold uppercase tracking-wider text-[#111111]">
-              Operativo · Online
+              Operativo - Online
             </p>
           </div>
           <div className="h-10 w-1 bg-green-500 rounded-full" />
@@ -68,6 +70,10 @@ export default function DashboardPage() {
         }
       >
         <DashboardWarnings />
+      </Suspense>
+
+      <Suspense fallback={<DashboardMetricsFallback />}>
+        <DashboardMetrics />
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton lines={4} />}>

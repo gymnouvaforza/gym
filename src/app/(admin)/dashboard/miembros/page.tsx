@@ -130,6 +130,7 @@ export default async function DashboardMembersPage({
                     <option value="prospect">Prospect</option>
                     <option value="paused">Paused</option>
                     <option value="cancelled">Cancelled</option>
+                    <option value="former">Ex-socio</option>
                   </select>
                   <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none opacity-20">
                     <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">

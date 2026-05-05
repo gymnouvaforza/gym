@@ -11,11 +11,15 @@ import type { LoginValues } from "@/lib/validators/auth";
 export function useLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [error, setError] = useState<string | null>(
-    searchParams.get("error") === "admin-only"
-      ? "Esta cuenta no tiene acceso al backoffice."
-      : null,
-  );
+  const [error, setError] = useState<string | null>(() => {
+    if (searchParams.get("error") === "admin-only") {
+      return "Esta cuenta no tiene acceso al backoffice.";
+    }
+    if (searchParams.get("reason") === "unauthenticated") {
+      return "Inicia sesion para acceder al panel de administracion.";
+    }
+    return null;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const next = searchParams.get("next") || "/dashboard";
 

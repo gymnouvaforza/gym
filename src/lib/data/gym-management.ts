@@ -119,6 +119,16 @@ export type DashboardMemberListItem = MemberSummaryDto & {
   trainerName: string | null;
   trainerUserId: string | null;
   updatedAt: string;
+  // Legacy fields from Phase 1
+  externalCode: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  address: string | null;
+  districtOrUrbanization: string | null;
+  occupation: string | null;
+  preferredSchedule: string | null;
+  legacyNotes: string | null;
+  profileCompleted: boolean;
 };
 
 export type DashboardMemberDetail = {
@@ -486,12 +496,17 @@ async function listMemberProfiles(
 
   if (options?.status) {
     query = query.eq("status", options.status);
+  } else {
+    // Hide archived members from default active listing
+    query = query.neq("status", "former");
   }
 
   if (options?.search?.trim()) {
     const normalized = options.search.trim();
+    // Escape special PostgREST characters to prevent parsing errors
+    const escaped = normalized.replace(/,/g, "\\,").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
     query = query.or(
-      `full_name.ilike.%${normalized}%,email.ilike.%${normalized}%,member_number.ilike.%${normalized}%`,
+      `full_name.ilike.%${escaped}%,email.ilike.%${escaped}%,member_number.ilike.%${escaped}%,external_code.ilike.%${escaped}%`,
     );
   }
 
@@ -697,14 +712,16 @@ export async function ensureMemberProfileForUser(user: Pick<User, "app_metadata"
   }
 
   const today = new Date().toISOString().slice(0, 10);
+  const newMemberNumber = generateMemberNumber();
   const { data, error } = await client
     .from("member_profiles")
     .insert({
       branch_name: null,
       email: normalizedEmail,
+      external_code: newMemberNumber, // Default to member_number for new profiles
       full_name: getUserDisplayName(user),
       join_date: today,
-      member_number: generateMemberNumber(),
+      member_number: newMemberNumber,
       notes: null,
       phone: null,
       status: "prospect",
@@ -1249,6 +1266,16 @@ export async function listDashboardMembers(options?: { search?: string; status?:
       trainerName: member.trainer_user_id ? trainerNameById.get(member.trainer_user_id) ?? null : null,
       trainerUserId: member.trainer_user_id,
       updatedAt: member.updated_at,
+      // Legacy fields from Phase 1
+      externalCode: member.external_code,
+      birthDate: member.birth_date,
+      gender: member.gender,
+      address: member.address,
+      districtOrUrbanization: member.district_or_urbanization,
+      occupation: member.occupation,
+      preferredSchedule: member.preferred_schedule,
+      legacyNotes: member.legacy_notes,
+      profileCompleted: member.profile_completed ?? false,
     } satisfies DashboardMemberListItem;
   });
 }
@@ -1330,6 +1357,16 @@ export async function getDashboardMemberDetail(memberId: string): Promise<Dashbo
       trainerName: member.trainer_user_id ? trainerNameById.get(member.trainer_user_id) ?? null : null,
       trainerUserId: member.trainer_user_id,
       updatedAt: member.updated_at,
+      // Legacy fields from Phase 1
+      externalCode: member.external_code,
+      birthDate: member.birth_date,
+      gender: member.gender,
+      address: member.address,
+      districtOrUrbanization: member.district_or_urbanization,
+      occupation: member.occupation,
+      preferredSchedule: member.preferred_schedule,
+      legacyNotes: member.legacy_notes,
+      profileCompleted: member.profile_completed ?? false,
     },
     notes: member.notes,
     plan: mapPlanSnapshot(currentPlan),
@@ -1351,14 +1388,35 @@ export async function createMemberProfile(values: MemberFormValues) {
     await getAuthUserById(parsed.linkedUserId);
   }
 
+  const memberNumber = generateMemberNumber();
+  
+  // Calculate profile completion based on presence of key legacy fields
+  const profileCompleted = Boolean(
+    parsed.address &&
+    parsed.birthDate &&
+    parsed.districtOrUrbanization &&
+    parsed.gender &&
+    parsed.occupation &&
+    parsed.preferredSchedule
+  );
+  
   const memberInsert: Database["public"]["Tables"]["member_profiles"]["Insert"] = {
+    address: parsed.address ?? null,
+    birth_date: parsed.birthDate ?? null,
     branch_name: parsed.branchName ?? null,
+    district_or_urbanization: parsed.districtOrUrbanization ?? null,
     email: parsed.email.trim().toLowerCase(),
+    external_code: parsed.externalCode ?? memberNumber, // Default to member_number if not provided
     full_name: parsed.fullName.trim(),
+    gender: parsed.gender ?? null,
     join_date: parsed.joinDate,
-    member_number: generateMemberNumber(),
+    legacy_notes: parsed.legacyNotes ?? null,
+    member_number: memberNumber,
     notes: parsed.notes ?? null,
+    occupation: parsed.occupation ?? null,
     phone: parsed.phone ?? null,
+    preferred_schedule: parsed.preferredSchedule ?? null,
+    profile_completed: profileCompleted,
     status: parsed.status,
     supabase_user_id: parsed.linkedUserId ?? null,
     trainer_user_id: parsed.trainerUserId ?? null,
@@ -1389,6 +1447,37 @@ export async function createMemberProfile(values: MemberFormValues) {
   }
 
   return member.id;
+}
+
+export async function archiveMemberProfile(memberId: string) {
+  const client = createSupabaseAdminClient();
+  const { data: member, error: memberError } = await client
+    .from("member_profiles")
+    .select("id, supabase_user_id")
+    .eq("id", memberId)
+    .maybeSingle();
+
+  if (memberError) {
+    throw new Error(memberError.message);
+  }
+
+  if (!member) {
+    throw new Error("Socio no encontrado.");
+  }
+
+  // Archive: change status to former, unlink auth user, keep all history
+  const { error: updateError } = await client
+    .from("member_profiles")
+    .update({
+      status: "former",
+      supabase_user_id: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", memberId);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
 }
 
 export async function deleteMemberProfile(memberId: string) {
@@ -1429,15 +1518,34 @@ export async function updateMemberProfile(memberId: string, values: MemberFormVa
   const client = createSupabaseAdminClient();
   const parsed = memberFormSchema.parse(values);
 
+  // Calculate profile completion based on presence of key legacy fields
+  const profileCompleted = Boolean(
+    parsed.address &&
+    parsed.birthDate &&
+    parsed.districtOrUrbanization &&
+    parsed.gender &&
+    parsed.occupation &&
+    parsed.preferredSchedule
+  );
+
   const { error: memberError } = await client
     .from("member_profiles")
     .update({
+      address: parsed.address ?? null,
+      birth_date: parsed.birthDate ?? null,
       branch_name: parsed.branchName ?? null,
+      district_or_urbanization: parsed.districtOrUrbanization ?? null,
       email: parsed.email.trim().toLowerCase(),
+      external_code: parsed.externalCode ?? null,
       full_name: parsed.fullName.trim(),
+      gender: parsed.gender ?? null,
       join_date: parsed.joinDate,
+      legacy_notes: parsed.legacyNotes ?? null,
       notes: parsed.notes ?? null,
+      occupation: parsed.occupation ?? null,
       phone: parsed.phone ?? null,
+      preferred_schedule: parsed.preferredSchedule ?? null,
+      profile_completed: profileCompleted,
       status: parsed.status,
       supabase_user_id: parsed.linkedUserId ?? null,
       trainer_user_id: parsed.trainerUserId ?? null,

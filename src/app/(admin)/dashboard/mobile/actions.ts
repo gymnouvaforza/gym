@@ -46,21 +46,32 @@ export async function toggleAppAccessAction(userId: string, shouldHaveAccess: bo
 export async function quickCreateMemberAndLinkAction(userId: string, fullName: string, email: string) {
   await requireSuperadminUser();
   
+  const today = new Date().toISOString().slice(0, 10);
+
   const memberId = await createMemberProfile({
-    fullName,
-    email,
-    linkedUserId: userId,
-    trainerUserId: null,
-    status: "active",
-    joinDate: new Date().toISOString().slice(0, 10),
-    planLabel: "Plan App Directo",
-    planStatus: "active",
-    planStartedAt: new Date().toISOString().slice(0, 10),
+    address: null,
+    birthDate: null,
     branchName: "Sede App",
-    phone: null,
+    districtOrUrbanization: null,
+    email,
+    externalCode: `APP-${userId.slice(0, 8).toUpperCase()}`,
+    fullName,
+    gender: null,
+    joinDate: today,
+    legacyNotes: null,
+    linkedUserId: userId,
     notes: "Ficha creada mediante alta rapida desde Mobile Hub.",
+    occupation: null,
+    phone: null,
     planEndsAt: null,
+    planLabel: "Plan App Directo",
     planNotes: null,
+    planStartedAt: today,
+    planStatus: "active",
+    preferredSchedule: null,
+    profileCompleted: false,
+    status: "active",
+    trainerUserId: null,
   });
 
   revalidatePath("/dashboard/mobile");

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardList, QrCode } from "lucide-react";
+import { ClipboardList, QrCode, Tag } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -12,6 +12,12 @@ const items = [
     icon: ClipboardList,
     label: "Solicitudes",
     description: "Altas, renovaciones y cobro manual.",
+  },
+  {
+    href: "/dashboard/membresias/planes",
+    icon: Tag,
+    label: "Planes",
+    description: "Precios, duracion y reglas de congelamiento.",
   },
   {
     href: "/dashboard/membresias/recepcion",

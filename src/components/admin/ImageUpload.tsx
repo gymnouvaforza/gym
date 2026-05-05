@@ -107,8 +107,7 @@ export default function ImageUpload({
 
       {value.length === 0 && !isUploading ? (
         <p className="text-xs text-[#5f6368]">
-          No hay imagenes seleccionadas. Las nuevas subidas se optimizan antes de guardarse en{" "}
-          <code>{PRODUCT_IMAGES_BUCKET}</code>.
+          No hay imagenes seleccionadas. Las nuevas subidas se optimizan para la web antes de guardarse.
         </p>
       ) : null}
 

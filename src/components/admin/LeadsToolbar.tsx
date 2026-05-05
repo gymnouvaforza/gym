@@ -82,13 +82,13 @@ export default function LeadsToolbar({
       {/* SEARCH BOX */}
       <div className="space-y-2">
         <label htmlFor="q" className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
-          Buscador Rapido
+          Buscador Rápido
         </label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#111111]/20" />
           <input
             id="q"
-            placeholder="Nombre, email o telefono..."
+            placeholder="Nombre, email o teléfono..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             aria-busy={isPending}
@@ -101,7 +101,7 @@ export default function LeadsToolbar({
       <div className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="status" className="text-[9px] font-black uppercase tracking-[0.2em] text-[#7a7f87]">
-            Estado Operativo
+            Estado del Prospecto
           </label>
           <div className="relative">
             <select

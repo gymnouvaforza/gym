@@ -162,11 +162,78 @@ export async function getMemberFinancials(
     .limit(1)
     .maybeSingle();
 
-  if (error || !membership) {
-    return null;
+  if (!error && membership) {
+    return mapMembership(membership as unknown as MembershipWithRelations);
   }
 
-  return mapMembership(membership as unknown as MembershipWithRelations);
+  // Fallback: buscar en membership_requests (dominio operativo del dashboard)
+  try {
+    const { data: request, error: requestError } = await client
+      .from("membership_requests")
+      .select(
+        `
+        id,
+        member_id,
+        price_amount,
+        manual_balance_due,
+        manual_payment_status,
+        cycle_starts_on,
+        cycle_ends_on,
+        plan_title_snapshot,
+        membership_payment_entries (
+          id,
+          amount,
+          note,
+          recorded_at
+        )
+      `,
+      )
+      .eq("member_id", memberId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (requestError || !request) {
+      return null;
+    }
+
+    const req = request as unknown as {
+      id: string;
+      member_id: string;
+      price_amount: number;
+      manual_balance_due: number;
+      manual_payment_status: string;
+      cycle_starts_on: string | null;
+      cycle_ends_on: string | null;
+      plan_title_snapshot: string;
+      membership_payment_entries: Array<{
+        id: string;
+        amount: number;
+        note: string | null;
+        recorded_at: string;
+      }> | null;
+    };
+
+    return {
+      id: req.id,
+      planTitle: req.plan_title_snapshot,
+      totalPrice: Number(req.price_amount),
+      balanceDue: Number(req.manual_balance_due),
+      status: req.manual_payment_status as MembershipStatus,
+      startDate: req.cycle_starts_on,
+      endDate: req.cycle_ends_on,
+      payments:
+        req.membership_payment_entries?.map((p) => ({
+          id: p.id,
+          amountPaid: Number(p.amount),
+          paymentMethod: "manual",
+          referenceCode: p.note,
+          recordedAt: p.recorded_at,
+        })) ?? [],
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function getMemberMeasurements(

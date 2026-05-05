@@ -58,10 +58,10 @@ export default async function DashboardLeadsPage({
       {/* HEADER PRO */}
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between border-b border-black/5 pb-8">
         <DashboardPageHeader
-          title="LEADS ENGINE"
-          description="Seguimiento de conversiones y gestion comercial de prospectos."
+          title="GESTIÓN DE INTERESADOS"
+          description="Seguimiento de conversiones y gestión comercial de prospectos."
           icon={Target}
-          eyebrow="Revenue & Growth"
+          eyebrow="Ventas y Crecimiento"
           className="pb-0"
         />
         <div className="flex items-center gap-4 bg-[#111111] p-4 shadow-xl">
@@ -116,12 +116,12 @@ export default async function DashboardLeadsPage({
 
             {/* PERFORMANCE CARD */}
             <div className="bg-[#fbfbf8] border border-black/10 p-6 space-y-4 shadow-sm">
-               <div className="flex items-center gap-2 text-[#d71920]">
+                <div className="flex items-center gap-2 text-[#d71920]">
                   <Zap className="h-4 w-4 fill-current" />
-                  <p className="text-[10px] font-black uppercase tracking-widest">Velocity Tip</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest">Consejo de Velocidad</p>
                </div>
                <p className="text-xs font-bold text-[#111111] leading-relaxed">
-                  Los leads contactados en menos de <span className="text-[#d71920]">15 minutos</span> tienen un 300% mas de probabilidad de cierre.
+                  Los prospectos contactados en menos de <span className="text-[#d71920]">15 minutos</span> tienen un <span className="text-[#d71920]">300% más</span> de probabilidad de cierre.
                </p>
             </div>
 
@@ -178,8 +178,8 @@ export default async function DashboardLeadsPage({
 
           <AdminSection
             id="bandeja"
-            title="OPERATIONAL QUEUE"
-            description="Gestiona tus prospectos con el maximo detalle operativo."
+            title="BANDEJA DE ENTRADA"
+            description="Gestiona tus prospectos con el máximo detalle operativo."
             icon={SearchCheck}
             className="mt-0"
           >

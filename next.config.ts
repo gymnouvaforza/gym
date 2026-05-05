@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
       script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.paypal.com https://www.gstatic.com https://apis.google.com https://*.firebaseapp.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' blob: data: https://*.supabase.co https://*.supabase.in https://*.paypal.com https://*.paypalobjects.com https://*.googleusercontent.com https://medusa-public-images.s3.eu-west-1.amazonaws.com https://*.gstatic.com;
+      media-src 'self' https://*.supabase.co https://*.supabase.in;
       font-src 'self' https://fonts.gstatic.com;
       object-src 'none';
       base-uri 'self';
@@ -130,7 +131,7 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-    qualities: [52, 75],
+    qualities: [52, 58, 60, 75],
   },
 };
 
