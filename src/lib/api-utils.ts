@@ -5,6 +5,18 @@ import { createApiErrorResponse } from "./api-errors";
 import { PersistedUserRole } from "./user-roles";
 import { AuthUser } from "./auth-user";
 
+function buildDashboardUnauthenticatedMessage() {
+  if (process.env.NODE_ENV === "production") {
+    return "No autenticado. Inicia sesion con tu cuenta del dashboard.";
+  }
+
+  return "No autenticado. Inicia sesion con Firebase o usa admin local en desarrollo.";
+}
+
+function buildDashboardForbiddenMessage() {
+  return "No tienes permisos suficientes. Verifica tu rol en Supabase public.user_roles.";
+}
+
 /**
  * Parsea el body de la request de forma segura.
  */
@@ -49,7 +61,7 @@ export async function requireFirebaseUser(): Promise<
   if (!user) {
     return {
       success: false,
-      errorResponse: NextResponse.json({ error: "No autenticado." }, { status: 401 }),
+      errorResponse: NextResponse.json({ error: buildDashboardUnauthenticatedMessage() }, { status: 401 }),
     };
   }
   return { success: true, user };
@@ -66,7 +78,7 @@ export async function requireRoles(allowedRoles: PersistedUserRole[]): Promise<
   if (!accessState.user || !accessState.accessMode) {
     return { 
       success: false,
-      errorResponse: NextResponse.json({ error: "No autenticado." }, { status: 401 }) 
+      errorResponse: NextResponse.json({ error: buildDashboardUnauthenticatedMessage() }, { status: 401 }) 
     };
   }
 
@@ -75,11 +87,25 @@ export async function requireRoles(allowedRoles: PersistedUserRole[]): Promise<
       return { success: true, user: accessState.user, accessMode: accessState.accessMode };
     }
 
+    if (accessState.accessMode === "local") {
+      if (process.env.NODE_ENV === "production") {
+        return {
+          success: false,
+          errorResponse: NextResponse.json(
+            { error: "Sesion local no permitida en produccion." },
+            { status: 403 },
+          ),
+        };
+      }
+
+      return { success: true, user: accessState.user, accessMode: accessState.accessMode };
+    }
+
     const hasRole = (allowedRoles as string[]).includes(accessState.accessMode);
     if (!hasRole) {
       return { 
         success: false,
-        errorResponse: NextResponse.json({ error: "No tienes permisos suficientes." }, { status: 403 }) 
+        errorResponse: NextResponse.json({ error: buildDashboardForbiddenMessage() }, { status: 403 }) 
       };
     }
   }
@@ -101,11 +127,11 @@ export async function withApiErrorHandling(
   }
 }
 
-export function unauthorized(message = "No autenticado.") {
+export function unauthorized(message = buildDashboardUnauthenticatedMessage()) {
   return NextResponse.json({ error: message }, { status: 401 });
 }
 
-export function forbidden(message = "No tienes permisos suficientes.") {
+export function forbidden(message = buildDashboardForbiddenMessage()) {
   return NextResponse.json({ error: message }, { status: 403 });
 }
 

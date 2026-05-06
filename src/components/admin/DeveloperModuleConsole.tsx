@@ -23,6 +23,7 @@ type ModuleUpdate = {
 
 interface DeveloperModuleConsoleProps {
   modules: SystemModuleRow[];
+  canManage?: boolean;
 }
 
 function applyModuleUpdate(modules: SystemModuleRow[], update: ModuleUpdate) {
@@ -38,6 +39,7 @@ function applyModuleUpdate(modules: SystemModuleRow[], update: ModuleUpdate) {
 
 export default function DeveloperModuleConsole({
   modules: initialModules,
+  canManage = true,
 }: Readonly<DeveloperModuleConsoleProps>) {
   const router = useRouter();
   const [modules, setModules] = useState(initialModules);
@@ -181,10 +183,15 @@ export default function DeveloperModuleConsole({
                     <p className="max-w-lg text-sm font-medium leading-relaxed text-[#5f6368]">
                       {module.description}
                     </p>
+                    {!canManage ? (
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-600">
+                        Solo lectura para admin
+                      </p>
+                    ) : null}
                   </div>
                   <Switch
                     checked={module.is_enabled}
-                    disabled={isModulePending}
+                    disabled={isModulePending || !canManage}
                     aria-label={`Alternar modulo ${module.label}`}
                     onCheckedChange={() => handleToggle(module)}
                     className={cn(

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { requireRoles, validateBody } from "../api-utils";
 import { z } from "zod";
 import { DASHBOARD_ADMIN_ROLE } from "../user-roles";
@@ -14,8 +14,22 @@ vi.mock("../auth", () => ({
 }));
 
 describe("api-utils", () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+
+  function setNodeEnv(value: string) {
+    Object.defineProperty(process.env, "NODE_ENV", {
+      value,
+      configurable: true,
+    });
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
+    setNodeEnv("test");
+  });
+
+  afterEach(() => {
+    setNodeEnv(originalNodeEnv ?? "test");
   });
 
   describe("validateBody", () => {
@@ -98,6 +112,9 @@ describe("api-utils", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.errorResponse.status).toBe(403);
+        expect(result.errorResponse.json()).resolves.toEqual({
+          error: "No tienes permisos suficientes. Verifica tu rol en Supabase public.user_roles.",
+        });
       }
     });
 
@@ -111,6 +128,39 @@ describe("api-utils", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.errorResponse.status).toBe(401);
+        expect(result.errorResponse.json()).resolves.toEqual({
+          error: "No autenticado. Inicia sesion con Firebase o usa admin local en desarrollo.",
+        });
+      }
+    });
+
+    it("returns success: true for local admin session in development", async () => {
+      authMocks.getDashboardAccessState.mockResolvedValue({
+        user: { id: "local-admin:test", email: "test (local)", isLocalAdmin: true },
+        accessMode: "local",
+      });
+
+      const result = await requireRoles([DASHBOARD_ADMIN_ROLE]);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.accessMode).toBe("local");
+      }
+    });
+
+    it("returns success: false for local admin session in production", async () => {
+      setNodeEnv("production");
+      authMocks.getDashboardAccessState.mockResolvedValue({
+        user: { id: "local-admin:test", email: "test (local)", isLocalAdmin: true },
+        accessMode: "local",
+      });
+
+      const result = await requireRoles([DASHBOARD_ADMIN_ROLE]);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.errorResponse.status).toBe(403);
+        expect(result.errorResponse.json()).resolves.toEqual({
+          error: "Sesion local no permitida en produccion.",
+        });
       }
     });
   });

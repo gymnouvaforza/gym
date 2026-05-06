@@ -1,4 +1,4 @@
-import { Activity, AlertCircle, Dumbbell, Search, ShieldCheck, TrendingUp, UserPlus, Users } from "lucide-react";
+import { Activity, AlertCircle, Download, Dumbbell, Search, ShieldCheck, TrendingUp, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -36,13 +36,22 @@ export default async function DashboardMembersPage({
           eyebrow="Operaciones Gym"
           className="pb-0"
         />
-        <Link
-          href="/dashboard/miembros/nuevo"
-          className="bg-[#111111] text-white px-10 h-14 flex items-center gap-3 font-black uppercase tracking-[0.2em] text-[11px] hover:bg-[#d71920] transition-all duration-500 shadow-2xl shadow-black/10 rounded-2xl"
-        >
-          <UserPlus className="size-4" />
-          Registrar Socio
-        </Link>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <Link
+            href="/dashboard/miembros/nuevo"
+            className="bg-[#111111] text-white px-10 h-14 flex items-center gap-3 font-black uppercase tracking-[0.2em] text-[11px] hover:bg-[#d71920] transition-all duration-500 shadow-2xl shadow-black/10 rounded-2xl"
+          >
+            <UserPlus className="size-4" />
+            Registrar Socio
+          </Link>
+          <a
+            href={`/api/dashboard/members/export${search || status ? `?q=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}` : ""}`}
+            className="bg-white text-[#111111] border border-black/10 px-10 h-14 flex items-center gap-3 font-black uppercase tracking-[0.2em] text-[11px] hover:bg-[#111111] hover:text-white transition-all duration-500 shadow-2xl shadow-black/10 rounded-2xl"
+          >
+            <Download className="size-4" />
+            Descargar CSV
+          </a>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-12 xl:grid-cols-[1fr_360px]">

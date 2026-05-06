@@ -6,7 +6,7 @@ export async function syncFirebaseBrowserSession(auth: Auth) {
   const user = auth.currentUser;
   const idToken = user ? await user.getIdToken() : null;
 
-  await fetch("/api/auth/session", {
+  const response = await fetch("/api/auth/session", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -15,6 +15,11 @@ export async function syncFirebaseBrowserSession(auth: Auth) {
       idToken,
     }),
   });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error ?? "No se pudo sincronizar la sesion del dashboard.");
+  }
 }
 
 export async function clearFirebaseBrowserSession() {

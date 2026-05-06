@@ -6,6 +6,7 @@ export type TestDashboardRole = "superadmin" | "admin" | "trainer";
 
 export async function loginAsLocalAdmin(page: Page) {
   const { identity, password } = getAdminCredentials();
+  const baseUrl = new URL(getBaseUrl());
 
   const response = await page.context().request.post(`${getBaseUrl()}/api/dev-login`, {
     data: {
@@ -15,6 +16,27 @@ export async function loginAsLocalAdmin(page: Page) {
   });
 
   expect(response.ok()).toBeTruthy();
+
+  const setCookie = response.headers()["set-cookie"];
+  const cookiePair = setCookie?.split(";")[0] ?? "";
+  const separatorIndex = cookiePair.indexOf("=");
+
+  expect(separatorIndex).toBeGreaterThan(0);
+
+  const name = cookiePair.slice(0, separatorIndex);
+  const value = cookiePair.slice(separatorIndex + 1);
+
+  await page.context().addCookies([
+    {
+      name,
+      value,
+      domain: baseUrl.hostname,
+      path: "/",
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: baseUrl.protocol === "https:",
+    },
+  ]);
 }
 
 export async function overrideDashboardRole(page: Page, role: TestDashboardRole) {

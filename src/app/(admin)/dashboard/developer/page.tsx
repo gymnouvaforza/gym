@@ -4,11 +4,12 @@ import DeveloperModuleConsole from "@/components/admin/DeveloperModuleConsole";
 import DashboardPageHeader from "@/components/admin/DashboardPageHeader";
 import { Card } from "@/components/ui/card";
 import { listSystemModules } from "@/lib/data/modules";
-import { requireSuperadminUser } from "@/lib/auth";
+import { requireDashboardAccessModes } from "@/lib/auth";
 
 export default async function DashboardDeveloperPage() {
-  await requireSuperadminUser();
+  const accessState = await requireDashboardAccessModes(["admin", "superadmin", "local"]);
   const modules = await listSystemModules();
+  const isSuperadmin = accessState.accessMode === "superadmin";
 
   return (
     <div className="space-y-8">
@@ -26,7 +27,9 @@ export default async function DashboardDeveloperPage() {
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">
               Nivel
             </p>
-            <p className="text-sm font-black uppercase tracking-tight">Superadmin</p>
+            <p className="text-sm font-black uppercase tracking-tight">
+              {isSuperadmin ? "Superadmin" : "Admin"}
+            </p>
           </div>
         </div>
       </div>
@@ -39,9 +42,15 @@ export default async function DashboardDeveloperPage() {
           Cada switch apaga rutas, accesos UI y controles operativos del modulo. El bypass solo
           existe para superadmin.
         </p>
+        {!isSuperadmin ? (
+          <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-amber-300">
+            Acceso admin en modo lectura. Puedes revisar estado de modulos, pero solo superadmin
+            puede cambiar feature flags.
+          </p>
+        ) : null}
       </Card>
 
-      <DeveloperModuleConsole modules={modules} />
+      <DeveloperModuleConsole modules={modules} canManage={isSuperadmin} />
     </div>
   );
 }

@@ -253,6 +253,19 @@ export async function requireSuperadminUser(
   return accessState.user;
 }
 
+export async function requireDashboardAccessModes(
+  allowedModes: DashboardAccessMode[],
+  redirectTo = `${ADMIN_LOGIN_PATH}?error=admin-only`,
+) {
+  const accessState = await getDashboardAccessState();
+
+  if (!accessState.user || !accessState.accessMode || !allowedModes.includes(accessState.accessMode)) {
+    redirect(redirectTo);
+  }
+
+  return accessState;
+}
+
 export const getDashboardCapabilities = cache(async function getDashboardCapabilities() {
   const accessState = await getDashboardAccessState();
   const canManageRealData = hasSupabaseServiceRole();

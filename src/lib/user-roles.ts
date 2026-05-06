@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
+import { hasSupabaseServiceRole } from "@/lib/env";
 import { getPublicSupabaseEnv } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -59,7 +60,9 @@ export function isUserRolesSchemaError(error: unknown) {
 }
 
 export async function listUserRolesForServerSession(userId: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = hasSupabaseServiceRole()
+    ? createSupabaseAdminClient()
+    : await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("user_roles")
     .select("role")

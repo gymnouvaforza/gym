@@ -255,7 +255,6 @@ const NAV_ITEMS: NavItem[] = [
     href: "/dashboard/developer",
     label: "Developer",
     icon: Wrench,
-    requiresSuperadmin: true,
   },
 ];
 

@@ -1,28 +1,28 @@
 "use client";
 
 import * as React from "react";
-import { 
-  Database, 
-  Flame, 
-  ShoppingBag, 
-  ShieldCheck, 
-  Mail, 
+import {
+  Database,
+  Flame,
+  ShoppingBag,
+  ShieldCheck,
+  Mail,
   CreditCard,
   CheckCircle2,
   XCircle,
   AlertCircle,
   RefreshCw,
-  Clock
+  Clock,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  checkSupabaseConnection, 
-  checkFirebaseAdmin, 
-  checkMedusaStorefront, 
+import {
+  checkSupabaseConnection,
+  checkFirebaseAdmin,
+  checkMedusaStorefront,
   checkMedusaAdmin,
-  DiagnosticResult
+  DiagnosticResult,
 } from "@/lib/diagnostics/actions";
 import { cn } from "@/lib/utils";
 
@@ -44,9 +44,13 @@ interface DiagnosticsPanelProps {
     smtp: { configured: boolean };
     paypal: { configured: boolean; environment: string | null };
   };
+  canRunChecks?: boolean;
 }
 
-export default function DiagnosticsPanel({ initialStatus }: DiagnosticsPanelProps) {
+export default function DiagnosticsPanel({
+  initialStatus,
+  canRunChecks = true,
+}: DiagnosticsPanelProps) {
   const [results, setResults] = React.useState<Record<string, DiagnosticResult | null>>({});
   const [loading, setLoading] = React.useState<Record<string, boolean>>({});
 
@@ -62,7 +66,7 @@ export default function DiagnosticsPanel({ initialStatus }: DiagnosticsPanelProp
     },
     {
       name: "Firebase Admin",
-      description: "Gestión de identidad y sesiones en servidor.",
+      description: "Gestion de identidad y sesiones en servidor.",
       icon: Flame,
       configured: initialStatus.firebase.public,
       canTest: initialStatus.firebase.admin,
@@ -71,7 +75,7 @@ export default function DiagnosticsPanel({ initialStatus }: DiagnosticsPanelProp
     },
     {
       name: "Medusa Storefront",
-      description: "API pública de catálogo y carrito.",
+      description: "API publica de catalogo y carrito.",
       icon: ShoppingBag,
       configured: initialStatus.medusa.storefront,
       canTest: initialStatus.medusa.storefront,
@@ -87,7 +91,7 @@ export default function DiagnosticsPanel({ initialStatus }: DiagnosticsPanelProp
     },
     {
       name: "SMTP",
-      description: "Envío de notificaciones por email.",
+      description: "Envio de notificaciones por email.",
       icon: Mail,
       configured: initialStatus.smtp.configured,
       canTest: false,
@@ -99,28 +103,28 @@ export default function DiagnosticsPanel({ initialStatus }: DiagnosticsPanelProp
       icon: CreditCard,
       configured: initialStatus.paypal.configured,
       canTest: false,
-      extraInfo: initialStatus.paypal.configured 
-        ? `Configurado (${initialStatus.paypal.environment})` 
+      extraInfo: initialStatus.paypal.configured
+        ? `Configurado (${initialStatus.paypal.environment})`
         : "No configurado",
     },
   ];
 
   const handleTest = async (serviceName: string, action: () => Promise<DiagnosticResult>) => {
-    setLoading(prev => ({ ...prev, [serviceName]: true }));
+    setLoading((prev) => ({ ...prev, [serviceName]: true }));
     try {
       const result = await action();
-      setResults(prev => ({ ...prev, [serviceName]: result }));
+      setResults((prev) => ({ ...prev, [serviceName]: result }));
     } catch (error) {
-      setResults(prev => ({ 
-        ...prev, 
-        [serviceName]: { 
-          success: false, 
-          message: error instanceof Error ? error.message : "Error inesperado", 
-          timestamp: new Date().toISOString() 
-        } 
+      setResults((prev) => ({
+        ...prev,
+        [serviceName]: {
+          success: false,
+          message: error instanceof Error ? error.message : "Error inesperado",
+          timestamp: new Date().toISOString(),
+        },
       }));
     } finally {
-      setLoading(prev => ({ ...prev, [serviceName]: false }));
+      setLoading((prev) => ({ ...prev, [serviceName]: false }));
     }
   };
 
@@ -142,10 +146,12 @@ export default function DiagnosticsPanel({ initialStatus }: DiagnosticsPanelProp
                   {service.description}
                 </CardDescription>
               </div>
-              <div className={cn(
-                "flex h-10 w-10 items-center justify-center bg-black/5 p-2",
-                service.configured ? "text-black" : "text-black/20"
-              )}>
+              <div
+                className={cn(
+                  "flex h-10 w-10 items-center justify-center bg-black/5 p-2",
+                  service.configured ? "text-black" : "text-black/20",
+                )}
+              >
                 <Icon className="h-5 w-5" />
               </div>
             </CardHeader>
@@ -160,34 +166,36 @@ export default function DiagnosticsPanel({ initialStatus }: DiagnosticsPanelProp
                   ) : (
                     <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-red-500">
                       <XCircle className="h-3 w-3" />
-                      Falta Configuración
+                      Falta configuracion
                     </div>
                   )}
-                  {service.extraInfo && (
+                  {service.extraInfo ? (
                     <span className="text-[10px] font-medium text-black/40">
-                      • {service.extraInfo}
+                      - {service.extraInfo}
                     </span>
-                  )}
+                  ) : null}
                 </div>
 
-                {result && (
-                  <div className={cn(
-                    "border-l-2 p-3 text-xs font-medium",
-                    result.success 
-                      ? "border-green-500 bg-green-50 text-green-800" 
-                      : "border-red-500 bg-red-50 text-red-800"
-                  )}>
+                {result ? (
+                  <div
+                    className={cn(
+                      "border-l-2 p-3 text-xs font-medium",
+                      result.success
+                        ? "border-green-500 bg-green-50 text-green-800"
+                        : "border-red-500 bg-red-50 text-red-800",
+                    )}
+                  >
                     <p className="line-clamp-3">{result.message}</p>
                     <div className="mt-2 flex items-center gap-1 text-[10px] opacity-70">
                       <Clock className="h-3 w-3" />
                       {new Date(result.timestamp).toLocaleTimeString()}
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
 
               <div className="mt-6">
-                {service.canTest && service.testAction ? (
+                {service.canTest && service.testAction && canRunChecks ? (
                   <Button
                     variant="outline"
                     size="sm"
@@ -196,12 +204,12 @@ export default function DiagnosticsPanel({ initialStatus }: DiagnosticsPanelProp
                     loading={isLoading}
                   >
                     <RefreshCw className={cn("mr-2 h-3 w-3", isLoading && "animate-spin")} />
-                    Probar Conexión
+                    Probar conexion
                   </Button>
                 ) : (
                   <div className="flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase text-black/30">
                     <AlertCircle className="h-3 w-3" />
-                    Validación manual
+                    {service.canTest && !canRunChecks ? "Solo superadmin" : "Validacion manual"}
                   </div>
                 )}
               </div>

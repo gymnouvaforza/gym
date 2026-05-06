@@ -305,7 +305,7 @@ describe("DashboardSidebar", () => {
     expect(screen.queryByRole("link", { name: /App movil/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /^Tienda$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Campanas/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /Developer/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Developer/i })).toBeInTheDocument();
   });
 
   it("hides disabled modules from the sidebar even for superadmin", () => {

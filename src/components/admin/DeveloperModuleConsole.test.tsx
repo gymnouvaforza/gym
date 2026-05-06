@@ -105,4 +105,26 @@ describe("DeveloperModuleConsole", () => {
       expect(developerConsoleMocks.toastError).toHaveBeenCalledWith("Fallo de escritura");
     });
   });
+
+  it("renders read-only state for admin viewers", () => {
+    render(
+      <DeveloperModuleConsole
+        canManage={false}
+        modules={[
+          {
+            id: 3,
+            name: "leads",
+            label: "Leads",
+            description: "CRM base.",
+            disabledImpact: "Oculta /dashboard/leads.",
+            is_enabled: true,
+            updated_at: "2026-04-22T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText(/Solo lectura para admin/i)).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: /Alternar modulo Leads/i })).toBeDisabled();
+  });
 });
