@@ -1,20 +1,22 @@
 /**
  * @vitest-environment jsdom
  */
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import DiagnosticsPanel from "../DiagnosticsPanel";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import * as actions from "@/lib/diagnostics/actions";
 
-// Mock de Framer Motion
+import DiagnosticsPanel from "../DiagnosticsPanel";
+
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: { children: React.ReactNode } & Record<string, unknown>) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: { children: React.ReactNode } & Record<string, unknown>) => (
+      <div {...props}>{children}</div>
+    ),
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Mock de Lucide Icons
 vi.mock("lucide-react", () => ({
   Database: () => <div data-testid="icon-database" />,
   Flame: () => <div data-testid="icon-flame" />,
@@ -30,7 +32,6 @@ vi.mock("lucide-react", () => ({
   Loader2: () => <div data-testid="icon-loader" />,
 }));
 
-// Mock de actions
 vi.mock("@/lib/diagnostics/actions", () => ({
   checkSupabaseConnection: vi.fn(),
   checkFirebaseAdmin: vi.fn(),
@@ -53,7 +54,7 @@ describe("DiagnosticsPanel Component", () => {
 
   it("debe renderizar todos los servicios", () => {
     render(<DiagnosticsPanel initialStatus={mockInitialStatus} />);
-    
+
     expect(screen.getByText("Supabase")).toBeInTheDocument();
     expect(screen.getByText("Firebase Admin")).toBeInTheDocument();
     expect(screen.getByText("Medusa Storefront")).toBeInTheDocument();
@@ -65,28 +66,27 @@ describe("DiagnosticsPanel Component", () => {
   it("debe ejecutar la prueba de Supabase al hacer click", async () => {
     vi.mocked(actions.checkSupabaseConnection).mockResolvedValue({
       success: true,
-      message: "Conexión OK",
+      message: "Conexion OK",
       timestamp: new Date().toISOString(),
     });
 
     render(<DiagnosticsPanel initialStatus={mockInitialStatus} />);
-    
-    const testButtons = screen.getAllByRole("button", { name: /probar conexión/i });
-    // El primer botón es el de Supabase según el orden en el componente
+
+    const testButtons = screen.getAllByRole("button", { name: /probar conexion/i });
     fireEvent.click(testButtons[0]);
 
     await waitFor(() => {
       expect(actions.checkSupabaseConnection).toHaveBeenCalled();
-      expect(screen.getByText("Conexión OK")).toBeInTheDocument();
+      expect(screen.getByText("Conexion OK")).toBeInTheDocument();
     });
   });
 
-  it("debe mostrar error si la acción falla", async () => {
+  it("debe mostrar error si la accion falla", async () => {
     vi.mocked(actions.checkSupabaseConnection).mockRejectedValue(new Error("Network Error"));
 
     render(<DiagnosticsPanel initialStatus={mockInitialStatus} />);
-    
-    const testButtons = screen.getAllByRole("button", { name: /probar conexión/i });
+
+    const testButtons = screen.getAllByRole("button", { name: /probar conexion/i });
     fireEvent.click(testButtons[0]);
 
     await waitFor(() => {
@@ -94,16 +94,15 @@ describe("DiagnosticsPanel Component", () => {
     });
   });
 
-  it("debe mostrar estado 'Falta Configuración' si el servicio no está configurado", () => {
+  it("debe mostrar estado falta configuracion si servicio no esta configurado", () => {
     const statusMissing = {
       ...mockInitialStatus,
       supabase: { configured: false, serviceRole: false },
     };
+
     render(<DiagnosticsPanel initialStatus={statusMissing} />);
-    
-    expect(screen.getByText("Falta Configuración")).toBeInTheDocument();
-    // No debería haber botón de probar para Supabase si serviceRole es false
-    // Buscamos que haya al menos uno (Supabase, SMTP, PayPal lo tienen en este mock)
-    expect(screen.getAllByText("Validación manual").length).toBeGreaterThan(0);
+
+    expect(screen.getByText(/falta configuracion/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/validacion manual/i).length).toBeGreaterThan(0);
   });
 });

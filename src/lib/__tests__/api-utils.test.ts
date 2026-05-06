@@ -17,10 +17,7 @@ describe("api-utils", () => {
   const originalNodeEnv = process.env.NODE_ENV;
 
   function setNodeEnv(value: string) {
-    Object.defineProperty(process.env, "NODE_ENV", {
-      value,
-      configurable: true,
-    });
+    process.env.NODE_ENV = value;
   }
 
   beforeEach(() => {
